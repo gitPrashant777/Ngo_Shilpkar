@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/widgets/action_card.dart';
+import '../../../jobs/presentation/screens/user_job_list_screen.dart';
+import '../../../schemes/presentation/screens/user_scheme_list_screen.dart';
+import 'my_applications_screen.dart';
 
 class BeneficiaryDashboard extends StatelessWidget {
   const BeneficiaryDashboard({super.key});
@@ -9,7 +12,7 @@ class BeneficiaryDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FB),
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(context),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -26,6 +29,7 @@ class BeneficiaryDashboard extends StatelessWidget {
                     const Color(0xFFD9A05B),
                         () {
                       // Navigate to Job List
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const UserJobListScreen()));
                     },
                   ),
                   const SizedBox(height: 16),
@@ -40,7 +44,9 @@ class BeneficiaryDashboard extends StatelessWidget {
                           "View Schemes",
                           Icons.assignment_turned_in_rounded,
                           const Color(0xFF55789A),
-                              () {},
+                              () {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => const UserSchemeListScreen()));
+                              },
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -70,11 +76,11 @@ class BeneficiaryDashboard extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: _buildBottomNav(context),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
       backgroundColor: const Color(0xFF55789A),
       elevation: 0,
@@ -249,18 +255,35 @@ class BeneficiaryDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomNav() {
+  Widget _buildBottomNav(BuildContext context) {
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
       backgroundColor: const Color(0xFF55789A),
       selectedItemColor: Colors.white,
       unselectedItemColor: Colors.white70,
       currentIndex: 1,
+      onTap: (index) {
+        if (index == 0) { // Jobs
+           Navigator.push(context, MaterialPageRoute(builder: (_) => const UserJobListScreen()));
+        } else if (index == 2) { // Schemes/Applications ? 
+           // Let's make "Schemes" icon go to Scheme List or My Applications
+           // Label is "Schemes". Maybe Scheme List?
+           // But we also have "Bottom Nav -> Profile" which usually shows profile.
+           // And "Schemes" usually means "View Schemes".
+           Navigator.push(context, MaterialPageRoute(builder: (_) => const UserSchemeListScreen()));
+        } else if (index == 3) { // Profile or "My Apps"
+           // Let's simplify and make index 3 go to MyApplicationsScreen for now or Profile.
+           // Since "Profile" label is there, it should go to Profile. 
+           // But I don't have Profile screen in the plan yet, but I created MyApplicationsScreen.
+           // I'll leave Profile as placeholder or route to MyApplicationsScreen temporarily or just a placeholder.
+           Navigator.push(context, MaterialPageRoute(builder: (_) => const MyApplicationsScreen()));
+        }
+      },
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.work_outline), label: "Jobs"),
         BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
         BottomNavigationBarItem(icon: Icon(Icons.assignment_outlined), label: "Schemes"),
-        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: "Profile"),
+        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: "Applications"),
       ],
     );
   }

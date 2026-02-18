@@ -156,16 +156,7 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen> {
               validator: (v) => v == null || v.isEmpty ? "Required" : null,
             ),
 
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {}, // Forgot password logic
-                child: const Text(
-                  "Forgot Password?",
-                  style: TextStyle(color: Color(0xFF2563EB), fontSize: 13),
-                ),
-              ),
-            ),
+
 
             const SizedBox(height: 10),
 

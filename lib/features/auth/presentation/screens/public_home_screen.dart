@@ -1,13 +1,54 @@
 import 'package:flutter/material.dart';
-import 'package:shilpkar/features/dashboard/presentation/screens/admin_login_screen.dart';
-import 'package:shilpkar/features/admin/presentation/screens/admin_dashboard.dart';
+import 'package:dio/dio.dart';
+
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/api/api_client.dart';
 import '../../../../shared/widgets/GradientActionCard.dart';
+
 import 'beneficiary_login_screen.dart';
 import 'employee_login_screen.dart';
+import 'package:shilpkar/features/dashboard/presentation/screens/admin_login_screen.dart';
+import 'package:shilpkar/features/jobs/presentation/screens/job_list_screen.dart';
 
-class PublicHomeScreen extends StatelessWidget {
+class PublicHomeScreen extends StatefulWidget {
   const PublicHomeScreen({super.key});
+
+  @override
+  State<PublicHomeScreen> createState() => _PublicHomeScreenState();
+}
+
+class _PublicHomeScreenState extends State<PublicHomeScreen> {
+  final Dio _dio = ApiClient().dio;
+
+  List<String> _coverImages = [];
+  String _title = "Welcome to Shilpkar Foundation";
+  String _subtitle = "Empowering communities with purpose driven actions";
+
+  bool _isLoadingBanner = true;
+  final PageController _pageController = PageController();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchHomepage();
+  }
+
+  Future<void> _fetchHomepage() async {
+    try {
+      final response = await _dio.get("/homepage");
+      final data = response.data;
+      final images = data["coverImages"] as List? ?? [];
+
+      setState(() {
+        _coverImages = images.map((e) => e["url"] as String).toList();
+        _title = data["welcomeSection"]?["title"] ?? _title;
+        _subtitle = data["welcomeSection"]?["subtitle"] ?? _subtitle;
+        _isLoadingBanner = false;
+      });
+    } catch (e) {
+      setState(() => _isLoadingBanner = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,133 +56,244 @@ class PublicHomeScreen extends StatelessWidget {
       backgroundColor: AppColors.backgroundGrey,
       appBar: _buildAppBar(),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            // ─── Hero Banner ─────────────────────────────────
             _buildHeroSection(),
-            const SizedBox(height: 24),
 
-            GradientActionCard(
-              title: "Login as Employee",
-              subtitle: "for field staff, coordinators and office team",
-              icon: Icons.person_pin_rounded,
-              gradientColors: AppColors.employeeGradient,
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmployeeLoginScreen())),            ),
-            GradientActionCard(
-              title: "Login as Beneficiary",
-              subtitle: "for farmers, women, workers, students & citizens",
-              icon: Icons.group_add_rounded,
-              gradientColors: AppColors.beneficiaryGradient,
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) =>  BeneficiaryLoginScreen())),            ),
-            GradientActionCard(
-              title: "Login as Admin",
-              subtitle: "for admins and super-admin",
-              icon: Icons.admin_panel_settings_rounded,
-              gradientColors: AppColors.adminGradient,
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) =>  AdminLoginScreen())),
-            ),
-            GradientActionCard(
-              title: "Apply for a Job",
-              subtitle: "View open positions and apply with your qualifications",
-              icon: Icons.edit_document,
-              gradientColors: AppColors.jobGradient,
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) =>  AdminDashboard())),
-            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
 
-            _buildSecondaryActions(),
-            const SizedBox(height: 16),
-            _buildInfoGrid(),
-            const SizedBox(height: 16),
-            _buildDonateCard(),
+                  // ─── Login Action Cards ──────────────────────
+                  GradientActionCard(
+                    title: "Login as Employee",
+                    subtitle: "for field staff, coordinators and office team",
+                    icon: Icons.person_pin_rounded,
+                    gradientColors: AppColors.employeeGradient,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const EmployeeLoginScreen()),
+                    ),
+                  ),
+
+                  GradientActionCard(
+                    title: "Login as Beneficiary",
+                    subtitle: "for farmers, women, workers, students & citizens",
+                    icon: Icons.group_add_rounded,
+                    gradientColors: AppColors.beneficiaryGradient,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const BeneficiaryLoginScreen()),
+                    ),
+                  ),
+
+                  GradientActionCard(
+                    title: "Login as Admin",
+                    subtitle: "for admins and super-admin",
+                    icon: Icons.admin_panel_settings_rounded,
+                    gradientColors: AppColors.adminGradient,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
+                    ),
+                  ),
+
+                  GradientActionCard(
+                    title: "Apply for a Job",
+                    subtitle: "View open positions and apply with your qualifications",
+                    icon: Icons.work_outline,
+                    gradientColors: AppColors.jobGradient,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const JobListScreen()),
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // ─── Info Boxes Row ──────────────────────────
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildInfoBox(
+                          icon: Icons.diversity_3_rounded,
+                          iconColor: AppColors.primaryBlue,
+                          title: "Join Us on our social mission",
+                          subtitle: "Be a part of beautiful change",
+                          buttonLabel: "Join Now",
+                          buttonColor: AppColors.primaryBlue,
+                          bgColor: AppColors.joinUsBg,
+                          onTap: () {},
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildInfoBox(
+                          icon: Icons.volunteer_activism_rounded,
+                          iconColor: AppColors.accentRed,
+                          title: "Purpose Driven Products",
+                          subtitle: "Every product you support creates impact",
+                          buttonLabel: "Explore Products",
+                          buttonColor: AppColors.secondaryGreen,
+                          bgColor: AppColors.productsBg,
+                          onTap: () {},
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ─── Pillar Cards Row ────────────────────────
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildPillarCard(
+                          icon: Icons.auto_awesome_rounded,
+                          iconColor: AppColors.secondaryGreen,
+                          label: "Our Vision",
+                          sub: "Why we Exist",
+                          bgColor: const Color(0xFFE8F5E9),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildPillarCard(
+                          icon: Icons.handyman_rounded,
+                          iconColor: AppColors.primaryBlue,
+                          label: "Our Work",
+                          sub: "what we do on the ground",
+                          bgColor: const Color(0xFFE3F2FD),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildPillarCard(
+                          icon: Icons.emoji_events_rounded,
+                          iconColor: AppColors.accentRed,
+                          label: "Our Impact",
+                          sub: "Lives touched & villages reached",
+                          bgColor: const Color(0xFFFCE4EC),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ─── Donate Card ─────────────────────────────
+                  _buildDonateCard(),
+
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
-  Widget _buildSecondaryActions() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildSquareBox(
-            "Join Us on our social mission",
-            "Be a part of beautiful change",
-            "Join Now",
-            Icons.groups_rounded,
-            const Color(0xFFF1F4F7),
-            const Color(0xFF55789A),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildSquareBox(
-            "Purpose Driven Products",
-            "Every product you support creates impact",
-            "Explore Products",
-            Icons.shopping_bag_rounded,
-            const Color(0xFFF1F4F7),
-            const Color(0xFF7A9E6F),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoGrid() {
-    return Row(
-      children: [
-        Expanded(child: _buildMiniCard("Our Vision", "Why we Exist", Icons.track_changes_rounded, Colors.orange)),
-        const SizedBox(width: 8),
-        Expanded(child: _buildMiniCard("Our Work", "what we do on the ground", Icons.auto_graph_rounded, Colors.blue)),
-        const SizedBox(width: 8),
-        Expanded(child: _buildMiniCard("Our Impact", "Lives touched & villages reached", Icons.public_rounded, Colors.green)),
-      ],
-    );
-  }
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //  APP BAR
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: AppColors.appBarBlue,
       elevation: 0,
+      scrolledUnderElevation: 0,
+      surfaceTintColor: Colors.transparent,
       title: Row(
         children: [
-          Image.asset('assets/Images/logoSk.png', height: 35), // Updated to your logo path
+          Image.asset('assets/Images/logoSk.png', height: 35),
           const SizedBox(width: 8),
-          const Text("Shilpkar Foundation", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          const Text(
+            "Shilpkar Foundation",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
         ],
       ),
       actions: [
-        _buildLanguageToggle(),
+        Center(
+          child: Container(
+            margin: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Text(
+              "English | मराठी",
+              style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
       ],
     );
   }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //  HERO BANNER
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Widget _buildHeroSection() {
-    return Container(
-      height: 200,
+    if (_isLoadingBanner) {
+      return const SizedBox(
+        height: 180,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return SizedBox(
+      height: 180,
       width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        image: const DecorationImage(
-          // Updated to use your local asset image
-          image: AssetImage('assets/Images/Frame2.png'),
-          fit: BoxFit.cover,
-          // Darken filter to make the white text readable
-          colorFilter: ColorFilter.mode(Colors.black45, BlendMode.darken),
-        ),
-      ),
-      child: const Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          Text(
-              "Welcome to Shilpkar Foundation",
-              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)
-          ),
+          // Image
+          _coverImages.isNotEmpty
+              ? PageView.builder(
+                  controller: _pageController,
+                  itemCount: _coverImages.length,
+                  itemBuilder: (context, index) {
+                    return Image.network(
+                      _coverImages[index],
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Image.asset('assets/Images/Frame2.png', fit: BoxFit.cover);
+                      },
+                    );
+                  },
+                )
+              : Image.asset('assets/Images/Frame2.png', fit: BoxFit.cover),
+
+          // Dark Overlay
+          Container(color: Colors.black.withOpacity(0.45)),
+
+          // Text Content
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              "Empowering communities with purpose driven actions",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white, fontSize: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _subtitle,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
             ),
           ),
         ],
@@ -149,119 +301,127 @@ class PublicHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLanguageToggle() {
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.only(right: 16),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-        child: const Text("English  |  मराठी", style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
-      ),
-    );
-  }
-
-
-
-  // Updated Square Box with proper Join Now / Explore buttons
-  Widget _buildSquareBox(String title, String subtitle, String btnText, IconData icon, Color bg, Color accent) {
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //  INFO BOX (Join Us / Purpose Driven)
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Widget _buildInfoBox({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required String buttonLabel,
+    required Color buttonColor,
+    required Color bgColor,
+    required VoidCallback onTap,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(12),
-      height: 155, // Fixed height to match Figma aspect ratio
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F4F7), // Light greyish background from image
-        borderRadius: BorderRadius.circular(12),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: accent, size: 28),
+          Icon(icon, color: iconColor, size: 28),
           const SizedBox(height: 8),
           Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF2D3134)),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
           ),
           const SizedBox(height: 4),
           Text(
             subtitle,
-            style: const TextStyle(fontSize: 10, color: Colors.grey),
+            style: TextStyle(fontSize: 10, color: Colors.grey.shade700),
           ),
-          const Spacer(),
+          const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             height: 32,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: onTap,
               style: ElevatedButton.styleFrom(
-                backgroundColor: accent,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                backgroundColor: buttonColor,
                 elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: EdgeInsets.zero,
               ),
-              child: Text(btnText, style: const TextStyle(fontSize: 11, color: Colors.white)),
+              child: Text(
+                buttonLabel,
+                style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold),
+              ),
             ),
-          )
+          ),
         ],
       ),
     );
   }
 
-  // Updated Mini Cards for the Info Grid
-  Widget _buildMiniCard(String title, String subtitle, IconData icon, Color iconColor) {
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //  PILLAR CARD (Our Vision / Our Work / Our Impact)
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Widget _buildPillarCard({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required String sub,
+    required Color bgColor,
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-      height: 75,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F4F7),
-        borderRadius: BorderRadius.circular(10),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 16, color: iconColor),
-              const SizedBox(width: 4),
-              Text(
-                title,
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2D3134)),
-              ),
-            ],
+          Icon(icon, color: iconColor, size: 22),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+              color: iconColor,
+            ),
           ),
           const SizedBox(height: 2),
           Text(
-            subtitle,
+            sub,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 8, color: Colors.grey),
+            style: TextStyle(fontSize: 9, color: Colors.grey.shade600),
           ),
         ],
       ),
     );
   }
 
-  // Updated Donate Card with the rounded pink button
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //  DONATE CARD
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Widget _buildDonateCard() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Row(
         children: [
-          const Icon(Icons.favorite, color: Color(0xFFE93452), size: 30),
+          const Icon(Icons.favorite_rounded, color: Colors.redAccent, size: 28),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   "Donate",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2D3134)),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 Text(
                   "Your support help us reach more communities",
-                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                 ),
               ],
             ),
@@ -269,32 +429,18 @@ class PublicHomeScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () {},
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE93452),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              backgroundColor: AppColors.secondaryGreen,
               elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             ),
-            child: const Text("Donate", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          )
+            child: const Text(
+              "Donate",
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+            ),
+          ),
         ],
       ),
     );
   }
-
-  Widget _buildBottomNav() {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: AppColors.appBarBlue,
-      selectedItemColor: Colors.white,
-      unselectedItemColor: Colors.white70,
-      currentIndex: 1,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.work_outline), label: "Jobs"),
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-        BottomNavigationBarItem(icon: Icon(Icons.assignment_outlined), label: "Schemes"),
-        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: "Profile"),
-      ],
-    );
-  }
 }
-

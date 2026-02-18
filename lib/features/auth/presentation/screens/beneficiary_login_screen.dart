@@ -7,6 +7,7 @@ import '../../../../shared/widgets/custom_button.dart';
 import '../../../dashboard/presentation/screens/beneficiary_dashboard.dart';
 import '../providers/auth_provider.dart';
 import '../../data/models/login_request.dart';
+import 'forgot_password_screen.dart';
 
 class BeneficiaryLoginScreen extends StatefulWidget {
   const BeneficiaryLoginScreen({super.key});
@@ -18,6 +19,7 @@ class BeneficiaryLoginScreen extends StatefulWidget {
 class _BeneficiaryLoginScreenState extends State<BeneficiaryLoginScreen> {
   String? selectedCategory; // Nullable to handle initial state
   bool showLoginForm = false;
+  bool _isObscure = true;
 
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -135,21 +137,22 @@ class _BeneficiaryLoginScreenState extends State<BeneficiaryLoginScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _passwordController,
-              obscureText: true,
-              decoration: _inputDecoration("Enter Password"),
+              obscureText: _isObscure,
+              decoration: InputDecoration(
+                hintText: "Enter Password",
+                hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
+                suffixIcon: IconButton(
+                    icon: Icon(_isObscure ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () => setState(() => _isObscure = !_isObscure),
+                ),
+              ),
               validator: (v) => v == null || v.isEmpty ? "Required" : null,
             ),
 
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {},
-                child: const Text(
-                  "Forgot Password?",
-                  style: TextStyle(color: Color(0xFF2563EB), fontSize: 13),
-                ),
-              ),
-            ),
+
 
             const SizedBox(height: 10),
 

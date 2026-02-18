@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
+
 import '../../../../core/utils/storage_service.dart';
 import '../../data/models/login_request.dart';
 import '../../data/repository/auth_repository.dart';
+import '../../data/repository/user_repository.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthRepository _repository = AuthRepository();
@@ -10,9 +12,11 @@ class AuthProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   String? _errorMessage;
+  String? _role;   // 👈 ADD THIS
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  String? get role => _role;   // 👈 ADD GETTER
 
   Future<bool> login(LoginRequest request) async {
     _isLoading = true;
@@ -23,6 +27,9 @@ class AuthProvider extends ChangeNotifier {
       final data = await _repository.login(request);
 
       if (data["token"] != null) {
+
+        _role = data["role"];   // 👈 STORE ROLE
+
         await _storage.saveAuthData(
           token: data["token"],
           role: data["role"],
@@ -44,11 +51,32 @@ class AuthProvider extends ChangeNotifier {
         "Connection error. Please check your internet.";
       }
     } catch (_) {
-      _errorMessage = "Unexpected error occurred.";
+      _errorMessage = "Invalid Credentials.";
     }
 
     _isLoading = false;
     notifyListeners();
     return false;
+  }
+  Future<bool> forgotPassword(String email) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      // Lazy fix: Instantiate UserRepository directly since we added the method there
+      // Ideally should be in AuthRepository or injected.
+      final UserRepository userRepo = UserRepository(); 
+      await userRepo.forgotPassword(email);
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll("Exception: ", "");
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 }

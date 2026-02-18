@@ -5,20 +5,24 @@ class StorageService {
 
   static const String _tokenKey = 'jwt_token';
   static const String _roleKey = 'user_role';
-  static const String _usernameKey = 'username';
+  static const String _identifierKey = 'user_identifier';
 
   Future<void> saveAuthData({
     required String token,
     required String role,
-    required String identifier, // email or username
+    required String identifier,
   }) async {
     await _storage.write(key: _tokenKey, value: token);
     await _storage.write(key: _roleKey, value: role);
-    await _storage.write(key: _usernameKey, value: identifier);
+    await _storage.write(key: _identifierKey, value: identifier);
   }
 
-  Future<String?> getToken() async => await _storage.read(key: _tokenKey);
-  Future<String?> getRole() async => await _storage.read(key: _roleKey);
+  Future<String?> getToken() async =>
+      await _storage.read(key: _tokenKey);
 
-  Future<void> clearAll() async => await _storage.deleteAll();
+  Future<String?> getRole() async =>
+      await _storage.read(key: _roleKey);
+
+  Future<void> clearAll() async =>
+      await _storage.deleteAll();
 }

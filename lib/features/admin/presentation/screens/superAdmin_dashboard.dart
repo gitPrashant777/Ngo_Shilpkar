@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:shilpkar/features/admin/presentation/screens/select_employee_role_screen.dart';
+import 'package:shilpkar/features/auth/presentation/screens/public_home_screen.dart';
+import 'package:shilpkar/features/jobs/presentation/screens/job_list_screen.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/navigation/main_navigation.dart';
+import '../../../../core/utils/storage_service.dart';
 import '../../../../shared/widgets/action_card.dart';
+import '../../../jobs/presentation/screens/admin_job_management_screen.dart';
+import '../../../schemes/presentation/screens/Superadmin_scheme_management_screen.dart';
 import 'MakeAdminScreen.dart';
-import 'MakeEmployeeScreen.dart';
+import 'SuperMakeEmployeeScreen.dart';
+import 'beneficiary_list_screen.dart';
 
-class AdminDashboard extends StatelessWidget {
-  const AdminDashboard({super.key});
+class SuperAdminDashboard extends StatelessWidget {
+  const SuperAdminDashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FB),
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(context),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -36,7 +44,8 @@ class AdminDashboard extends StatelessWidget {
                             // Navigates to the specialized Admin creation screen
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const MakeAdminScreen()),
+                              MaterialPageRoute(
+                                  builder: (_) => const MakeAdminScreen()),
                             );
                           },
                         ),
@@ -50,14 +59,18 @@ class AdminDashboard extends StatelessWidget {
                           Icons.person_add,
                           const Color(0xFF7A9E6F),
                               () {
-                            // Navigates to the multi-step Employee creation screen
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const MakeEmployeeScreen()),
+                              MaterialPageRoute(
+                                builder: (
+                                    _) => const SelectEmployeeRoleScreen(),
+                              ),
                             );
                           },
                         ),
+
                       ),
+
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -82,7 +95,14 @@ class AdminDashboard extends StatelessWidget {
                           "See Details",
                           Icons.group,
                           const Color(0xFF638FB4),
-                              () {},
+                              () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const BeneficiaryListScreen(),
+                              ),
+                            );
+                          },
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -90,10 +110,17 @@ class AdminDashboard extends StatelessWidget {
                         child: _buildAdminFeatureBox(
                           "Job Requests",
                           "Check details of people who applied for jobs",
-                          "Make Employee",
+                          "See",
                           Icons.work_history,
                           const Color(0xFF638FB4),
-                              () {}, // Logic to review applications
+                              () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AdminJobManagementScreen(),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ],
@@ -108,29 +135,118 @@ class AdminDashboard extends StatelessWidget {
                     const Color(0xFFB4C8B4),
                         () {},
                   ),
+                  _buildAdminFeatureBox(
+                    "Manage Schemes",
+                    "Create, publish and archive schemes",
+                    "Open",
+                    Icons.assignment,
+                    const Color(0xFF4A78B0),
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const SuperAdminSchemeManagementScreen()),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
-
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
       backgroundColor: const Color(0xFF55789A),
       elevation: 0,
+      scrolledUnderElevation: 0,   // 🔥 important
+      shadowColor: Colors.transparent,  // 🔥 remove shadow
+      surfaceTintColor: Colors.transparent, // 🔥 remove material3 tint
       title: Row(
         children: [
           Image.asset('assets/Images/logoSk.png', height: 40),
-          const SizedBox(width: 8),
-          const Text("Shilpkar Foundation", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(width: 6),
+          const Text(
+            "Shilpkar Foundation",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
         ],
       ),
       actions: [
         _buildLanguageToggle(),
+        const SizedBox(width: 2),
+        IconButton(
+          icon: const Icon(Icons.logout, color: Colors.white),
+          onPressed: () async {
+            final storage = StorageService();
+            await storage.clearAll();
+            if (context.mounted) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const MainNavigationScreen(),
+                ),
+                    (route) => false,
+              );
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+
+  Widget _buildBottomNav(BuildContext context) {
+    return BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
+      backgroundColor: AppColors.appBarBlue,
+      selectedItemColor: Colors.white,
+      unselectedItemColor: Colors.white70,
+      currentIndex: 1,
+      // Home selected
+      onTap: (index) {
+        switch (index) {
+          case 0:
+          // ✅ Navigate to Job List
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const JobListScreen(),
+              ),
+            );
+            break;
+
+          case 1:
+          // Already on Home
+            break;
+
+          case 2:
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Schemes coming soon")),
+            );
+            break;
+
+          case 3:
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Profile coming soon")),
+            );
+            break;
+        }
+      },
+      items: const [
+        BottomNavigationBarItem(
+            icon: Icon(Icons.work_outline), label: "Jobs"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.home), label: "Home"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.assignment_outlined), label: "Schemes"),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline), label: "Profile"),
       ],
     );
   }
@@ -151,7 +267,9 @@ class AdminDashboard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text("Welcome to Shilpkar Foundation",
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                style: TextStyle(color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold)),
             Text("Empowering communities with purpose driven actions",
                 style: TextStyle(color: Colors.white, fontSize: 12)),
           ],
@@ -160,7 +278,8 @@ class AdminDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildAdminFeatureBox(String title, String sub, String btn, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildAdminFeatureBox(String title, String sub, String btn,
+      IconData icon, Color color, VoidCallback onTap) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -172,15 +291,18 @@ class AdminDashboard extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 30),
           const SizedBox(height: 8),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          Text(title, style: const TextStyle(
+              fontWeight: FontWeight.bold, fontSize: 14)),
           Text(sub, style: const TextStyle(fontSize: 10, color: Colors.grey)),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: onTap,
-              style: ElevatedButton.styleFrom(backgroundColor: color, elevation: 0),
-              child: Text(btn, style: const TextStyle(fontSize: 11, color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: color, elevation: 0),
+              child: Text(btn,
+                  style: const TextStyle(fontSize: 11, color: Colors.white)),
             ),
           )
         ],
@@ -188,12 +310,14 @@ class AdminDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildFullWidthAction(String title, String sub, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildFullWidthAction(String title, String sub, IconData icon,
+      Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(
+            color: color, borderRadius: BorderRadius.circular(12)),
         child: Row(
           children: [
             Icon(icon, color: Colors.black54, size: 32),
@@ -201,8 +325,10 @@ class AdminDashboard extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text(sub, style: const TextStyle(fontSize: 12, color: Colors.black45)),
+                Text(title, style: const TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(sub, style: const TextStyle(
+                    fontSize: 12, color: Colors.black45)),
               ],
             )
           ],
@@ -216,24 +342,14 @@ class AdminDashboard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(right: 16),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-        child: const Text("English | मराठी", style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
+        decoration: BoxDecoration(
+            color: Colors.white, borderRadius: BorderRadius.circular(20)),
+        child: const Text("English | मराठी", style: TextStyle(
+            color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
       ),
     );
   }
 
-  Widget _buildBottomNav() {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: const Color(0xFF55789A),
-      selectedItemColor: Colors.white,
-      unselectedItemColor: Colors.white70,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.work), label: "Jobs"),
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-        BottomNavigationBarItem(icon: Icon(Icons.description), label: "Schemes"),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-      ],
-    );
-  }
+
+  
 }

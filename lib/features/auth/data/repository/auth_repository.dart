@@ -17,14 +17,25 @@ class AuthRepository {
     print("========= LOGIN REQUEST =========");
     print(body);
 
-    final response = await _dio.post(
-      "/auth/login",
-      data: body,
-    );
+    try {
+      final response = await _dio.post(
+        "/auth/login",
+        data: body,
+      );
 
-    print("========= LOGIN RESPONSE =========");
-    print(response.data);
+      print("========= LOGIN SUCCESS =========");
+      print("Status Code: ${response.statusCode}");
+      print("Response Data: ${response.data}");
 
-    return response.data;
+      return response.data;
+
+    } on DioException catch (e) {
+      print("========= LOGIN ERROR =========");
+      print("Status Code: ${e.response?.statusCode}");
+      print("Response Data: ${e.response?.data}");
+      print("Error Message: ${e.message}");
+
+      throw Exception(e.response?.data["message"] ?? "Login failed");
+    }
   }
 }
