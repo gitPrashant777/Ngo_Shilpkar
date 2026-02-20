@@ -19,8 +19,10 @@ import '../../../ecommerce/presentation/screens/admin/admin_product_management_s
 import '../../../ecommerce/presentation/screens/admin/admin_product_management_screen.dart';
 import '../../../ecommerce/presentation/screens/admin/admin_category_management_screen.dart';
 import '../../../chat/presentation/screens/chat_list_screen.dart' as shilpkar;
+import '../../../chat/presentation/screens/admin_broadcast_screen.dart';
 import 'create_beneficiary_screen.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
+import '../../../onboarding/presentation/screens/onboarding_admin_screen.dart';
 
 class SuperAdminDashboard extends StatefulWidget {
   const SuperAdminDashboard({super.key});
@@ -50,7 +52,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
           children: [
             _buildHeroSection(),
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(10.0),
               child: Column(
                 children: [
                   // Row for User Management
@@ -75,7 +77,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                           },
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: _buildAdminFeatureBox(
                           "Make Employee",
@@ -95,7 +97,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                         ),
 
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: _buildAdminFeatureBox(
                           "Make Beneficiary",
@@ -243,34 +245,69 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  // Explore Products Link for Admins
-                   _buildFullWidthAction(
-                    "Explore Products",
-                    "View the public shopping page",
-                    Icons.shopping_bag_outlined,
-                    Colors.green,
-                        () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ProductListScreen()),
-                      );
-                    },
-                  ),
-                  
                   const SizedBox(height: 16),
 
-                   _buildFullWidthAction(
-                    "Chat Requests",
-                    "Manage help requests",
-                    Icons.chat,
-                    const Color(0xFF5C6BC0),
-                        () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const shilpkar.ChatListScreen()),
-                      );
-                    },
+                  // --- Quick Access Grid (2x2, light pastel cards) ---
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4),
+                      child: Text(
+                        "Quick Access",
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blueGrey),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildLightCardAction(
+                          "Explore Products",
+                          "View the public store",
+                          Icons.shopping_bag_outlined,
+                          const Color(0xFFE8F5E9),
+                          const Color(0xFF4CAF50),
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen())),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildLightCardAction(
+                          "Chat Requests",
+                          "Manage help requests",
+                          Icons.chat_bubble_outline,
+                          const Color(0xFFE8EAF6),
+                          const Color(0xFF5C6BC0),
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const shilpkar.ChatListScreen())),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildLightCardAction(
+                          "System Broadcasts",
+                          "Send announcements",
+                          Icons.campaign_outlined,
+                          const Color(0xFFFFF3E0),
+                          const Color(0xFFFF9800),
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminBroadcastScreen())),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildLightCardAction(
+                          "Onboarding Config",
+                          "Fee & waiver management",
+                          Icons.account_balance_wallet_outlined,
+                          const Color(0xFFE0F2F1),
+                          const Color(0xFF009688),
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OnboardingAdminScreen())),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 24),
         ]
@@ -321,7 +358,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const MainNavigationScreen(),
+                  builder: (_) => const MainNavigationScreen(initialIndex: 1),
                 ),
                     (route) => false,
               );
@@ -334,55 +371,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
 
   // ... (build methods)
 
-  Widget _buildBottomNav(BuildContext context) {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: AppColors.appBarBlue,
-      selectedItemColor: Colors.white,
-      unselectedItemColor: Colors.white70,
-      currentIndex: 1,
-      // Home selected
-      onTap: (index) {
-        switch (index) {
-          case 0:
-          // ✅ Navigate to Job List
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const JobListScreen(),
-              ),
-            );
-            break;
-
-          case 1:
-          // Already on Home
-            break;
-
-          case 2:
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Schemes coming soon")),
-            );
-            break;
-
-          case 3:
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Profile coming soon")),
-            );
-            break;
-        }
-      },
-      items: const [
-        BottomNavigationBarItem(
-            icon: Icon(Icons.work_outline), label: "Jobs"),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.home), label: "Home"),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.assignment_outlined), label: "Schemes"),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline), label: "Profile"),
-      ],
-    );
-  }
+  // ... (build methods)
 
   Widget _buildHeroSection() {
     return Consumer<HomepageProvider>(
@@ -500,10 +489,34 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
               style: ElevatedButton.styleFrom(
                   backgroundColor: color, elevation: 0),
               child: Text(btn,
-                  style: const TextStyle(fontSize: 11, color: Colors.white)),
+                  style: const TextStyle(fontSize: 10, color: Colors.white)),
             ),
           )
         ],
+      ),
+    );
+  }
+
+  Widget _buildLightCardAction(String title, String sub, IconData icon,
+      Color bgColor, Color iconColor, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: iconColor, size: 28),
+            const SizedBox(height: 10),
+            Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: iconColor)),
+            const SizedBox(height: 2),
+            Text(sub, style: const TextStyle(fontSize: 11, color: Colors.black45)),
+          ],
+        ),
       ),
     );
   }

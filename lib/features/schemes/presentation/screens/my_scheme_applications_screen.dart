@@ -64,7 +64,6 @@ class _MySchemeApplicationsScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("My Scheme Applications")),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _applications.isEmpty
@@ -75,22 +74,65 @@ class _MySchemeApplicationsScreenState
           final app = _applications[index];
 
           return Card(
-            margin: const EdgeInsets.all(12),
-            child: ListTile(
-              title: Text(app.schemeName),
-              subtitle: Text(
-                app.status,
-                style: TextStyle(
-                  color: _statusColor(app.status),
-                  fontWeight: FontWeight.bold,
-                ),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            elevation: 2,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              app.schemeName,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2C3E50)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _statusColor(app.status).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: _statusColor(app.status).withOpacity(0.5)),
+                        ),
+                        child: Text(
+                          app.status,
+                          style: TextStyle(
+                            color: _statusColor(app.status),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (app.status == "UNDER_REVIEW") ...[
+                    const SizedBox(height: 12),
+                    Align(
+                       alignment: Alignment.centerRight,
+                       child: TextButton.icon(
+                         icon: const Icon(Icons.cancel_outlined, size: 16, color: Colors.red),
+                         label: const Text("Withdraw", style: TextStyle(color: Colors.red, fontSize: 13)),
+                         style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                         ),
+                         onPressed: () => _withdraw(app.id),
+                       ),
+                    ),
+                  ]
+                ],
               ),
-              trailing: app.status == "UNDER_REVIEW"
-                  ? IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
-                onPressed: () => _withdraw(app.id),
-              )
-                  : null,
             ),
           );
         },

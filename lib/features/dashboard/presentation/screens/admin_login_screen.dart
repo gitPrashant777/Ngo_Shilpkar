@@ -68,7 +68,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
             if (showLoginForm)
               _buildLoginCard(authProvider)
             else
-              const SizedBox(height: 100),
+              _buildAutofillSection(),
+              const SizedBox(height: 50),
           ],
         ),
       ),
@@ -202,6 +203,52 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         ),
       ),
     );
+
+  }
+
+  Widget _buildAutofillSection() {
+    return Container(
+      margin: const EdgeInsets.only(top: 20),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.red.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.red.withOpacity(0.05),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            "Debug Autofill",
+            style: TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+          Wrap(
+            spacing: 10,
+            children: [
+              TextButton(
+                onPressed: () {
+                   setState(() {
+                    selectedRole = "ADMIN";
+                    _idController.text = "AD0034";
+                    _passwordController.text = "qjWWWeIZqo";
+                  });
+                },
+                child: const Text("Fill Admin", style: TextStyle(color: Colors.red, fontSize: 12)),
+              ),
+              TextButton(
+                onPressed: () {
+                   setState(() {
+                    selectedRole = "SUPER_ADMIN";
+                    _idController.text = "apurvsrivastava1510@gmail.com";
+                    _passwordController.text = "Admin@1234";
+                  });
+                },
+                child: const Text("Fill Super Admin", style: TextStyle(color: Colors.red, fontSize: 12)),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
   }
 
   void _handleLogin(AuthProvider authProvider) async {
@@ -219,22 +266,11 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     final success = await authProvider.login(request);
 
     if (success && mounted) {
-      final authenticatedRole = authProvider.role;
-
-      // Conditional Navigation based on authenticated role
-      if (authenticatedRole == "SUPER_ADMIN") {
-        Navigator.pushAndRemoveUntil(
+       Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
               (route) => false,
         );
-      } else if (authenticatedRole == "ADMIN") {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const AdminDashboard()),
-              (route) => false,
-        );
-      }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -244,4 +280,5 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
       );
     }
   }
+
 }

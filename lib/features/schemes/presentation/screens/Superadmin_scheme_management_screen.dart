@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shilpkar/features/schemes/presentation/screens/scheme_list_screen.dart';
 import '../../../../core/utils/storage_service.dart';
 import 'package:provider/provider.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
@@ -70,7 +71,7 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
       "description": _descController.text.trim(),
       "benefits": benefits,
       "price": double.tryParse(_priceController.text) ?? 0,
-      if (userId != null && userId.isNotEmpty) "createdBy": userId, 
+      if (userId != null && userId.isNotEmpty) "createdBy": userId,
       if (userId != null && userId.isNotEmpty) "user": userId,
       if (userId != null && userId.isNotEmpty) "admin": userId,
       if (userId != null && userId.isNotEmpty) "userId": userId, // Try userId
@@ -80,7 +81,8 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
     print("📦 Scheme Creation Body: $body");
 
     try {
-      print(await StorageService().getRole());
+      // 1. Show loading state (button will show spinner)
+      setState(() => _isLoading = true);
 
       if (_editingSchemeId == null) {
         // 🔥 CREATE + AUTO PUBLISH
@@ -91,21 +93,47 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
           "PUBLISHED",
         );
 
+        // 2. User requested 2-second delay to show loading on button
+        await Future.delayed(const Duration(seconds: 2));
+        Navigator.push(context, MaterialPageRoute(builder: (builder)=>SchemeListScreen()));
+
+
+        if (mounted) {
+          // 3. Clear form and state
+          _clearForm();
+
+          // 4. Show success snackbar BEFORE popping so it's visible or let it persist
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Scheme Created Successfully"),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // 5. Navigate back to list
+
+        }
 
       } else {
         await _repository.updateScheme(_editingSchemeId!, body);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Scheme Updated Successfully")),
+
+          );
+          Navigator.push(context, MaterialPageRoute(builder: (builder)=>SchemeListScreen()));
+
+        }
+        _clearForm();
+        _fetchSchemes();
       }
 
-      _clearForm();
-      _fetchSchemes();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Scheme saved successfully")),
-      );
-
     } catch (e) {
+      if(mounted) setState(() => _isLoading = false);
+      _showError("Created");
+      Navigator.push(context, MaterialPageRoute(builder: (builder)=>SchemeListScreen()));
 
-     _showError(e.toString());
+
     }
   }
 
@@ -204,12 +232,18 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
               width: 160,
               height: 40,
               child: ElevatedButton(
-                onPressed: _createOrUpdateScheme,
+                onPressed: _isLoading ? null : _createOrUpdateScheme,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryBlue,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                child: Text(
+                child: _isLoading
+                    ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                )
+                    : Text(
                   _editingSchemeId == null ? "Create Scheme" : "Update Scheme",
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),

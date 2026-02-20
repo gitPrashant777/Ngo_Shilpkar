@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shilpkar/core/navigation/main_navigation.dart';
 import 'package:shilpkar/features/auth/presentation/screens/public_home_screen.dart';
 import '../../../../core/utils/storage_service.dart';
 import 'role_selection_screen.dart';
@@ -31,7 +32,7 @@ class _SplashScreenState extends State<SplashScreen> {
     } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const PublicHomeScreen()),
+        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
       );
     }
   }

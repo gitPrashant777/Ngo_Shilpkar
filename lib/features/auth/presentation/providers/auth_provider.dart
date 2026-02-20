@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
+import 'dart:convert';
 
 import '../../../../core/utils/storage_service.dart';
 import '../../data/models/login_request.dart';
@@ -23,7 +24,31 @@ class AuthProvider extends ChangeNotifier {
   Future<void> _checkAuth() async {
     final token = await _storage.getToken();
     final role = await _storage.getRole();
-    final userId = await _storage.getUserId();
+    String? userId = await _storage.getUserId();
+
+    // Fallback if userId was somehow lost or not saved due to backend schema changes
+    if (token != null && (userId == null || userId.trim().isEmpty)) {
+      try {
+        final parts = token.split('.');
+        if (parts.length == 3) {
+          final payload = parts[1];
+          final normalized = base64Url.normalize(payload);
+          final decoded = utf8.decode(base64Url.decode(normalized));
+          final Map<String, dynamic> payloadMap = jsonDecode(decoded);
+          userId = payloadMap['id']?.toString() ?? payloadMap['_id']?.toString() ?? "";
+          if (userId!.isNotEmpty) {
+            await _storage.saveAuthData(
+                token: token,
+                role: role ?? "",
+                identifier: await _storage.getCache('user_identifier') ?? "",
+                userId: userId);
+          }
+        }
+      } catch (e) {
+        debugPrint("JWT decode in checkAuth error: $e");
+      }
+    }
+
     if (token != null && role != null) {
       _role = role;
       _userId = userId;
@@ -67,23 +92,36 @@ class AuthProvider extends ChangeNotifier {
 
         _role = data["role"]?.toString();
 
+        String extractedId = "";
         if (data["user"] != null) {
-          await _storage.saveAuthData(
-            token: data["token"],
-            role: _role ?? "",
-            identifier: data["username"] ?? "",
-            userId: data["user"]["_id"] ?? data["user"]["id"] ?? "",
-          );
-          _userId = data["user"]["_id"] ?? data["user"]["id"];
+          extractedId = data["user"]["_id"]?.toString() ?? data["user"]["id"]?.toString() ?? "";
         } else {
-           await _storage.saveAuthData(
-            token: data["token"],
-            role: _role ?? "",
-            identifier: data["username"] ?? "",
-            userId: data["userId"] ?? "",
-          );
-          _userId = data["userId"];
+          extractedId = data["userId"]?.toString() ?? data["id"]?.toString() ?? "";
         }
+
+        // Foolproof JWT fallback
+        if (extractedId.isEmpty && data["token"] != null) {
+          try {
+            final parts = data["token"].split('.');
+            if (parts.length == 3) {
+              final payload = parts[1];
+              final normalized = base64Url.normalize(payload);
+              final decoded = utf8.decode(base64Url.decode(normalized));
+              final Map<String, dynamic> payloadMap = jsonDecode(decoded);
+              extractedId = payloadMap['id']?.toString() ?? payloadMap['_id']?.toString() ?? "";
+            }
+          } catch (e) {
+            debugPrint("JWT decode error at login: $e");
+          }
+        }
+
+        await _storage.saveAuthData(
+          token: data["token"],
+          role: _role ?? "",
+          identifier: data["username"] ?? "",
+          userId: extractedId,
+        );
+        _userId = extractedId;
 
         return true;
       } else {

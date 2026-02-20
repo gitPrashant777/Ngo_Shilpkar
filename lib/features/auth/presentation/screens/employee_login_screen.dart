@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../../core/navigation/main_navigation.dart';
 import '../../../employee/presentation/screens/employee_dashboard.dart';
 import '../providers/auth_provider.dart';
 import '../../data/models/login_request.dart';
@@ -178,10 +179,9 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen> {
                 final success = await authProvider.login(request);
 
                 if (success && mounted) {
-                  // 1. Clears navigation stack and moves to Employee Dashboard
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (_) => const EmployeeDashboard()),
+                    MaterialPageRoute(builder: (_) => const MainNavigationScreen(initialIndex: 1)),
                         (route) => false,
                   );
                 } else if (mounted) {
@@ -201,6 +201,63 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen> {
               "Use Employee ID and Password Created by the Admin Panel",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+            const SizedBox(height: 20),
+            // Autofill Button (Debug)
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.red.withOpacity(0.3)),
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.red.withOpacity(0.05),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    "Debug Autofill (Tap to fill)",
+                    style: TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () {
+                        setState(() {
+                             selectedRole = "FIELD";
+                             showLoginForm = true; 
+                        });
+                        _idController.text = "FW0002";
+                        _passwordController.text = "hJWc7k2Yj1";
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        padding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      child: const Text("Fill Field (FW0002)"),
+                    ),
+                  ),
+                   SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () {
+                         setState(() {
+                             selectedRole = "COORDINATOR";
+                             showLoginForm = true; 
+                        });
+                        _idController.text = "COOD0001";
+                        _passwordController.text = "3hNuNUmrL5";
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        padding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      child: const Text("Fill Coordinator (COOD0001)"),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

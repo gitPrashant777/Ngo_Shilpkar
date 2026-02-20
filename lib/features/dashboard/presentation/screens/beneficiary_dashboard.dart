@@ -1,22 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shilpkar/features/jobs/presentation/screens/job_list_screen.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/navigation/main_navigation.dart';
 import '../../../../core/utils/storage_service.dart';
 import '../../../../shared/widgets/action_card.dart';
 import '../../../../shared/widgets/dashboard_info_card.dart';
-import '../../../chat/presentation/screens/chat_request_screen.dart' as shilpkar;
-import '../../../chat/presentation/screens/broadcast_list_screen.dart' as shilpkar;
-import '../../../ecommerce/presentation/screens/public/product_list_screen.dart' as shilpkar;
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../beneficiary/presentation/screens/my_application_screen.dart';
+import '../../../chat/presentation/screens/chat_list_screen.dart' as shilpkar;
 import '../../../ecommerce/presentation/screens/public/product_list_screen.dart';
 import '../../../jobs/presentation/screens/user_job_list_screen.dart';
 import '../../../schemes/presentation/screens/user_scheme_list_screen.dart';
-import '../../../jobs/presentation/screens/user_job_list_screen.dart';
-import '../../../schemes/presentation/screens/user_scheme_list_screen.dart';
-import 'my_applications_screen.dart';
+import '../../../home/presentation/providers/homepage_provider.dart';
+import '../../../chat/presentation/screens/public_broadcast_screen.dart';
+import '../../../ecommerce/presentation/screens/public/my_orders_screen.dart';
 
-class BeneficiaryDashboard extends StatelessWidget {
+class BeneficiaryDashboard extends StatefulWidget {
   const BeneficiaryDashboard({super.key});
+
+  @override
+  State<BeneficiaryDashboard> createState() => _BeneficiaryDashboardState();
+}
+
+class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<HomepageProvider>().fetchHomepage();
+    });
+  }
+
   Widget _buildSupportCard(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -48,7 +63,7 @@ class BeneficiaryDashboard extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (_) =>
-                  const shilpkar.ChatRequestScreen(),
+                  const shilpkar.ChatListScreen(),
                 ),
               );
             },
@@ -66,77 +81,99 @@ class BeneficiaryDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB),
-      appBar: _buildAppBar(context),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildHeroSection(),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  // Primary Action: Apply for a Job (Matches Public Home style)
-                  _buildFullWidthAction(
-                    "Apply for a Job",
-                    "View open positions and apply with your qualifications",
-                    Icons.edit_document,
-                    const Color(0xFFD9A05B),
-                        () {
-                      // Navigate to Job List
-                      Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => const JobListScreen()));
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Secondary Actions Row
-                  Row(
+    return Column(
+      children: [
+        _buildAppBar(context),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildHeroSection(),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: _buildCategoryBox(
-                          "My Schemes",
-                          "Track your applied benefits",
-                          "View Schemes",
-                          Icons.assignment_turned_in_rounded,
-                          const Color(0xFF55789A),
-                              () {
-                            Navigator.push(context, MaterialPageRoute(
-                                builder: (_) => const UserSchemeListScreen()));
-                          },
-                        ),
+                      _buildFullWidthAction(
+                        "Apply for a Job",
+                        "View open positions and apply with your qualifications",
+                        Icons.edit_document,
+                        const Color(0xFFD9A05B),
+                            () {
+                          Navigator.push(context, MaterialPageRoute(
+                              builder: (_) => const JobListScreen()));
+                        },
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildCategoryBox(
-                          "Products",
-                          "Explore purpose driven products",
-                          "Explore",
-                          Icons.shopping_bag_rounded,
-                          const Color(0xFF7A9E6F),
-                              () {
-                             Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen()));
-                          },
-                        ),
+                      const SizedBox(height: 16),
+    
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildCategoryBox(
+                              "My Schemes",
+                              "Track your applied benefits",
+                              "View Schemes",
+                              Icons.assignment_turned_in_rounded,
+                              const Color(0xFF55789A),
+                                  () {
+                                Navigator.push(context, MaterialPageRoute(
+                                    builder: (_) => const MyApplicationsScreen()));
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildCategoryBox(
+                              "Products",
+                              "Explore purpose driven products",
+                              "Explore",
+                              Icons.shopping_bag_rounded,
+                              const Color(0xFF7A9E6F),
+                                  () {
+                                 Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen()));
+                              },
+                            ),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 16),
+                      
+                      _buildFullWidthAction(
+                        "Announcements",
+                        "View important system messages",
+                        Icons.campaign_outlined,
+                        const Color(0xFF6B8E23),
+                            () {
+                          Navigator.push(context, MaterialPageRoute(
+                              builder: (_) => const PublicBroadcastScreen()));
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      _buildFullWidthAction(
+                        "My Orders",
+                        "Track your purchases and refund requests",
+                        Icons.shopping_cart_checkout_rounded,
+                        const Color(0xFF4373AD), 
+                            () {
+                          Navigator.push(context, MaterialPageRoute(
+                              builder: (_) => const MyOrdersScreen()));
+                        },
+                      ),
+                      const SizedBox(height: 16),
+    
+                      _buildInfoGrid(),
+                      const SizedBox(height: 16),
+    
+                      _buildSupportCard(context),
+                      const SizedBox(height: 40), 
                     ],
                   ),
-                  const SizedBox(height: 16),
-
-                  // Info Grid (Our Vision, Work, Impact)
-                  _buildInfoGrid(),
-                  const SizedBox(height: 16),
-
-                  // Connect with Admin / Support
-                  _buildSupportCard(context),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-      bottomNavigationBar: _buildBottomNav(context),
+      ],
     );
   }
 
@@ -145,11 +182,8 @@ class BeneficiaryDashboard extends StatelessWidget {
       backgroundColor: const Color(0xFF55789A),
       elevation: 0,
       scrolledUnderElevation: 0,
-      // 🔥 important
       shadowColor: Colors.transparent,
-      // 🔥 remove shadow
       surfaceTintColor: Colors.transparent,
-      // 🔥 remove material3 tint
       title: Row(
         children: [
           Image.asset('assets/Images/logoSk.png', height: 40),
@@ -159,6 +193,7 @@ class BeneficiaryDashboard extends StatelessWidget {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
+              color: Colors.white,
             ),
           ),
         ],
@@ -169,13 +204,16 @@ class BeneficiaryDashboard extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.logout, color: Colors.white),
           onPressed: () async {
-            final storage = StorageService();
-            await storage.clearAll();
+            try {
+              await context.read<AuthProvider>().logout();
+            } catch (e) {
+              debugPrint("BeneficiaryDashboard: Logout error: $e");
+            }
             if (context.mounted) {
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const MainNavigationScreen(),
+                  builder: (_) => const MainNavigationScreen(initialIndex: 1),
                 ),
                     (route) => false,
               );
@@ -185,34 +223,44 @@ class BeneficiaryDashboard extends StatelessWidget {
       ],
     );
   }
-}
+
 
   Widget _buildHeroSection() {
-    return Container(
-      height: 180,
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/Images/Frame2.png'),
-          fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(Colors.black45, BlendMode.darken),
-        ),
-      ),
-      child: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text("Welcome to Shilpkar Foundation",
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text("Empowering communities with purpose driven actions",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white, fontSize: 12)),
+    return Consumer<HomepageProvider>(
+      builder: (context, provider, _) {
+          String? bannerUrl;
+          if (provider.homepage != null && provider.homepage!.coverImages.isNotEmpty) {
+            bannerUrl = provider.homepage!.coverImages.first.url;
+          }
+        return Container(
+          height: 180,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: bannerUrl != null
+                  ? NetworkImage(bannerUrl)
+                  : const AssetImage('assets/Images/Frame2.png') as ImageProvider,
+              fit: BoxFit.cover,
+              colorFilter: const ColorFilter.mode(Colors.black45, BlendMode.darken),
             ),
-          ],
-        ),
-      ),
+          ),
+          child: const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Welcome to Shilpkar Foundation",
+                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text("Empowering communities with purpose driven actions",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white, fontSize: 12)),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
     );
   }
 
@@ -317,37 +365,4 @@ class BeneficiaryDashboard extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildBottomNav(BuildContext context) {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: const Color(0xFF55789A),
-      selectedItemColor: Colors.white,
-      unselectedItemColor: Colors.white70,
-      currentIndex: 1,
-      onTap: (index) {
-        if (index == 0) { // Jobs
-           Navigator.push(context, MaterialPageRoute(builder: (_) => const UserJobListScreen()));
-        } else if (index == 2) { // Schemes/Applications ? 
-           // Let's make "Schemes" icon go to Scheme List or My Applications
-           // Label is "Schemes". Maybe Scheme List?
-           // But we also have "Bottom Nav -> Profile" which usually shows profile.
-           // And "Schemes" usually means "View Schemes".
-           Navigator.push(context, MaterialPageRoute(builder: (_) => const UserSchemeListScreen()));
-        } else if (index == 3) { // Profile or "My Apps"
-           // Let's simplify and make index 3 go to MyApplicationsScreen for now or Profile.
-           // Since "Profile" label is there, it should go to Profile. 
-           // But I don't have Profile screen in the plan yet, but I created MyApplicationsScreen.
-           // I'll leave Profile as placeholder or route to MyApplicationsScreen temporarily or just a placeholder.
-           Navigator.push(context, MaterialPageRoute(builder: (_) => const MyApplicationsScreen()));
-        }
-      },
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.work_outline), label: "Jobs"),
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-        BottomNavigationBarItem(icon: Icon(Icons.assignment_outlined), label: "Schemes"),
-        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: "Applications"),
-      ],
-    );
-  }
-
+}

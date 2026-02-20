@@ -1,115 +1,98 @@
 import 'package:flutter/material.dart';
-import 'package:shilpkar/features/employee/presentation/screens/MakeCoordinatorScreen.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/navigation/main_navigation.dart';
 import '../../../../shared/widgets/dashboard_info_card.dart';
-import '../../../chat/presentation/screens/chat_request_screen.dart';
+import '../../../attendance/presentation/screens/attendance_screen.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../chat/presentation/screens/chat_list_screen.dart'; // Maybe used for navigation
+// import '../../../chat/presentation/screens/broadcast_list_screen.dart' as shilpkar;
+import '../../../chat/presentation/screens/chat_request_screen.dart'; // Adjust path as needed
 import '../../../ecommerce/presentation/screens/public/product_list_screen.dart';
+import '../../../home/presentation/providers/homepage_provider.dart';
+import '../../../chat/presentation/screens/public_broadcast_screen.dart';
 
-
-class EmployeeDashboard extends StatelessWidget {
+class EmployeeDashboard extends StatefulWidget {
   const EmployeeDashboard({super.key});
 
   @override
+  State<EmployeeDashboard> createState() => _EmployeeDashboardState();
+}
+
+class _EmployeeDashboardState extends State<EmployeeDashboard> {
+  @override
+  void initState() {
+    super.initState();
+     WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<HomepageProvider>().fetchHomepage();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB),
-      appBar: _buildAppBar(),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildHeroSection(),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  // Feature Card Row (Make Coordinators / Details)
-                  Row(
+    return Column(
+      children: [
+        _buildAppBar(context),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildHeroSection(),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: _buildFeatureCard(
-                          "Make Coordinators",
-                          "Add people in this good cause",
-                          "Make Coordinator",
-                          Icons.person_add_alt_1_outlined,
-                          const Color(0xFF55789A),
-                              ()  {
-                                // Navigates to the specialized Admin creation screen
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const MakeCoordinatorScreen()),
-                                );
-                              },
-                        ),
+                      _buildAttendanceAction(
+                        "Attendance",
+                        "Punch in and Punch Out time of coordinators",
+                        const Color(0xFFD9A05B),
+                            () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const AttendanceScreen()),
+                              );
+                            },
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildFeatureCard(
-                          "Coordinator Details",
-                          "Add people in this good cause",
-                          "See Details",
-                          Icons.person_search_outlined,
-                          const Color(0xFF7A9E6F),
-                              () {},
-                        ),
+                      const SizedBox(height: 16),
+    
+                      DashboardInfoCard(
+                        icon: Icons.forum_rounded,
+                        iconColor: AppColors.primaryBlue,
+                        title: "Connect with Admin",
+                        subtitle: "Resolve queries",
+                        buttonLabel: "Chat Now",
+                        buttonColor: AppColors.primaryBlue,
+                        bgColor: AppColors.joinUsBg,
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatRequestScreen())),
                       ),
+                      const SizedBox(height: 16),
+                      
+                      DashboardInfoCard(
+                        icon: Icons.campaign_rounded,
+                        iconColor: const Color(0xFF6B8E23),
+                        title: "Announcements",
+                        subtitle: "View important system messages",
+                        buttonLabel: "View All",
+                        buttonColor: const Color(0xFF6B8E23),
+                        bgColor: const Color(0xFFF1F8E9),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PublicBroadcastScreen())),
+                      ),
+                      const SizedBox(height: 24),
+    
+                      _buildInfoGrid(),
+                       const SizedBox(height: 40), 
                     ],
                   ),
-                  const SizedBox(height: 16),
-
-                  // Attendance Action Bar (Full Width)
-                  _buildAttendanceAction(
-                    "Attendance",
-                    "Punch in and Punch Out time of coordinators",
-                    const Color(0xFFD9A05B),
-                        () {},
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Products & Chat Info Cards (Side-by-Side)
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DashboardInfoCard(
-                          icon: Icons.volunteer_activism_rounded,
-                          iconColor: AppColors.accentRed,
-                          title: "Purpose Driven Products",
-                          subtitle: "Every product you support creates impact",
-                          buttonLabel: "Explore Products",
-                          buttonColor: AppColors.secondaryGreen,
-                          bgColor: AppColors.productsBg,
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) =>  ProductListScreen())),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: DashboardInfoCard(
-                          icon: Icons.forum_rounded,
-                          iconColor: AppColors.primaryBlue,
-                          title: "Connect with Admin",
-                          subtitle: "Resolve queries",
-                          buttonLabel: "Chat Now",
-                          buttonColor: AppColors.primaryBlue,
-                          bgColor: AppColors.joinUsBg,
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChatRequestScreen())),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Info Grid (Vision, Work, Impact)
-                  _buildInfoGrid(),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-      bottomNavigationBar: _buildBottomNav(),
+      ],
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
       backgroundColor: const Color(0xFF55789A),
       elevation: 0,
@@ -119,41 +102,74 @@ class EmployeeDashboard extends StatelessWidget {
           Image.asset('assets/Images/logoSk.png', height: 35),
           const SizedBox(width: 8),
           const Text("Shilpkar Foundation",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
         ],
       ),
       actions: [
         _buildLanguageToggle(),
+        const SizedBox(width: 2),
+        IconButton(
+          icon: const Icon(Icons.logout, color: Colors.white),
+          onPressed: () async {
+            try {
+              // Call provider logout to clear state (if needed in your AuthProvider)
+              debugPrint("EmployeeDashboard: Calling logout...");
+              await context.read<AuthProvider>().logout();
+            } catch (e) {
+              debugPrint("EmployeeDashboard: Logout error: $e");
+            }
+            // Navigate away
+            if (context.mounted) {
+               Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const MainNavigationScreen(initialIndex: 1),
+                ),
+                    (route) => false,
+              );
+            }
+          },
+        ),
       ],
     );
   }
 
   Widget _buildHeroSection() {
-    return Container(
-      height: 180,
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/Images/Frame2.png'),
-          fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(Colors.black45, BlendMode.darken),
-        ),
-      ),
-      child: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text("Welcome to Shilpkar Foundtion",
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text("Empowering communities with purpose driven actions",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white, fontSize: 12)),
+    return Consumer<HomepageProvider>(
+      builder: (context, provider, _) {
+          String? bannerUrl;
+          if (provider.homepage != null && provider.homepage!.coverImages.isNotEmpty) {
+            bannerUrl = provider.homepage!.coverImages.first.url;
+          }
+        return Container(
+          height: 180,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: bannerUrl != null 
+                  ? NetworkImage(bannerUrl) 
+                  : const AssetImage('assets/Images/Frame2.png') as ImageProvider,
+              fit: BoxFit.cover,
+              colorFilter: const ColorFilter.mode(Colors.black45, BlendMode.darken),
             ),
-          ],
-        ),
-      ),
+          ),
+          child: const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Welcome to Shilpkar Foundtion",
+                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text("Empowering communities with purpose driven actions",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white, fontSize: 12)),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
     );
   }
 
@@ -247,22 +263,6 @@ class EmployeeDashboard extends StatelessWidget {
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
         child: const Text("English | मराठी", style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
       ),
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: const Color(0xFF55789A),
-      selectedItemColor: Colors.white,
-      unselectedItemColor: Colors.white70,
-      currentIndex: 1,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.work_outline), label: "Jobs"),
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-        BottomNavigationBarItem(icon: Icon(Icons.assignment_outlined), label: "Schemes"),
-        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: "Profile"),
-      ],
     );
   }
 }

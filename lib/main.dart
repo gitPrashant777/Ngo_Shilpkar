@@ -15,6 +15,9 @@ import 'features/ecommerce/presentation/providers/product_provider.dart';
 import 'features/ecommerce/presentation/providers/order_provider.dart';
 import 'features/ecommerce/presentation/providers/review_provider.dart';
 import 'features/chat/presentation/providers/chat_provider.dart';
+import 'features/chat/presentation/providers/broadcast_provider.dart';
+import 'features/onboarding/presentation/providers/onboarding_provider.dart';
+import 'features/onboarding/presentation/screens/onboarding_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -33,6 +36,8 @@ void main() {
         ChangeNotifierProvider(create: (_) => OrderProvider()),
         ChangeNotifierProvider(create: (_) => ReviewProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProvider(create: (_) => BroadcastProvider()),
+        ChangeNotifierProvider(create: (_) => OnboardingProvider()),
       ],
       child: const MyApp(),
     ),
@@ -76,6 +81,8 @@ class MyApp extends StatelessWidget {
       routes: {
         "/home": (context) => const PublicHomeScreen(),
         "/admin-dashboard": (context) => const SuperAdminDashboard(),
+        "/login": (context) =>  PublicHomeScreen(),
+        "/onboarding": (context) => const OnboardingScreen(),
       },
     );
   }

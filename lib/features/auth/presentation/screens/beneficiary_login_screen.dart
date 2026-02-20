@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../shared/widgets/SelectableItemCard.dart';
 import '../../../../shared/widgets/custom_button.dart';
-import '../../../dashboard/presentation/screens/beneficiary_dashboard.dart';
+import '../../../../core/navigation/main_navigation.dart';
 import '../providers/auth_provider.dart';
 import '../../data/models/login_request.dart';
 import 'forgot_password_screen.dart';
@@ -169,6 +169,40 @@ class _BeneficiaryLoginScreenState extends State<BeneficiaryLoginScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 11, color: Colors.grey),
             ),
+            const SizedBox(height: 20),
+            // Autofill Button (Debug)
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.red.withValues(alpha: 0.05),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    "Debug Autofill (Tap to fill)",
+                    style: TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () {
+                        _idController.text = "BEN0003";
+                        _passwordController.text = "vkLVs6CjWu";
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        padding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      child: const Text("Fill Beneficiary (BEN0003)"),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -239,10 +273,10 @@ class _BeneficiaryLoginScreenState extends State<BeneficiaryLoginScreen> {
     final success = await authProvider.login(request);
 
     if (success && mounted) {
-      // Navigate to Beneficiary Dashboard and remove all previous routes
+      // Navigate to Main Navigation Screen (index 1 is Home) and remove all previous routes
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const BeneficiaryDashboard()),
+        MaterialPageRoute(builder: (_) => const MainNavigationScreen(initialIndex: 1)),
             (route) => false,
       );
     } else if (mounted) {

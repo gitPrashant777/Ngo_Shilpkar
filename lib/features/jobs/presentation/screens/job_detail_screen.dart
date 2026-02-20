@@ -83,13 +83,7 @@ class JobDetailScreen extends StatelessWidget {
                 const SizedBox(height: 20),
                 _buildInfoRow(Icons.location_on_outlined, job.city),
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    _buildInfoRow(Icons.calendar_today_outlined, "Duration"),
-                    const SizedBox(width: 40),
-                    _buildInfoRow(Icons.payments_outlined, "Stipend"),
-                  ],
-                ),
+
                 const SizedBox(height: 30),
 
                 // Job Description Section
@@ -110,27 +104,53 @@ class JobDetailScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.",
-                  style: TextStyle(color: Colors.black54, height: 1.5),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: job.requiredSkills.map((skill) {
+                    return Chip(
+                      label: Text(skill),
+                      backgroundColor: const Color(0xFFE3F2FD),
+                      labelStyle: const TextStyle(color: Color(0xFF1565C0)),
+                    );
+                  }).toList(),
                 ),
-              ],
+                const SizedBox(height: 20),
+                
+                 Row(
+                  children: [
+                    _buildInfoRow(Icons.category, job.category.isNotEmpty ? job.category : "General"),
+                    const SizedBox(width: 40),
+                    _buildInfoRow(Icons.timer, job.duration.isNotEmpty ? job.duration : "N/A"),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                 _buildInfoRow(Icons.payments_outlined, job.stipend.isNotEmpty ? "₹${job.stipend}" : "Unpaid"),
+                const SizedBox(height: 30),
+      ]
             ),
+
           ),
 
           // Fixed Bottom Section
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2))],
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: _buildActionButton(context),
+              color: Colors.white, // Ensure background covers safe area if needed, mostly handled by parent
+              child: SafeArea(
+                top: false,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Adjusted padding
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2))],
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: _buildActionButton(context),
+                  ),
+                ),
               ),
             ),
           ),
@@ -172,6 +192,14 @@ class JobDetailScreen extends StatelessWidget {
           "View Applications",
           style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
         ),
+      );
+    }
+
+    if (userRole == 'FIELD' || userRole == 'COORDINATOR') {
+      return ElevatedButton(
+        onPressed: null,
+        style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
+        child: const Text("Not Eligible to Apply", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
       );
     }
 

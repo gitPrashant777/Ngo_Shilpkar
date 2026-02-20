@@ -108,6 +108,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
        if (role == 'BENEFICIARY') {
          setState(() {
            _isBeneficiary = true;
+           _current = _Step.education; // Skip to Education for Beneficiaries
          });
        }
 
@@ -122,13 +123,13 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
        if (profile != null) {
          setState(() {
            // Pre-fill fields
-           _firstNameCtrl.text = profile.firstName ?? user?.username ?? ''; // Fallback to username if name null
+           _firstNameCtrl.text = profile.firstName ?? user?.username ?? '';
            _lastNameCtrl.text = profile.lastName ?? '';
            _dobCtrl.text = profile.dob ?? '';
            _mobileCtrl.text = user?.mobile ?? '';
            _emailCtrl.text = user?.email ?? '';
 
-           _state = profile.location.state ?? 'Maharashtra'; // Ensure variable is mutable if not final
+           _state = profile.location.state ?? 'Maharashtra';
            _districtCtrl.text = profile.location.district ?? '';
            _talukaCtrl.text = profile.location.taluka ?? '';
            _villageCtrl.text = profile.location.village ?? '';
@@ -136,7 +137,13 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
          });
        }
        
-       _animCtrl.forward();
+       // Only forward animation if starting at Basic (Guest)
+       // If Beneficiary, we are already at Education, no need for step transition animation immediately
+       if (!_isBeneficiary) {
+         _animCtrl.forward();
+       } else {
+         _animCtrl.value = 1.0; // Show immediately
+       }
     });
   }
 
@@ -337,6 +344,23 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
       body: Column(
         children: [
           _StepIndicator(currentStep: _stepIndex),
+          if (_isBeneficiary)
+             Container(
+               width: double.infinity,
+               color: Colors.green.shade50,
+               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+               child: Row(
+                 mainAxisAlignment: MainAxisAlignment.center,
+                 children: [
+                   const Icon(Icons.check_circle, size: 16, color: Colors.green),
+                   const SizedBox(width: 8),
+                   Text(
+                     "Logged in as ${_firstNameCtrl.text} ${_lastNameCtrl.text}",
+                     style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                   ),
+                 ],
+               ),
+             ),
           Expanded(
             child: FadeTransition(
               opacity: _fadeAnim,

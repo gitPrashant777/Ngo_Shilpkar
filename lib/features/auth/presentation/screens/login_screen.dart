@@ -140,24 +140,27 @@ class _LoginScreenState extends State<LoginScreen> {
                           context.read<AuthProvider>().role;
 
                       if (role == "SUPER_ADMIN" ||
-                          role == "ADMIN") {
+                          role == "ADMIN" || role == "BENEFICIARY" || role == "FIELD" || role == "COORDINATOR" || role == "EMPLOYEE") {
                         Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => const MainNavigationScreen()),
+                              builder: (_) => const MainNavigationScreen(initialIndex: 1)),
                               (route) => false,
                         );
 
                       } else {
-                        Navigator.pushReplacementNamed(
-                            context, "/home");
+                         Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const MainNavigationScreen(initialIndex: 1)),
+                              (route) => false,
+                        );
                       }
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            authProvider.errorMessage ??
-                                "Login failed",
+                            authProvider.errorMessage ?? "Login failed",
                           ),
                         ),
                       );
@@ -166,9 +169,54 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: const Text("Login"),
                 ),
               ),
+              const SizedBox(height: 30),
+              // Debug Autofill Section
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.red.withValues(alpha: 0.05),
+                ),
+                child: Column(
+                  children: [
+                    const Text(
+                      "Debug Autofill (Tap to fill)",
+                      style: TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    if (widget.role == "BENEFICIARY")
+                      _debugButton("Fill Beneficiary", "BEN0003", "vkLVs6CjWu"),
+                    if (widget.role == "ADMIN")
+                      _debugButton("Fill Admin", "AD0034", "qjWWWeIZqo"),
+                    if (widget.role == "EMPLOYEE")
+                      _debugButton("Fill Employee", "FW0002", "hJWc7k2Yj1"),
+                    if (widget.role == "SUPER_ADMIN")
+                      _debugButton("Fill Super Admin", "apursrivastava1510@gmail.com", "Admin@1234"),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _debugButton(String label, String id, String pass) {
+    return SizedBox(
+      width: double.infinity,
+      child: TextButton(
+        onPressed: () {
+          _idController.text = id;
+          _passwordController.text = pass;
+        },
+        style: TextButton.styleFrom(
+          foregroundColor: Colors.red,
+          padding: EdgeInsets.zero,
+          visualDensity: VisualDensity.compact,
+        ),
+        child: Text("$label ($id)"),
       ),
     );
   }
