@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shilpkar/features/employee/presentation/screens/MakeCoordinatorScreen.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../shared/widgets/dashboard_info_card.dart';
+import '../../../chat/presentation/screens/chat_request_screen.dart';
+import '../../../ecommerce/presentation/screens/public/product_list_screen.dart';
+
 
 class EmployeeDashboard extends StatelessWidget {
   const EmployeeDashboard({super.key});
@@ -57,6 +62,38 @@ class EmployeeDashboard extends StatelessWidget {
                     "Punch in and Punch Out time of coordinators",
                     const Color(0xFFD9A05B),
                         () {},
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Products & Chat Info Cards (Side-by-Side)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DashboardInfoCard(
+                          icon: Icons.volunteer_activism_rounded,
+                          iconColor: AppColors.accentRed,
+                          title: "Purpose Driven Products",
+                          subtitle: "Every product you support creates impact",
+                          buttonLabel: "Explore Products",
+                          buttonColor: AppColors.secondaryGreen,
+                          bgColor: AppColors.productsBg,
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) =>  ProductListScreen())),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DashboardInfoCard(
+                          icon: Icons.forum_rounded,
+                          iconColor: AppColors.primaryBlue,
+                          title: "Connect with Admin",
+                          subtitle: "Resolve queries",
+                          buttonLabel: "Chat Now",
+                          buttonColor: AppColors.primaryBlue,
+                          bgColor: AppColors.joinUsBg,
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChatRequestScreen())),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 24),
 

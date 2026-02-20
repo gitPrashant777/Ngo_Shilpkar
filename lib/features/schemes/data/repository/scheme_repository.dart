@@ -1,7 +1,9 @@
 // lib/features/schemes/data/repository/scheme_repository.dart
 
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../../../../core/api/api_client.dart';
+import '../../../../core/utils/storage_service.dart';
 import '../models/scheme_model.dart';
 import '../models/scheme_application_model.dart';
 
@@ -14,13 +16,36 @@ class SchemeRepository {
 
   /// Get Published Schemes (Public)
   Future<List<SchemeModel>> getPublishedSchemes() async {
-    final response = await _dio.get("/schemes");
+    final StorageService storage = StorageService();
+    try {
+      final response = await _dio.get("/schemes");
+      final data = response.data;
 
-    final data = response.data;
+      // Cache logic
+      try {
+        await storage.saveCache(storage.schemeCacheKey, jsonEncode(data));
+      } catch (e) {
+        print("Failed to cache schemes: $e");
+      }
 
-    return (data as List)
-        .map((e) => SchemeModel.fromJson(e))
-        .toList();
+      return (data as List)
+          .map((e) => SchemeModel.fromJson(e))
+          .toList();
+    } catch (e) {
+      // Try cache
+      try {
+        final cached = await storage.getCache(storage.schemeCacheKey);
+        if (cached != null) {
+          final data = jsonDecode(cached);
+          if (data is List) {
+             return data.map((e) => SchemeModel.fromJson(e)).toList();
+          }
+        }
+      } catch (cacheError) {
+        print("Failed to load scheme cache: $cacheError");
+      }
+      rethrow;
+    }
   }
 
   Future<void> applyForScheme(String schemeId) async {
@@ -87,6 +112,7 @@ class SchemeRepository {
 
       // Backend returns created scheme object
       return response.data["_id"];
+
     } on DioException catch (e) {
       final message =
           e.response?.data?["message"] ?? "Failed to create scheme";

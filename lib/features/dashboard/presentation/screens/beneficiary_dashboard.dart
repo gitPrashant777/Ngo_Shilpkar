@@ -1,12 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:shilpkar/features/jobs/presentation/screens/job_list_screen.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/navigation/main_navigation.dart';
+import '../../../../core/utils/storage_service.dart';
 import '../../../../shared/widgets/action_card.dart';
+import '../../../../shared/widgets/dashboard_info_card.dart';
+import '../../../chat/presentation/screens/chat_request_screen.dart' as shilpkar;
+import '../../../chat/presentation/screens/broadcast_list_screen.dart' as shilpkar;
+import '../../../ecommerce/presentation/screens/public/product_list_screen.dart' as shilpkar;
+import '../../../ecommerce/presentation/screens/public/product_list_screen.dart';
+import '../../../jobs/presentation/screens/user_job_list_screen.dart';
+import '../../../schemes/presentation/screens/user_scheme_list_screen.dart';
 import '../../../jobs/presentation/screens/user_job_list_screen.dart';
 import '../../../schemes/presentation/screens/user_scheme_list_screen.dart';
 import 'my_applications_screen.dart';
 
 class BeneficiaryDashboard extends StatelessWidget {
   const BeneficiaryDashboard({super.key});
+  Widget _buildSupportCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.forum_outlined,
+              color: Color(0xFF55789A), size: 30),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Connect with Admin",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16)),
+                Text("Connect to resolve queries",
+                    style:
+                    TextStyle(fontSize: 11, color: Colors.grey)),
+              ],
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                  const shilpkar.ChatRequestScreen(),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF55789A),
+              shape: const StadiumBorder(),
+            ),
+            child: const Text("Chat",
+                style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +85,8 @@ class BeneficiaryDashboard extends StatelessWidget {
                     const Color(0xFFD9A05B),
                         () {
                       // Navigate to Job List
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const UserJobListScreen()));
+                      Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => const JobListScreen()));
                     },
                   ),
                   const SizedBox(height: 16),
@@ -45,8 +102,9 @@ class BeneficiaryDashboard extends StatelessWidget {
                           Icons.assignment_turned_in_rounded,
                           const Color(0xFF55789A),
                               () {
-                                Navigator.push(context, MaterialPageRoute(builder: (_) => const UserSchemeListScreen()));
-                              },
+                            Navigator.push(context, MaterialPageRoute(
+                                builder: (_) => const UserSchemeListScreen()));
+                          },
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -57,7 +115,9 @@ class BeneficiaryDashboard extends StatelessWidget {
                           "Explore",
                           Icons.shopping_bag_rounded,
                           const Color(0xFF7A9E6F),
-                              () {},
+                              () {
+                             Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen()));
+                          },
                         ),
                       ),
                     ],
@@ -69,7 +129,7 @@ class BeneficiaryDashboard extends StatelessWidget {
                   const SizedBox(height: 16),
 
                   // Connect with Admin / Support
-                  _buildSupportCard(),
+                  _buildSupportCard(context),
                 ],
               ),
             ),
@@ -84,19 +144,48 @@ class BeneficiaryDashboard extends StatelessWidget {
     return AppBar(
       backgroundColor: const Color(0xFF55789A),
       elevation: 0,
+      scrolledUnderElevation: 0,
+      // 🔥 important
+      shadowColor: Colors.transparent,
+      // 🔥 remove shadow
+      surfaceTintColor: Colors.transparent,
+      // 🔥 remove material3 tint
       title: Row(
         children: [
           Image.asset('assets/Images/logoSk.png', height: 40),
-          const SizedBox(width: 8),
-          const Text("Shilpkar Foundation",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          const SizedBox(width: 6),
+          const Text(
+            "Shilpkar Foundation",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
         ],
       ),
       actions: [
         _buildLanguageToggle(),
+        const SizedBox(width: 2),
+        IconButton(
+          icon: const Icon(Icons.logout, color: Colors.white),
+          onPressed: () async {
+            final storage = StorageService();
+            await storage.clearAll();
+            if (context.mounted) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const MainNavigationScreen(),
+                ),
+                    (route) => false,
+              );
+            }
+          },
+        ),
       ],
     );
   }
+}
 
   Widget _buildHeroSection() {
     return Container(
@@ -217,32 +306,6 @@ class BeneficiaryDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildSupportCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15)),
-      child: Row(
-        children: [
-          const Icon(Icons.forum_outlined, color: Color(0xFF55789A), size: 30),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Connect with Admin", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text("Connect to resolve queries", style: TextStyle(fontSize: 11, color: Colors.grey)),
-              ],
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF55789A), shape: StadiumBorder()),
-            child: const Text("Chat", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildLanguageToggle() {
     return Center(
@@ -287,4 +350,4 @@ class BeneficiaryDashboard extends StatelessWidget {
       ],
     );
   }
-}
+

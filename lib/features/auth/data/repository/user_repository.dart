@@ -141,6 +141,120 @@ class UserRepository {
 
 
   // ============================
+  // CREATE BENEFICIARY
+  // ============================
+
+  Future<Map<String, dynamic>> createBeneficiary(
+      Map<String, dynamic> formData) async {
+
+    final payload = {
+      "mobile": formData["mobile"],
+      "email": formData["email"],
+      "role": "BENEFICIARY",
+      "beneficiary": {
+        "firstName": formData["firstName"],
+        "lastName": formData["lastName"],
+        "state": formData["state"] ?? "Maharashtra",
+        "district": formData["district"],
+        "taluka": formData["taluka"],
+        "village": formData["village"],
+        "category": formData["category"],
+        // Beneficiary specific:
+        "bankDetails": {
+             "accountNumber": formData["accountNumber"],
+             "accountHolderName": formData["accountHolderName"],
+             "ifsc": formData["ifsc"],
+             "accountType": formData["accountType"],
+        }
+      }
+    };
+    print("=========== CREATE BENEFICIARY REQUEST ===========");
+    print("Payload: $payload");
+
+    try {
+      final response = await _client.dio.post(
+        ApiEndpoints.createUser,
+        data: payload,
+      );
+
+      return response.data;
+
+    } on DioException catch (e) {
+      print("=========== CREATE BENEFICIARY ERROR ===========");
+      print("Status: ${e.response?.statusCode}");
+      print("Response: ${e.response?.data}");
+      rethrow;
+    }
+  }
+
+  // ============================
+  // GET USER PROFILE
+  // ============================
+  Future<Map<String, dynamic>> getUserProfile() async {
+    try {
+      final response = await _client.dio.get(
+        "/profile/me", // Using relative path as per ApiEndpoints or direct string
+      );
+
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception("Failed to load profile");
+      }
+    } on DioException catch (e) {
+       print("Error fetching profile: ${e.message}");
+       throw Exception(e.response?.data["message"] ?? "Failed to fetch profile");
+    }
+  }
+
+  // ============================
+  // UPDATE PROFILE
+  // ============================
+  Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> data) async {
+    try {
+      final response = await _client.dio.patch(
+        "/profile/me",
+        data: data,
+      );
+
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception("Failed to update profile");
+      }
+    } on DioException catch (e) {
+       print("Error updating profile: ${e.message}");
+       throw Exception(e.response?.data["message"] ?? "Failed to update profile");
+    }
+  }
+
+  // ============================
+  // UPDATE AVATAR
+  // ============================
+  Future<Map<String, dynamic>> updateAvatar(String filePath) async {
+    try {
+      String fileName = filePath.split('/').last;
+      FormData formData = FormData.fromMap({
+        "file": await MultipartFile.fromFile(filePath, filename: fileName),
+      });
+
+      final response = await _client.dio.patch(
+        "/profile/me/avatar",
+        data: formData,
+      );
+
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception("Failed to update avatar");
+      }
+    } on DioException catch (e) {
+       print("Error updating avatar: ${e.message}");
+       throw Exception(e.response?.data["message"] ?? "Failed to update avatar");
+    }
+  }
+
+  // ============================
   // GET BENEFICIARIES
   // ============================
   Future<List<BeneficiaryModel>> getBeneficiaries() async {

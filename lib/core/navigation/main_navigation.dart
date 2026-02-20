@@ -3,11 +3,15 @@ import 'package:shilpkar/features/auth/presentation/screens/public_home_screen.d
 import 'package:shilpkar/features/jobs/presentation/screens/job_list_screen.dart';
 import 'package:shilpkar/features/schemes/presentation/screens/scheme_list_screen.dart';
 import 'package:shilpkar/features/admin/presentation/screens/superAdmin_dashboard.dart';
-import 'package:shilpkar/core/utils/storage_service.dart';
+import 'package:shilpkar/features/admin/presentation/screens/admin_dashboard.dart';
+import 'package:shilpkar/features/auth/presentation/screens/profile_screen.dart';
+import 'package:provider/provider.dart'; // import provider
+import 'package:shilpkar/features/auth/presentation/providers/auth_provider.dart';
 import 'package:shilpkar/core/constants/app_colors.dart';
 
 class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({super.key});
+  final int initialIndex;
+  const MainNavigationScreen({super.key, this.initialIndex = 1});
 
   @override
   State<MainNavigationScreen> createState() =>
@@ -17,38 +21,33 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState
     extends State<MainNavigationScreen> {
 
-  int _selectedIndex = 1;
-  String? _role;
+  late int _selectedIndex;
 
   @override
   void initState() {
     super.initState();
-    _loadRole();
+    _selectedIndex = widget.initialIndex;
   }
 
-  Future<void> _loadRole() async {
-    final storage = StorageService();
-    final role = await storage.getRole();
+  // Helper to get role from Provider
+  String? get _role => context.watch<AuthProvider>().role; 
 
-    if (!mounted) return;
-
-    setState(() {
-      _role = role;
-    });
-  }
 
   List<Widget> get _pages {
     return [
       const JobListScreen(),
 
       // 👇 Home changes depending on role
-      _role == "ADMIN" || _role == "SUPER_ADMIN"
-          ? const SuperAdminDashboard()
-          : const PublicHomeScreen(),
+      if (_role == "SUPER_ADMIN") 
+        const SuperAdminDashboard()
+      else if (_role == "ADMIN")
+         const AdminDashboard() 
+      else 
+        const PublicHomeScreen(),
 
       const SchemeListScreen(),
 
-      const SizedBox(), // Profile later
+      const ProfileScreen(),
     ];
   }
 

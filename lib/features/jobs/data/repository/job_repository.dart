@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../../../../core/api/api_client.dart';
+import '../../../../core/utils/storage_service.dart';
 import '../models/job_model.dart';
 import '../models/application_model.dart';
 import '../models/user_job_application_model.dart';
@@ -10,6 +12,9 @@ class JobRepository {
   // =============================
   // GET ALL JOBS (WITH FILTERS)
   // =============================
+  // =============================
+  // GET ALL JOBS (WITH FILTERS)
+  // =============================
   Future<List<JobModel>> getJobs({
     String? city,
     String? category,
@@ -17,6 +22,7 @@ class JobRepository {
     int? limit,
     String? status, // Add status filter
   }) async {
+    final StorageService storage = StorageService();
     try {
       final Map<String, dynamic> queryParams = {};
       if (city != null && city.isNotEmpty) queryParams['city'] = city;
@@ -34,10 +40,35 @@ class JobRepository {
       // API returns paginated data directly without "success" field
       final List<dynamic> jobList = json["data"] ?? [];
 
+      // Cache the result ONLY if it's the first page/default filter to keep it simple
+      // or cache the latest successful fetch regardless. 
+      // For simplicity and "guest view", caching the latest public list is good.
+      try {
+        if (page == 1 || page == null) {
+             await storage.saveCache(storage.jobCacheKey, jsonEncode(json));
+        }
+      } catch (e) {
+        print("Failed to cache jobs: $e");
+      }
+
       return jobList
           .map((e) => JobModel.fromJson(e))
           .toList();
     } on DioException catch (e) {
+      
+      // Try to load from cache
+      try {
+        final cached = await storage.getCache(storage.jobCacheKey);
+        if (cached != null && cached.isNotEmpty) {
+           print("📦 JOBS LOADED FROM CACHE");
+           final Map<String, dynamic> json = jsonDecode(cached);
+           final List<dynamic> jobList = json["data"] ?? [];
+           return jobList.map((e) => JobModel.fromJson(e)).toList();
+        }
+      } catch (cacheError) {
+        print("Failed to load job cache: $cacheError");
+      }
+
       throw Exception(
         e.response?.data["message"] ??
             "Something went wrong while fetching jobs",
@@ -82,25 +113,45 @@ class JobRepository {
   }
 
   // =============================
+  // UPLOAD FILE (Resume / Photo)
+  // =============================
+  Future<Map<String, String>> uploadFile(String filePath, String module) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath),
+        'module': module,
+      });
+
+      final response = await _client.dio.post(
+        '/uploads',
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+
+      return {
+        'url': response.data['url'] ?? '',
+        'type': response.data['type'] ?? '',
+      };
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data["message"] ?? "Failed to upload file",
+      );
+    }
+  }
+
+  // =============================
   // APPLY JOB
   // =============================
   Future<String> applyJob(
       String jobId, Map<String, dynamic> data) async {
     try {
-      final response =
-      await _client.dio.post('/jobs/$jobId/apply', data: data);
+      final response = await _client.dio.post(
+        '/applications/$jobId/apply',
+        data: data,
+      );
 
-      if (response.data["success"] != true) {
-         // Check if message exists, otherwise throw generic
-         if (response.data["message"] != null) {
-            // It might be a success message, continue if 200/201
-            if (response.statusCode != 200 && response.statusCode != 201) {
-                throw Exception(response.data["message"]);
-            }
-         }
-      }
-
-      return response.data["message"] ?? "Application successful";
+      // API returns _id and status on success (201)
+      return response.data["message"] ?? "Application submitted successfully";
     } on DioException catch (e) {
       throw Exception(
         e.response?.data["message"] ??
@@ -148,17 +199,31 @@ class JobRepository {
   Future<String> updateApplicationStatus(
       String applicationId, String status) async {
     try {
+      print("📤 PATCH /applications/$applicationId/status → {status: $status}");
+      print("📤 Full URL: ${_client.dio.options.baseUrl}/applications/$applicationId/status");
+      
       final response = await _client.dio.patch(
         '/applications/$applicationId/status',
         data: {"status": status},
       );
 
+      print("✅ UPDATE STATUS RESPONSE [${response.statusCode}]: ${response.data}");
       return response.data["message"] ?? "Status updated";
     } on DioException catch (e) {
-      throw Exception(
-        e.response?.data["message"] ??
-            "Failed to update status",
-      );
+      print("❌ UPDATE STATUS FAILED: ${e.response?.statusCode}");
+      print("❌ ERROR RESPONSE BODY: ${e.response?.data}");
+      print("❌ ERROR HEADERS: ${e.response?.headers}");
+      
+      // Extract a meaningful message
+      String errorMsg = "Failed to update status";
+      if (e.response?.data is Map) {
+        errorMsg = e.response?.data["message"] ?? 
+                   e.response?.data["error"] ?? errorMsg;
+      } else if (e.response?.data is String) {
+        errorMsg = e.response!.data;
+      }
+      
+      throw Exception(errorMsg);
     }
   }
 

@@ -48,7 +48,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
   final _talukaCtrl = TextEditingController();
   final _villageCtrl = TextEditingController();
   final _addressCtrl = TextEditingController();
-  final String _state = 'Maharashtra';
+  String _state = 'Maharashtra';
 
   // Education & Experience
   String? _qualification;
@@ -101,15 +101,41 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
     );
     _fadeAnim = CurvedAnimation(parent: _animCtrl, curve: Curves.easeInOut);
 
-    // Check Role
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-       final role = Provider.of<AuthProvider>(context, listen: false).role;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+       final authProvider = Provider.of<AuthProvider>(context, listen: false);
+       final role = authProvider.role;
+       
        if (role == 'BENEFICIARY') {
          setState(() {
            _isBeneficiary = true;
-           _current = _Step.education; // Skip to education directly
          });
        }
+
+       // Fetch Profile to pre-fill
+       if (authProvider.userProfile == null) {
+         await authProvider.fetchUserProfile();
+       }
+
+       final profile = authProvider.userProfile?.profile;
+       final user = authProvider.userProfile?.user;
+
+       if (profile != null) {
+         setState(() {
+           // Pre-fill fields
+           _firstNameCtrl.text = profile.firstName ?? user?.username ?? ''; // Fallback to username if name null
+           _lastNameCtrl.text = profile.lastName ?? '';
+           _dobCtrl.text = profile.dob ?? '';
+           _mobileCtrl.text = user?.mobile ?? '';
+           _emailCtrl.text = user?.email ?? '';
+
+           _state = profile.location.state ?? 'Maharashtra'; // Ensure variable is mutable if not final
+           _districtCtrl.text = profile.location.district ?? '';
+           _talukaCtrl.text = profile.location.taluka ?? '';
+           _villageCtrl.text = profile.location.village ?? '';
+           _addressCtrl.text = profile.location.address ?? '';
+         });
+       }
+       
        _animCtrl.forward();
     });
   }
@@ -160,84 +186,97 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
   Future<void> _submit() async {
     if (!_educationKey.currentState!.validate()) return;
 
-    Map<String, dynamic> payload = {};
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
 
-    if (_isBeneficiary) {
-       // Simplified payload for beneficiary
-       payload = {
-        'highestQualification': _qualification ?? '',
-        'experienceLevel': _experienceLevel ?? '',
-        'jobType': _jobType ?? '',
-        'willingFieldLocations': _fieldLocations, // Keeping bools, backend might expect string or array?
-        // API Contract said: "availability": ["travel"] -> let's map it
-        'availability': [
-           if(_fieldLocations) 'field_locations', // Just guessing values if not specified exactly
-           if(_communities) 'communities',
-           if(_travelDistrict) 'travel'
-        ],
-        // Actually contract says: availability: ["travel"]
-        // My UI has booleans. I should map them.
-        
-        // Wait, wait. API Contract Body (Bene): 
-        // { "highestQualification": "Graduate", "experienceLevel": "Fresher", "jobType": "Field", "availability": ["travel"], ... }
-        
-        'resumeUrl': 'https://pdf-placeholder', // Mocking URL upload for now as I dont have file upload API
-        'photoUrl': 'https://photo-placeholder' 
-       };
-       // Note: File upload logic is usually separate: Upload -> Get URL -> Send URL.
-       // Current scope doesn't specify file upload endpoint explicitly, so we might need to assume mock or separate task.
-       // The API expects URLs.
-    } else {
-       // Guest Payload
-       payload = {
+    try {
+      final provider = context.read<JobProvider>();
+
+      // ── Upload files first ──────────────────────────────────
+      String? resumeUrl;
+      String? photoUrl;
+
+      if (_resumeFile != null) {
+        final result = await provider.uploadFile(_resumeFile!.path, 'jobs');
+        resumeUrl = result['url'];
+      }
+
+      if (_photoFile != null) {
+        final result = await provider.uploadFile(_photoFile!.path, 'jobs');
+        photoUrl = result['url'];
+      }
+
+      // ── Build availability array ────────────────────────────
+      List<String> availability = [];
+      if (_fieldLocations) availability.add("field");
+      if (_communities) availability.add("community");
+      if (_travelDistrict) availability.add("travel");
+
+      // ── Build payload ───────────────────────────────────────
+      // Convert date from dd/mm/yyyy to yyyy-mm-dd for API
+      String dobForApi = _dobCtrl.text.trim();
+      if (dobForApi.contains('/')) {
+        final parts = dobForApi.split('/');
+        if (parts.length == 3) {
+          dobForApi = '${parts[2]}-${parts[1]}-${parts[0]}';
+        }
+      }
+
+      // Both Beneficiary and Guest send ALL fields
+      // The form now asks all steps for both roles
+      Map<String, dynamic> payload = {
         'firstName': _firstNameCtrl.text.trim(),
         'lastName': _lastNameCtrl.text.trim(),
-        'dob': _dobCtrl.text.trim(),
+        'dob': dobForApi,
         'mobile': _mobileCtrl.text.trim(),
         'email': _emailCtrl.text.trim(),
         'location': {
-           'state': _state,
-           'district': _districtCtrl.text.trim(),
-           'taluka': _talukaCtrl.text.trim(),
-           'village': _villageCtrl.text.trim(),
-           'address': _addressCtrl.text.trim(),
+          'state': _state,
+          'district': _districtCtrl.text.trim(),
+          'taluka': _talukaCtrl.text.trim(),
+          'village': _villageCtrl.text.trim(),
+          'address': _addressCtrl.text.trim(),
         },
         'highestQualification': _qualification ?? '',
         'experienceLevel': _experienceLevel ?? '',
         'jobType': _jobType ?? '',
-        'availability': [
-             if(_travelDistrict) 'travel'
-        ],
-        'resumeUrl': "https://file.pdf", // Mock
-        'photoUrl': "https://photo.jpg" // Mock
-       };
-    }
+        'availability': availability,
+        if (resumeUrl != null) 'resumeUrl': resumeUrl,
+        if (photoUrl != null) 'photoUrl': photoUrl,
+      };
 
-    // Fix: My UI variables are _fieldLocations, etc. 
-    // And also I noticed I used _willingFieldLocations in logic above which was typo.
-    // Correct logic:
-    List<String> availability = [];
-    if (_fieldLocations) availability.add("field");
-    if (_communities) availability.add("community");
-    if (_travelDistrict) availability.add("travel");
-    payload['availability'] = availability;
-    
-    // Resume/Photo
-    // Since I can't upload, I will just send a dummy string if file selected
-    if (_resumeFile != null) payload['resumeUrl'] = "https://mock.com/${_resumeName}";
-    if (_photoFile != null) payload['photoUrl'] = "https://mock.com/photo.jpg";
+      debugPrint("📤 APPLY JOB PAYLOAD: $payload");
 
+      await provider.applyJob(widget.jobId, payload);
 
-    await context.read<JobProvider>().applyJob(
-      widget.jobId,
-      payload,
-    );
+      // Dismiss loading dialog
+      if (mounted) Navigator.pop(context);
 
-    if (mounted) {
-       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Application Submitted Successfully!"))
-       );
-       Navigator.pop(context);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("✅ Application Submitted Successfully!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      // Dismiss loading dialog
+      if (mounted) Navigator.pop(context);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("❌ ${e.toString().replaceAll('Exception: ', '')}"),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
     }
   }
 
@@ -297,7 +336,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
       appBar: _buildAppBar(),
       body: Column(
         children: [
-          if (!_isBeneficiary) _StepIndicator(currentStep: _stepIndex),
+          _StepIndicator(currentStep: _stepIndex),
           Expanded(
             child: FadeTransition(
               opacity: _fadeAnim,

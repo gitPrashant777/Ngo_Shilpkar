@@ -1,15 +1,9 @@
 import 'package:dio/dio.dart';
+import '../../../../core/api/api_client.dart';
 import '../models/login_request.dart';
 
 class AuthRepository {
-  final Dio _dio = Dio(
-    BaseOptions(
-      baseUrl: "https://ngo-project-r7cc.onrender.com/api",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    ),
-  );
+  final ApiClient _client = ApiClient();
 
   Future<Map<String, dynamic>> login(LoginRequest request) async {
     final body = request.toJson();
@@ -18,7 +12,12 @@ class AuthRepository {
     print(body);
 
     try {
-      final response = await _dio.post(
+      // ApiClient base URL already includes /api, so we just use /auth/login
+      // Wait, ApiClient baseUrl is .../api
+      // Original AuthRepository used .../api as base and called /auth/login
+      // So path should be /auth/login
+      
+      final response = await _client.dio.post(
         "/auth/login",
         data: body,
       );
@@ -30,9 +29,8 @@ class AuthRepository {
       return response.data;
 
     } on DioException catch (e) {
-      print("========= LOGIN ERROR =========");
-      print("Status Code: ${e.response?.statusCode}");
-      print("Response Data: ${e.response?.data}");
+      // ApiClient interceptor already prints errors
+      print("========= LOGIN ERROR (AuthRepository) =========");
       print("Error Message: ${e.message}");
 
       throw Exception(e.response?.data["message"] ?? "Login failed");

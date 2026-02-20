@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shilpkar/features/admin/presentation/screens/select_employee_role_screen.dart';
 import 'package:shilpkar/features/auth/presentation/screens/public_home_screen.dart';
 import 'package:shilpkar/features/jobs/presentation/screens/job_list_screen.dart';
@@ -6,14 +7,38 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/navigation/main_navigation.dart';
 import '../../../../core/utils/storage_service.dart';
 import '../../../../shared/widgets/action_card.dart';
+import '../../../ecommerce/presentation/screens/public/product_list_screen.dart';
 import '../../../jobs/presentation/screens/admin_job_management_screen.dart';
 import '../../../schemes/presentation/screens/Superadmin_scheme_management_screen.dart';
 import 'MakeAdminScreen.dart';
 import 'SuperMakeEmployeeScreen.dart';
 import 'beneficiary_list_screen.dart';
+import '../../../home/presentation/screens/homepage_management_screen.dart';
+import '../../../home/presentation/providers/homepage_provider.dart';
+import '../../../ecommerce/presentation/screens/admin/admin_product_management_screen.dart';
+import '../../../ecommerce/presentation/screens/admin/admin_product_management_screen.dart';
+import '../../../ecommerce/presentation/screens/admin/admin_category_management_screen.dart';
+import '../../../chat/presentation/screens/chat_list_screen.dart' as shilpkar;
+import 'create_beneficiary_screen.dart';
+import '../../../../features/auth/presentation/providers/auth_provider.dart';
 
-class SuperAdminDashboard extends StatelessWidget {
+class SuperAdminDashboard extends StatefulWidget {
   const SuperAdminDashboard({super.key});
+
+  @override
+  State<SuperAdminDashboard> createState() => _SuperAdminDashboardState();
+}
+
+class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch homepage data for the banner
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<HomepageProvider>().fetchHomepage();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +95,20 @@ class SuperAdminDashboard extends StatelessWidget {
                         ),
 
                       ),
-
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildAdminFeatureBox(
+                          "Make Beneficiary",
+                          "Add new beneficiary",
+                          "Create",
+                          Icons.group_add,
+                          const Color(0xFFE57373),
+                              () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const CreateBeneficiaryScreen()),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -135,10 +173,12 @@ class SuperAdminDashboard extends StatelessWidget {
                     const Color(0xFFB4C8B4),
                         () {},
                   ),
-                  _buildAdminFeatureBox(
+                  const SizedBox(height: 16),
+                  
+                  // Schemes Management
+                  _buildFullWidthAction(
                     "Manage Schemes",
                     "Create, publish and archive schemes",
-                    "Open",
                     Icons.assignment,
                     const Color(0xFF4A78B0),
                         () {
@@ -149,7 +189,91 @@ class SuperAdminDashboard extends StatelessWidget {
                       );
                     },
                   ),
-                ],
+                  const SizedBox(height: 16),
+
+                  // E-COMMERCE MANAGEMENT HEADER
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4),
+                      child: Text(
+                        "Ecommerce Management",
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blueGrey),
+                      ),
+                    ),
+                  ),
+
+                  // E-COMMERCE ROW
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildAdminFeatureBox(
+                          "Products",
+                          "Manage inventory",
+                          "Manage",
+                          Icons.inventory_2_outlined,
+                          const Color(0xFFE57373), // Red/Orange
+                              () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AdminProductManagementScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildAdminFeatureBox(
+                          "Categories",
+                          "Manage categories",
+                          "Manage",
+                          Icons.category_outlined,
+                          const Color(0xFFBA68C8), // Purple
+                              () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AdminCategoryManagementScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Explore Products Link for Admins
+                   _buildFullWidthAction(
+                    "Explore Products",
+                    "View the public shopping page",
+                    Icons.shopping_bag_outlined,
+                    Colors.green,
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ProductListScreen()),
+                      );
+                    },
+                  ),
+                  
+                  const SizedBox(height: 16),
+
+                   _buildFullWidthAction(
+                    "Chat Requests",
+                    "Manage help requests",
+                    Icons.chat,
+                    const Color(0xFF5C6BC0),
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const shilpkar.ChatListScreen()),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
+        ]
               ),
             ),
           ],
@@ -173,6 +297,7 @@ class SuperAdminDashboard extends StatelessWidget {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
+              color: Colors.white, // Ensure white text on blue bar
             ),
           ),
         ],
@@ -183,9 +308,16 @@ class SuperAdminDashboard extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.logout, color: Colors.white),
           onPressed: () async {
-            final storage = StorageService();
-            await storage.clearAll();
+            try {
+              // Call provider logout to clear state
+              debugPrint("SuperAdminDashboard: Calling logout...");
+              await context.read<AuthProvider>().logout();
+            } catch (e) {
+              debugPrint("SuperAdminDashboard: Logout error: $e");
+            }
+
             if (context.mounted) {
+              debugPrint("SuperAdminDashboard: Navigating to MainNavigationScreen...");
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(
@@ -200,6 +332,7 @@ class SuperAdminDashboard extends StatelessWidget {
     );
   }
 
+  // ... (build methods)
 
   Widget _buildBottomNav(BuildContext context) {
     return BottomNavigationBar(
@@ -252,29 +385,94 @@ class SuperAdminDashboard extends StatelessWidget {
   }
 
   Widget _buildHeroSection() {
-    return Container(
-      height: 180,
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/Images/Frame2.png'),
-          fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(Colors.black45, BlendMode.darken),
-        ),
-      ),
-      child: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+    return Consumer<HomepageProvider>(
+      builder: (context, provider, _) {
+         String? bannerUrl;
+         if (provider.homepage != null && provider.homepage!.coverImages.isNotEmpty) {
+           bannerUrl = provider.homepage!.coverImages.first.url;
+         }
+
+        return Stack(
           children: [
-            Text("Welcome to Shilpkar Foundation",
-                style: TextStyle(color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold)),
-            Text("Empowering communities with purpose driven actions",
-                style: TextStyle(color: Colors.white, fontSize: 12)),
+            Container(
+              height: 180,
+              width: double.infinity,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Background Image
+                  bannerUrl != null
+                      ? Image.network(
+                          bannerUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.asset(
+                              'assets/Images/Frame2.png',
+                              fit: BoxFit.cover,
+                            );
+                          },
+                        )
+                      : Image.asset(
+                          'assets/Images/Frame2.png',
+                          fit: BoxFit.cover,
+                        ),
+                  // Dark Overlay
+                  Container(
+                    color: Colors.black45,
+                  ),
+                  // Text Content
+                  const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text("Welcome to Shilpkar Foundation",
+                            style: TextStyle(color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold)),
+                        Text("Empowering communities with purpose driven actions",
+                            style: TextStyle(color: Colors.white, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Edit Button Overlay
+            Positioned(
+              top: 10,
+              right: 10,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const HomepageManagementScreen()),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.9),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.edit, 
+                    color: AppColors.appBarBlue,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
           ],
-        ),
-      ),
+        );
+      }
     );
   }
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/utils/storage_service.dart';
+import 'package:provider/provider.dart';
+import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import '../../data/models/scheme_model.dart';
 import '../../data/repository/scheme_repository.dart';
 
@@ -52,12 +54,30 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
         .where((e) => e.isNotEmpty)
         .toList();
 
+    final auth = context.read<AuthProvider>();
+    // Ensure profile is loaded to get ID
+    if (auth.userProfile == null) {
+      await auth.fetchUserProfile();
+    }
+    final userId = auth.userProfile?.user.id;
+
+    print("👤 UserProfile present: ${auth.userProfile != null}");
+    print("👤 UserID: $userId");
+    print("👤 Role: ${auth.role}");
+
     final body = {
       "name": _nameController.text.trim(),
       "description": _descController.text.trim(),
       "benefits": benefits,
       "price": double.tryParse(_priceController.text) ?? 0,
+      if (userId != null && userId.isNotEmpty) "createdBy": userId, 
+      if (userId != null && userId.isNotEmpty) "user": userId,
+      if (userId != null && userId.isNotEmpty) "admin": userId,
+      if (userId != null && userId.isNotEmpty) "userId": userId, // Try userId
+      if (userId != null && userId.isNotEmpty) "creator": userId, // Try creator
     };
+
+    print("📦 Scheme Creation Body: $body");
 
     try {
       print(await StorageService().getRole());
@@ -70,6 +90,8 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
           schemeId,
           "PUBLISHED",
         );
+
+
       } else {
         await _repository.updateScheme(_editingSchemeId!, body);
       }
@@ -82,7 +104,8 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
       );
 
     } catch (e) {
-      _showError(e.toString());
+
+     _showError(e.toString());
     }
   }
 

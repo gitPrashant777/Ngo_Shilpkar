@@ -7,6 +7,9 @@ import '../../data/models/job_model.dart';
 import 'apply_job_screen.dart';
 import 'job_list_screen.dart';
 import 'job_applications_screen.dart';
+import '../../../auth/presentation/screens/beneficiary_login_screen.dart' as shilpkar_auth;
+import '../../../auth/presentation/screens/employee_login_screen.dart' as shilpkar_auth;
+import '../../../../core/navigation/main_navigation.dart';
 
 class JobDetailScreen extends StatelessWidget {
   final JobModel job;
@@ -174,10 +177,16 @@ class JobDetailScreen extends StatelessWidget {
 
     // Guest / Beneficiary -> Apply Now
     return ElevatedButton(
-      onPressed: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => ApplyJobScreen(jobId: job.id)),
-      ),
+      onPressed: () {
+        if (userRole == null || userRole.isEmpty) {
+          _showLoginSheet(context);
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => ApplyJobScreen(jobId: job.id)),
+          );
+        }
+      },
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xFF3B76D1),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -239,6 +248,52 @@ class JobDetailScreen extends StatelessWidget {
         BottomNavigationBarItem(icon: Icon(Icons.assignment_outlined), label: "Schemes"),
         BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: "Profile"),
       ],
+    );
+  }
+  void _showLoginSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Login Required",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            const Text("Please login to apply for this job."),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(Icons.group_add_rounded, color: Color(0xFF7A9E6F)),
+              title: const Text("Login as Beneficiary"),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const shilpkar_auth.BeneficiaryLoginScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.person_pin_rounded, color: Color(0xFF638FB4)),
+              title: const Text("Login as Employee"),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const shilpkar_auth.EmployeeLoginScreen()),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/api/api_client.dart';
 import '../../../../shared/widgets/GradientActionCard.dart';
+import '../../../home/presentation/providers/homepage_provider.dart';
+import '../../../../features/ecommerce/presentation/screens/public/product_list_screen.dart';
 
 import 'beneficiary_login_screen.dart';
 import 'employee_login_screen.dart';
@@ -18,36 +19,14 @@ class PublicHomeScreen extends StatefulWidget {
 }
 
 class _PublicHomeScreenState extends State<PublicHomeScreen> {
-  final Dio _dio = ApiClient().dio;
-
-  List<String> _coverImages = [];
-  String _title = "Welcome to Shilpkar Foundation";
-  String _subtitle = "Empowering communities with purpose driven actions";
-
-  bool _isLoadingBanner = true;
   final PageController _pageController = PageController();
 
   @override
   void initState() {
     super.initState();
-    _fetchHomepage();
-  }
-
-  Future<void> _fetchHomepage() async {
-    try {
-      final response = await _dio.get("/homepage");
-      final data = response.data;
-      final images = data["coverImages"] as List? ?? [];
-
-      setState(() {
-        _coverImages = images.map((e) => e["url"] as String).toList();
-        _title = data["welcomeSection"]?["title"] ?? _title;
-        _subtitle = data["welcomeSection"]?["subtitle"] ?? _subtitle;
-        _isLoadingBanner = false;
-      });
-    } catch (e) {
-      setState(() => _isLoadingBanner = false);
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<HomepageProvider>().fetchHomepage();
+    });
   }
 
   @override
@@ -139,7 +118,9 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                           buttonLabel: "Explore Products",
                           buttonColor: AppColors.secondaryGreen,
                           bgColor: AppColors.productsBg,
-                          onTap: () {},
+                          onTap: () {
+                             Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen()));
+                          },
                         ),
                       ),
                     ],
@@ -239,65 +220,75 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   //  HERO BANNER
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Widget _buildHeroSection() {
-    if (_isLoadingBanner) {
-      return const SizedBox(
-        height: 180,
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
+    return Consumer<HomepageProvider>(
+      builder: (context, provider, _) {
+        if (provider.isLoading && provider.homepage == null) {
+          return const SizedBox(
+            height: 180,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
 
-    return SizedBox(
-      height: 180,
-      width: double.infinity,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Image
-          _coverImages.isNotEmpty
-              ? PageView.builder(
-                  controller: _pageController,
-                  itemCount: _coverImages.length,
-                  itemBuilder: (context, index) {
-                    return Image.network(
-                      _coverImages[index],
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Image.asset('assets/Images/Frame2.png', fit: BoxFit.cover);
+        final coverImages = provider.coverImageUrls;
+        final title = provider.welcomeTitle;
+        final subtitle = provider.welcomeSubtitle;
+
+        return SizedBox(
+          height: 180,
+          width: double.infinity,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Image
+              coverImages.isNotEmpty
+                  ? PageView.builder(
+                      controller: _pageController,
+                      itemCount: coverImages.length,
+                      itemBuilder: (context, index) {
+                        return Image.network(
+                          coverImages[index],
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.asset('assets/Images/Frame2.png',
+                                fit: BoxFit.cover);
+                          },
+                        );
                       },
-                    );
-                  },
-                )
-              : Image.asset('assets/Images/Frame2.png', fit: BoxFit.cover),
+                    )
+                  : Image.asset('assets/Images/Frame2.png', fit: BoxFit.cover),
 
-          // Dark Overlay
-          Container(color: Colors.black.withOpacity(0.45)),
+              // Dark Overlay
+              Container(color: Colors.black.withOpacity(0.45)),
 
-          // Text Content
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  _title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+              // Text Content
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      subtitle,
+                      textAlign: TextAlign.center,
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  _subtitle,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

@@ -39,7 +39,7 @@ class ApiClient {
           print("❌ ERROR STATUS: ${e.response?.statusCode}");
           print("❌ ERROR DATA: ${e.response?.data}");
 
-          if (e.response?.statusCode == 401) {
+          if (e.response?.statusCode == 401 && !e.requestOptions.path.contains('login')) {
             await _storage.clearAll();
             print("⚠️ Token cleared (401)");
           }
