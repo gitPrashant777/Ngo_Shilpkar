@@ -11,6 +11,7 @@ import '../../../chat/presentation/screens/chat_request_screen.dart'; // Adjust 
 import '../../../ecommerce/presentation/screens/public/product_list_screen.dart';
 import '../../../home/presentation/providers/homepage_provider.dart';
 import '../../../chat/presentation/screens/public_broadcast_screen.dart';
+import 'package:shilpkar/features/notifications/presentation/widgets/notification_bell.dart';
 
 class EmployeeDashboard extends StatefulWidget {
   const EmployeeDashboard({super.key});
@@ -99,14 +100,20 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
       title: Row(
         children: [
           // Matches the logo placement in design
-          Image.asset('assets/Images/logoSk.png', height: 35),
-          const SizedBox(width: 8),
-          const Text("Shilpkar Foundation",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+          Image.asset('assets/Images/logoSk.png', height: 40),
+          const SizedBox(width: 6),
+          const Expanded(
+            child: Text(
+              "Shilpkar Employee",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
       actions: [
         _buildLanguageToggle(),
+        const NotificationBell(iconColor: Colors.white),
         const SizedBox(width: 2),
         IconButton(
           icon: const Icon(Icons.logout, color: Colors.white),

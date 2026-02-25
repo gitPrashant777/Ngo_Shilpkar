@@ -18,11 +18,19 @@ import '../../../home/presentation/providers/homepage_provider.dart';
 import '../../../ecommerce/presentation/screens/admin/admin_product_management_screen.dart';
 import '../../../ecommerce/presentation/screens/admin/admin_product_management_screen.dart';
 import '../../../ecommerce/presentation/screens/admin/admin_category_management_screen.dart';
+import '../../../ecommerce/presentation/screens/admin/admin_order_management_screen.dart';
+import '../../../ecommerce/presentation/screens/admin/admin_refund_management_screen.dart';
 import '../../../chat/presentation/screens/chat_list_screen.dart' as shilpkar;
 import '../../../chat/presentation/screens/admin_broadcast_screen.dart';
 import 'create_beneficiary_screen.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import '../../../onboarding/presentation/screens/onboarding_admin_screen.dart';
+import '../../../status/presentation/screens/status_viewer_screen.dart';
+import '../../../status/presentation/screens/status_management_screen.dart';
+import '../../../status/presentation/providers/status_provider.dart';
+import 'package:shilpkar/features/notifications/presentation/widgets/notification_bell.dart';
+import '../../../schemes/presentation/screens/global_payments_screen.dart';
+import '../../../attendance/presentation/screens/attendance_list_screen.dart';
 
 class SuperAdminDashboard extends StatefulWidget {
   const SuperAdminDashboard({super.key});
@@ -39,6 +47,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
     // Fetch homepage data for the banner
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HomepageProvider>().fetchHomepage();
+      context.read<StatusProvider>().fetchStatuses();
     });
   }
 
@@ -55,6 +64,25 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
               padding: const EdgeInsets.all(10.0),
               child: Column(
                 children: [
+                  // ─── Our Vision / Our Work / Our Impact ──────
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      children: [
+                        Container(width: 4, height: 18, decoration: BoxDecoration(color: const Color(0xFF1E5799), borderRadius: BorderRadius.circular(2))),
+                        const SizedBox(width: 10),
+                        const Text('Our Vision • Our Work • Our Impact',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87)),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StatusManagementScreen())),
+                          child: const Text('Manage', style: TextStyle(fontSize: 12, color: Color(0xFF1E5799), fontWeight: FontWeight.w600)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const StatusRingRow(),
+                  const SizedBox(height: 10),
                   // Row for User Management
                   // lib/features/admin/presentation/screens/admin_dashboard.dart
 
@@ -121,7 +149,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                     "Fix payments for beneficiaries",
                     Icons.currency_rupee,
                     const Color(0xFFD9A05B),
-                        () {},
+                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OnboardingAdminScreen())),
                   ),
                   const SizedBox(height: 16),
 
@@ -130,16 +158,16 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                     children: [
                       Expanded(
                         child: _buildAdminFeatureBox(
-                          "Beneficiary Details",
-                          "check details of people connected with you",
-                          "See Details",
-                          Icons.group,
-                          const Color(0xFF638FB4),
+                          "Explore Products",
+                          "View the public store",
+                          "Explore",
+                          Icons.shopping_bag_outlined,
+                          const Color(0xFF4CAF50),
                               () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => const BeneficiaryListScreen(),
+                                builder: (_) => const ProductListScreen(),
                               ),
                             );
                           },
@@ -173,10 +201,26 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                     "Check payment history",
                     Icons.history,
                     const Color(0xFFB4C8B4),
-                        () {},
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const GlobalPaymentsScreen()),
+                      );
+                    },
                   ),
                   const SizedBox(height: 16),
-                  
+
+                  // Attendance Bar
+                  _buildFullWidthAction(
+                    "Attendance Records",
+                    "View & override employee attendance",
+                    Icons.fingerprint_rounded,
+                    const Color(0xFFE0F2F1),
+                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceListScreen())),
+                  ),
+                  const SizedBox(height: 16),
+
                   // Schemes Management
                   _buildFullWidthAction(
                     "Manage Schemes",
@@ -260,17 +304,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                   ),
                   Row(
                     children: [
-                      Expanded(
-                        child: _buildLightCardAction(
-                          "Explore Products",
-                          "View the public store",
-                          Icons.shopping_bag_outlined,
-                          const Color(0xFFE8F5E9),
-                          const Color(0xFF4CAF50),
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen())),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
+
                       Expanded(
                         child: _buildLightCardAction(
                           "Chat Requests",
@@ -309,6 +343,32 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildLightCardAction(
+                          "Manage Orders",
+                          "Track & update orders",
+                          Icons.local_shipping_outlined,
+                          const Color(0xFFF3E5F5),
+                          const Color(0xFF9C27B0),
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminOrderManagementScreen())),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildLightCardAction(
+                          "Refund Requests",
+                          "Approve or reject returns",
+                          Icons.assignment_return_outlined,
+                          const Color(0xFFFFEBEE),
+                          const Color(0xFFE53935),
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminRefundManagementScreen())),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 24),
         ]
               ),
@@ -329,18 +389,22 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
         children: [
           Image.asset('assets/Images/logoSk.png', height: 40),
           const SizedBox(width: 6),
-          const Text(
-            "Shilpkar Foundation",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Colors.white, // Ensure white text on blue bar
+          const Expanded(
+            child: Text(
+              "Shilpkar Super Admin",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Colors.white, // Ensure white text on blue bar
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
       ),
       actions: [
         _buildLanguageToggle(),
+        const NotificationBell(iconColor: Colors.white),
         const SizedBox(width: 2),
         IconButton(
           icon: const Icon(Icons.logout, color: Colors.white),

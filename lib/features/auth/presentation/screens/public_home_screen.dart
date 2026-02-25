@@ -5,6 +5,9 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/widgets/GradientActionCard.dart';
 import '../../../home/presentation/providers/homepage_provider.dart';
 import '../../../../features/ecommerce/presentation/screens/public/product_list_screen.dart';
+import '../../../../features/status/presentation/screens/status_viewer_screen.dart';
+import '../../../../features/status/presentation/providers/status_provider.dart';
+import '../../../../features/schemes/presentation/providers/scheme_provider.dart';
 
 import 'beneficiary_login_screen.dart';
 import 'employee_login_screen.dart';
@@ -26,6 +29,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HomepageProvider>().fetchHomepage();
+      context.read<StatusProvider>().fetchStatuses();
+      context.read<SchemeProvider>().fetchPublishedSchemes();
     });
   }
 
@@ -39,6 +44,21 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
           children: [
             // ─── Hero Banner ─────────────────────────────────
             _buildHeroSection(),
+
+            // ─── Our Vision / Our Work / Our Impact (Status Stories) ─────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: Row(
+                children: [
+                  Container(width: 4, height: 18, decoration: BoxDecoration(color: AppColors.primaryBlue, borderRadius: BorderRadius.circular(2))),
+                  const SizedBox(width: 10),
+                  const Text('Our Vision • Our Work • Our Impact',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            const StatusRingRow(),
 
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -165,6 +185,11 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
                   const SizedBox(height: 16),
 
+                  // ─── Schemes Section ─────────────────────────
+                  _buildSchemesSection(),
+
+                  const SizedBox(height: 16),
+
                   // ─── Donate Card ─────────────────────────────
                   _buildDonateCard(),
 
@@ -175,6 +200,217 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //  SCHEMES SECTION (public preview)
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Widget _buildSchemesSection() {
+    return Consumer<SchemeProvider>(
+      builder: (context, provider, _) {
+        final schemes = provider.publishedSchemes;
+        final hasError = provider.error != null && schemes.isEmpty;
+        final isEmpty = !provider.isLoading && schemes.isEmpty && !hasError;
+
+        // Section label row
+        Widget header = Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Row(
+            children: [
+              Container(
+                width: 4, height: 18,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryBlue,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'Government & NGO Schemes',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+              ),
+            ],
+          ),
+        );
+
+        // Loading shimmer
+        if (provider.isLoading && schemes.isEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              header,
+              Container(
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              ),
+            ],
+          );
+        }
+
+        // Failed or empty → show login CTA
+        if (hasError || isEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              header,
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFA5D6A7)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.assignment_outlined, color: Color(0xFF388E3C), size: 36),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Schemes Available for You',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Login as Beneficiary to view and apply for government & NGO schemes available in your area.',
+                            style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.4),
+                          ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 34,
+                            child: ElevatedButton.icon(
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const BeneficiaryLoginScreen()),
+                              ),
+                              icon: const Icon(Icons.login, size: 15, color: Colors.white),
+                              label: const Text(
+                                'Login as Beneficiary',
+                                style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF388E3C),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                padding: EdgeInsets.zero,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }
+
+        // Schemes loaded — show preview (max 3) + login CTA
+        final preview = schemes.take(3).toList();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            header,
+            ...preview.map((scheme) {
+              final isPaid = scheme.price > 0;
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6)
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40, height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(Icons.assignment_rounded, color: AppColors.primaryBlue, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(scheme.name,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                              maxLines: 1, overflow: TextOverflow.ellipsis),
+                          const SizedBox(height: 2),
+                          Text(scheme.description,
+                              style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                              maxLines: 1, overflow: TextOverflow.ellipsis),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isPaid ? Colors.orange.shade50 : Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        isPaid ? '₹${scheme.price.toInt()}' : 'FREE',
+                        style: TextStyle(
+                          fontSize: 11, fontWeight: FontWeight.bold,
+                          color: isPaid ? Colors.orange.shade700 : Colors.green.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+            // Login CTA at the bottom
+            GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const BeneficiaryLoginScreen()),
+              ),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.primaryBlue, const Color(0xFF1E5799)],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.login_rounded, color: Colors.white, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      schemes.length > 3
+                          ? 'Login as Beneficiary to see all ${schemes.length} schemes & apply'
+                          : 'Login as Beneficiary to apply for these schemes',
+                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

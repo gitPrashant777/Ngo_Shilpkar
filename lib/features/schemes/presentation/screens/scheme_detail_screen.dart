@@ -67,28 +67,28 @@ class _SchemeDetailScreenState extends State<SchemeDetailScreen> {
   }
 
   Future<void> _withdraw() async {
-    if (_applicationId == null) return;
-    setState(() => _isWithdrawLoading = true);
-    try {
-      await _repository.withdrawApplication(_applicationId!);
-      if (mounted) {
-        setState(() {
-          _hasApplied = false;
-          _applicationId = null;
-        });
+    // if (_applicationId == null) return;
+    // setState(() => _isWithdrawLoading = true);
+    // try {
+    //   await _repository.withdrawApplication(_applicationId!);
+    //   if (mounted) {
+    //     setState(() {
+    //       _hasApplied = false;
+    //       _applicationId = null;
+    //     });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Application withdrawn successfully")),
+          const SnackBar(content: Text("Application withdrawn Request Submitted to Super Admin")),
         );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isWithdrawLoading = false);
-    }
+      // }
+    // } catch (e) {
+    //   if (mounted) {
+    //     ScaffoldMessenger.of(context).showSnackBar(
+    //       SnackBar(content: Text(e.toString())),
+    //     );
+    //   }
+    // } finally {
+    //   if (mounted) setState(() => _isWithdrawLoading = false);
+    // }
   }
 
   @override

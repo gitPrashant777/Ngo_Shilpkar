@@ -32,16 +32,19 @@ class _SuperAdminSchemeApplicationsScreenState
 
   Future<void> _fetchApplications() async {
     try {
-      final response =
-      await _repository.getApplications(widget.schemeId);
+      final response = await _repository.getApplications(widget.schemeId);
 
-      setState(() {
-        _applications = response;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _applications = response.data;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() => _isLoading = false);
-      _showError(e.toString());
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showError(e.toString());
+      }
     }
   }
 
@@ -54,24 +57,29 @@ class _SuperAdminSchemeApplicationsScreenState
         "Reviewed by admin",
       );
 
-      setState(() {
-        _applications = _applications.map((app) {
-          if (app.id == applicationId) {
-            return app.copyWith(status: status);
-          }
-          return app;
-        }).toList();
-      });
+      if (mounted) {
+        setState(() {
+          _applications = _applications.map((app) {
+            if (app.id == applicationId) {
+              return app.copyWith(status: status);
+            }
+            return app;
+          }).toList();
+        });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Application $status")),
-      );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Application $status")),
+        );
+      }
     } catch (e) {
-      _showError(e.toString());
+      if (mounted) {
+        _showError(e.toString());
+      }
     }
   }
 
   void _showError(String msg) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(msg)),
     );

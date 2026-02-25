@@ -1,6 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+// Top-level function for background messages
+
+
 import 'package:shilpkar/core/navigation/main_navigation.dart';
 import 'package:shilpkar/features/admin/presentation/screens/superAdmin_dashboard.dart';
 import 'core/constants/app_colors.dart';
@@ -14,16 +20,30 @@ import 'features/ecommerce/presentation/providers/category_provider.dart';
 import 'features/ecommerce/presentation/providers/product_provider.dart';
 import 'features/ecommerce/presentation/providers/order_provider.dart';
 import 'features/ecommerce/presentation/providers/review_provider.dart';
+import 'features/ecommerce/presentation/providers/customer_auth_provider.dart';
 import 'features/chat/presentation/providers/chat_provider.dart';
 import 'features/chat/presentation/providers/broadcast_provider.dart';
 import 'features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'features/status/presentation/providers/status_provider.dart';
+import 'features/notifications/presentation/providers/notification_provider.dart';
+import 'features/attendance/presentation/providers/attendance_provider.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
-void main() {
-  // Production-grade initialization [cite: 1]
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  debugPrint("Handling a background message: ${message.messageId}");
+}
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 🔥 Initialize Firebase
+  await Firebase.initializeApp();
+  
+  // Register background handler
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
   runApp(
     MultiProvider(
       providers: [
@@ -35,17 +55,101 @@ void main() {
         ChangeNotifierProvider(create: (_) => ProductProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
         ChangeNotifierProvider(create: (_) => ReviewProvider()),
+        ChangeNotifierProvider(create: (_) => CustomerAuthProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => BroadcastProvider()),
         ChangeNotifierProvider(create: (_) => OnboardingProvider()),
+        ChangeNotifierProvider(create: (_) => StatusProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => AttendanceProvider()),
       ],
       child: const MyApp(),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+
+  @override
+  void initState() {
+    super.initState();
+    _printFCMToken();
+  }
+
+  Future<void> _printFCMToken() async {
+    try {
+      FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+      // Request permission (important for Android 13+ & iOS)
+      await messaging.requestPermission();
+
+      String? token = await messaging.getToken();
+
+      print("🔥 ================================");
+      print("🔥 FCM TOKEN:");
+      print(token);
+      print("🔥 ================================");
+
+      // Listen for token refresh
+      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+        print("🔄 ================================");
+        print("🔄 FCM TOKEN REFRESHED:");
+        print(newToken);
+        print("🔄 ================================");
+
+        if (navigatorKey.currentContext != null) {
+          final authProvider = navigatorKey.currentContext!.read<AuthProvider>();
+          if (authProvider.isAuthenticated) {
+            navigatorKey.currentContext!.read<NotificationProvider>().registerFcmToken(newToken);
+          }
+        }
+      });
+
+      // Handle App Open via Notification
+      _setupPushNotificationRouting();
+
+    } catch (e) {
+      print("❌ Error getting FCM token: $e");
+    }
+  }
+
+  void _setupPushNotificationRouting() async {
+    // 1. Terminated state tap
+    RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      _handlePushTap(initialMessage);
+    }
+
+    // 2. Background state tap
+    FirebaseMessaging.onMessageOpenedApp.listen(_handlePushTap);
+    
+    // 3. Foreground state receive
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      // You can trigger unread count refresh here if desired
+      if (navigatorKey.currentContext != null) {
+        navigatorKey.currentContext!.read<NotificationProvider>().fetchUnreadCount();
+      }
+    });
+  }
+
+  void _handlePushTap(RemoteMessage message) {
+    if (message.data.containsKey('type')) {
+      final type = message.data['type'];
+      // Routing logic (adjust with actual routes as needed)
+      // e.g., if (type == 'ATTENDANCE_MARKED') navigatorKey.currentState?.pushNamed('/attendance');
+      // For now, redirect to notifications screen
+      if (navigatorKey.currentState != null) {
+         // Need to use push to a generic route or handle specific routing here.
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +157,6 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Shilpkar Foundation',
       navigatorKey: navigatorKey,
-      // Setting Global Theme based on Figma styles [cite: 1, 30]
       theme: ThemeData(
         useMaterial3: true,
         primaryColor: AppColors.appBarBlue,
@@ -67,7 +170,6 @@ class MyApp extends StatelessWidget {
           foregroundColor: Colors.white,
           elevation: 0,
         ),
-        // Matching rounded button style from Figma
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             shape: RoundedRectangleBorder(
@@ -76,12 +178,13 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      builder: (context, child) => _BroadcastListenerWrapper(child: child!),
-      home: const MainNavigationScreen(),
+      builder: (context, child) =>
+          _BroadcastListenerWrapper(child: child!),
+      home: const SplashScreen(),
       routes: {
         "/home": (context) => const PublicHomeScreen(),
         "/admin-dashboard": (context) => const SuperAdminDashboard(),
-        "/login": (context) =>  PublicHomeScreen(),
+        "/login": (context) => PublicHomeScreen(),
         "/onboarding": (context) => const OnboardingScreen(),
       },
     );
@@ -93,10 +196,12 @@ class _BroadcastListenerWrapper extends StatefulWidget {
   const _BroadcastListenerWrapper({required this.child});
 
   @override
-  State<_BroadcastListenerWrapper> createState() => _BroadcastListenerWrapperState();
+  State<_BroadcastListenerWrapper> createState() =>
+      _BroadcastListenerWrapperState();
 }
 
-class _BroadcastListenerWrapperState extends State<_BroadcastListenerWrapper> {
+class _BroadcastListenerWrapperState
+    extends State<_BroadcastListenerWrapper> {
   StreamSubscription? _subscription;
 
   @override
@@ -104,20 +209,22 @@ class _BroadcastListenerWrapperState extends State<_BroadcastListenerWrapper> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final chatProvider = context.read<ChatProvider>();
-      _subscription = chatProvider.broadcastStream.listen((message) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "📢 System Broadcast: $message", 
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            backgroundColor: Colors.orange,
-            duration: const Duration(seconds: 5),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      });
+      _subscription =
+          chatProvider.broadcastStream.listen((message) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  "📢 System Broadcast: $message",
+                  style:
+                  const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                backgroundColor: Colors.orange,
+                duration: const Duration(seconds: 5),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          });
     });
   }
 

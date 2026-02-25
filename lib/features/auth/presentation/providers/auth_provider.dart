@@ -1,8 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:convert';
+import 'package:provider/provider.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+import '../../../../main.dart';
 
 import '../../../../core/utils/storage_service.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
 import '../../data/models/login_request.dart';
 import '../../data/repository/auth_repository.dart';
 import '../../data/repository/user_repository.dart';
@@ -68,6 +73,18 @@ class AuthProvider extends ChangeNotifier {
   // Logout
   Future<void> logout() async {
     debugPrint("AuthProvider: Logging out...");
+
+    // --- FCM REMOVE ---
+    try {
+      String? fcmToken = await FirebaseMessaging.instance.getToken();
+      if (fcmToken != null && navigatorKey.currentContext != null) {
+        await navigatorKey.currentContext!.read<NotificationProvider>().removeFcmToken(fcmToken);
+      }
+    } catch(e) {
+      debugPrint("FCM remove error during logout: $e");
+    }
+    // ------------------
+
     _role = null;
     _userProfile = null;
     _userId = null;
@@ -122,6 +139,17 @@ class AuthProvider extends ChangeNotifier {
           userId: extractedId,
         );
         _userId = extractedId;
+
+        // --- FCM REGISTER ---
+        try {
+          String? fcmToken = await FirebaseMessaging.instance.getToken();
+          if (fcmToken != null && navigatorKey.currentContext != null) {
+            navigatorKey.currentContext!.read<NotificationProvider>().registerFcmToken(fcmToken);
+          }
+        } catch(e) {
+          debugPrint("FCM registration error during login: $e");
+        }
+        // --------------------
 
         return true;
       } else {

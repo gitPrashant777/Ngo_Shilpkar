@@ -108,6 +108,9 @@ class UserRepository {
         "district": formData["district"],
         "taluka": formData["taluka"],
         "village": formData["village"],
+        if (formData["address"] != null) "address": formData["address"],
+        if (formData["latitude"] != null) "latitude": formData["latitude"],
+        if (formData["longitude"] != null) "longitude": formData["longitude"],
       }
     };
     print("=========== CREATE EMPLOYEE REQUEST ===========");
@@ -159,6 +162,9 @@ class UserRepository {
         "taluka": formData["taluka"],
         "village": formData["village"],
         "category": formData["category"],
+        if (formData["address"] != null) "address": formData["address"],
+        if (formData["latitude"] != null) "latitude": formData["latitude"],
+        if (formData["longitude"] != null) "longitude": formData["longitude"],
         // Beneficiary specific:
         "bankDetails": {
              "accountNumber": formData["accountNumber"],
@@ -275,6 +281,24 @@ class UserRepository {
        // Return empty list or throw based on preference. 
        // For now, rethrowing to handle in UI.
        throw Exception(e.response?.data["message"] ?? "Failed to fetch beneficiaries");
+    }
+  }
+
+  // ============================
+  // GET BENEFICIARY BY ID
+  // ============================
+  Future<BeneficiaryModel> getBeneficiaryById(String id) async {
+    try {
+      final response = await _client.dio.get("/super-admin/users/$id");
+      if (response.statusCode == 200) {
+        final data = response.data['data'] ?? response.data;
+        return BeneficiaryModel.fromJson(data);
+      } else {
+        throw Exception("Failed to load beneficiary details");
+      }
+    } on DioException catch (e) {
+       print("Error fetching beneficiary: ${e.message}");
+       throw Exception(e.response?.data["message"] ?? "Failed to fetch beneficiary");
     }
   }
 }

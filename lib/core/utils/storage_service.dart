@@ -40,11 +40,18 @@ class StorageService {
   String get schemeCacheKey => _schemeCacheKey;
   String get productCacheKey => _productCacheKey;
 
+  // Customer Token for Ecommerce
+  static const String _customerTokenKey = 'customer_token';
+  Future<void> saveCustomerToken(String token) async => await _storage.write(key: _customerTokenKey, value: token);
+  Future<String?> getCustomerToken() async => await _storage.read(key: _customerTokenKey);
+  Future<void> clearCustomerToken() async => await _storage.delete(key: _customerTokenKey);
+
   Future<void> clearAll() async {
     // Only clear auth data, preserve cache for guest usage
     await _storage.delete(key: _tokenKey);
     await _storage.delete(key: _roleKey);
     await _storage.delete(key: _identifierKey);
     await _storage.delete(key: _userIdKey);
+    await _storage.delete(key: _customerTokenKey);
   }
 }

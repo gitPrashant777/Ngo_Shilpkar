@@ -59,7 +59,9 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
   bool _travelDistrict = false;
   File? _resumeFile;
   String? _resumeName;
+  String? _resumeSize; // Human-readable file size
   File? _photoFile;
+  String? _photoSize;
   
   // Role Check
   bool _isBeneficiary = false;
@@ -308,24 +310,77 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
   }
 
   // ── file pickers ──────────────────────────────────────────────────────────────
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
   Future<void> _pickResume() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
     );
     if (result != null && result.files.single.path != null) {
+      final file = File(result.files.single.path!);
+      final sizeBytes = await file.length();
+      const maxBytes = 5 * 1024 * 1024; // 5 MB
+
+      if (sizeBytes > maxBytes) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '❌ Resume too large (${_formatFileSize(sizeBytes)}). Max allowed is 5 MB.',
+              ),
+              backgroundColor: Colors.redAccent,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+        return;
+      }
+
       setState(() {
-        _resumeFile = File(result.files.single.path!);
+        _resumeFile = file;
         _resumeName = result.files.single.name;
+        _resumeSize = _formatFileSize(sizeBytes);
       });
     }
   }
 
   Future<void> _openCamera() async {
     final picker = ImagePicker();
-    final img = await picker.pickImage(source: ImageSource.camera);
+    final img = await picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 70, // Compress to reduce size automatically
+      maxWidth: 1024,
+      maxHeight: 1024,
+    );
     if (img != null) {
-      setState(() => _photoFile = File(img.path));
+      final file = File(img.path);
+      final sizeBytes = await file.length();
+      const maxBytes = 2 * 1024 * 1024; // 2 MB
+
+      if (sizeBytes > maxBytes) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '❌ Photo too large (${_formatFileSize(sizeBytes)}). Max allowed is 2 MB.',
+              ),
+              backgroundColor: Colors.redAccent,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+        return;
+      }
+
+      setState(() {
+        _photoFile = file;
+        _photoSize = _formatFileSize(sizeBytes);
+      });
     }
   }
 
@@ -464,7 +519,9 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
           communities: _communities,
           travelDistrict: _travelDistrict,
           resumeName: _resumeName,
+          resumeSize: _resumeSize,
           photoFile: _photoFile,
+          photoSize: _photoSize,
           onQualificationChanged: (v) => setState(() => _qualification = v),
           onExperienceChanged: (v) => setState(() => _experienceLevel = v),
           onJobTypeChanged: (v) => setState(() => _jobType = v),
@@ -1001,7 +1058,9 @@ class _EducationStep extends StatelessWidget {
   final bool travelDistrict;
 
   final String? resumeName;
+  final String? resumeSize; // NEW
   final File? photoFile;
+  final String? photoSize; // NEW
 
   final ValueChanged<String?> onQualificationChanged;
   final ValueChanged<String?> onExperienceChanged;
@@ -1026,7 +1085,9 @@ class _EducationStep extends StatelessWidget {
     required this.communities,
     required this.travelDistrict,
     required this.resumeName,
+    this.resumeSize,
     required this.photoFile,
+    this.photoSize,
     required this.onQualificationChanged,
     required this.onExperienceChanged,
     required this.onJobTypeChanged,
@@ -1117,13 +1178,15 @@ class _EducationStep extends StatelessWidget {
             const SizedBox(height: 8),
             _UploadRow(
               buttonLabel: 'Upload Resume',
-              statusText: resumeName ?? 'No file chosen',
+              statusText: resumeName != null
+                  ? '$resumeName${resumeSize != null ? ' ($resumeSize)' : ''}'
+                  : 'No file chosen',
               onTap: onPickResume,
             ),
             const Padding(
               padding: EdgeInsets.only(top: 4, bottom: 14),
               child: Text(
-                '*Add pdf upto 2 Mb',
+                'PDF only • Max 5 MB',
                 style: TextStyle(fontSize: 11, color: _kSubLabel),
               ),
             ),
@@ -1141,9 +1204,16 @@ class _EducationStep extends StatelessWidget {
             _UploadRow(
               buttonLabel: 'Open Camera',
               statusText: photoFile != null
-                  ? 'Photo captured ✓'
+                  ? 'Photo captured ✓${photoSize != null ? ' ($photoSize)' : ''}'
                   : 'Open Camera for Live Photo',
               onTap: onOpenCamera,
+            ),
+            const Padding(
+              padding: EdgeInsets.only(top: 4, bottom: 0),
+              child: Text(
+                'Live photo only • Max 2 MB',
+                style: TextStyle(fontSize: 11, color: _kSubLabel),
+              ),
             ),
 
             const SizedBox(height: 28),

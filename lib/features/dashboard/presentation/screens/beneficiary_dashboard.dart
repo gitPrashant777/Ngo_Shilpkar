@@ -15,6 +15,7 @@ import '../../../schemes/presentation/screens/user_scheme_list_screen.dart';
 import '../../../home/presentation/providers/homepage_provider.dart';
 import '../../../chat/presentation/screens/public_broadcast_screen.dart';
 import '../../../ecommerce/presentation/screens/public/my_orders_screen.dart';
+import 'package:shilpkar/features/notifications/presentation/widgets/notification_bell.dart';
 
 class BeneficiaryDashboard extends StatefulWidget {
   const BeneficiaryDashboard({super.key});
@@ -109,10 +110,10 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
                         children: [
                           Expanded(
                             child: _buildCategoryBox(
-                              "My Schemes",
+                              "My Job Applications",
                               "Track your applied benefits",
-                              "View Schemes",
-                              Icons.assignment_turned_in_rounded,
+                              "View Applications",
+                              Icons.work,
                               const Color(0xFF55789A),
                                   () {
                                 Navigator.push(context, MaterialPageRoute(
@@ -188,18 +189,22 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
         children: [
           Image.asset('assets/Images/logoSk.png', height: 40),
           const SizedBox(width: 6),
-          const Text(
-            "Shilpkar Foundation",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Colors.white,
+          const Expanded(
+            child: Text(
+              "Shilpkar Foundation",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Colors.white,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
       ),
       actions: [
         _buildLanguageToggle(),
+        const NotificationBell(iconColor: Colors.white),
         const SizedBox(width: 2),
         IconButton(
           icon: const Icon(Icons.logout, color: Colors.white),

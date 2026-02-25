@@ -24,11 +24,15 @@ class ApiClient {
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           final token = await _storage.getToken();
+          final customerToken = await _storage.getCustomerToken();
 
           print("🔐 TOKEN FROM STORAGE: $token");
+          print("🔐 CUSTOMER TOKEN FROM STORAGE: $customerToken");
 
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
+          } else if (customerToken != null && customerToken.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $customerToken';
           }
 
           print("📡 FINAL HEADERS: ${options.headers}");
@@ -41,7 +45,7 @@ class ApiClient {
 
           if (e.response?.statusCode == 401 && !e.requestOptions.path.contains('login')) {
             await _storage.clearAll();
-            print("⚠️ Token cleared (401)");
+            print("⚠️ Tokens cleared (401)");
           }
 
           return handler.next(e);

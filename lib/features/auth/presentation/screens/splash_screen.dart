@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shilpkar/core/navigation/main_navigation.dart';
 import 'package:shilpkar/features/auth/presentation/screens/public_home_screen.dart';
 import '../../../../core/utils/storage_service.dart';
+import '../../../ecommerce/presentation/providers/customer_auth_provider.dart';
 import 'role_selection_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -23,13 +25,16 @@ class _SplashScreenState extends State<SplashScreen> {
   void _checkAuth() async {
     // Artificial delay for splash effect
     await Future.delayed(const Duration(seconds: 3));
+    
+    if (mounted) {
+      // Initialize customer session in the background
+      context.read<CustomerAuthProvider>().checkAuthStatus();
+    }
+
     final token = await _storage.getToken();
 
     if (!mounted) return;
-
-    if (token != null) {
-      // TODO: Navigate to Home/Dashboard once implemented
-    } else {
+      else {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const MainNavigationScreen()),

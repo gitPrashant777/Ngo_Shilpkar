@@ -173,8 +173,10 @@ class _JobListScreenState extends State<JobListScreen> {
                 Container(
                   width: 50,
                   height: 50,
+                  child:           Image.asset('assets/Images/logoSk.png', height: 40),
+
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                   ),
                 )

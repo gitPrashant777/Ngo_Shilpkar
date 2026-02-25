@@ -8,11 +8,12 @@ import 'package:shilpkar/features/auth/presentation/providers/auth_provider.dart
 import 'package:shilpkar/features/auth/presentation/screens/public_home_screen.dart';
 import 'package:shilpkar/features/jobs/presentation/screens/job_list_screen.dart';
 import 'package:shilpkar/features/schemes/presentation/screens/scheme_list_screen.dart';
+import 'package:shilpkar/features/schemes/presentation/screens/public_scheme_login_gate.dart';
+import 'package:shilpkar/features/schemes/presentation/screens/Superadmin_scheme_management_screen.dart';
 import 'package:shilpkar/features/admin/presentation/screens/superAdmin_dashboard.dart';
 import 'package:shilpkar/features/admin/presentation/screens/admin_dashboard.dart';
 import 'package:shilpkar/features/auth/presentation/screens/profile_screen.dart';
 import 'package:shilpkar/features/jobs/presentation/screens/admin_job_management_screen.dart';
-import 'package:shilpkar/features/schemes/presentation/screens/Superadmin_scheme_management_screen.dart';
 
 import '../../features/beneficiary/presentation/screens/my_application_screen.dart';
 import '../../features/dashboard/presentation/screens/beneficiary_dashboard.dart';
@@ -80,23 +81,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     List<Widget> pages = [];
     if (role == "SUPER_ADMIN") {
       pages = [
-        const AdminJobManagementScreen(), // Index 0: Jobs
-        const SuperAdminDashboard(), // Index 1: Home
-        const SuperAdminSchemeManagementScreen(),
+        const AdminJobManagementScreen(),            // Index 0: Jobs
+        const SuperAdminDashboard(),                 // Index 1: Home
+        const SuperAdminSchemeManagementScreen(),    // Index 2: Full scheme management
         const ProfileScreen(),
       ];
     } else if (role == "ADMIN") {
       pages = [
-        const AdminJobManagementScreen(), // Index 0: Jobs
-        const AdminDashboard(),      // Index 1: Home
-        const SuperAdminSchemeManagementScreen(),
+        const AdminJobManagementScreen(),            // Index 0: Jobs
+        const AdminDashboard(),                      // Index 1: Home
+        const SuperAdminSchemeManagementScreen(),    // Index 2: Full scheme management
         const ProfileScreen(),
       ];
     } else if (role == "BENEFICIARY") {
       pages = [
         const JobListScreen(),        // Index 0: Jobs
         const BeneficiaryDashboard(), // Index 1: Home
-        const UserSchemeListScreen(),
+        const SchemeListScreen(),     // Index 2: Schemes (published only)
         const ProfileScreen(),
       ];
     } else if (role == "FIELD" || role == "COORDINATOR" || role == "EMPLOYEE") {
@@ -109,9 +110,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     } else {
       // Default / Guest
       pages = [
-        const JobListScreen(),     // Index 0: Jobs
-        const PublicHomeScreen(),  // Index 1: Home
-        const SchemeListScreen(),
+        const JobListScreen(),           // Index 0: Jobs
+        const PublicHomeScreen(),        // Index 1: Home
+        const PublicSchemeLoginGate(),   // Index 2: Schemes login gate
         const ProfileScreen(),
       ];
     }

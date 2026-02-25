@@ -308,17 +308,6 @@ class JobDetailScreen extends StatelessWidget {
                 );
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.person_pin_rounded, color: Color(0xFF638FB4)),
-              title: const Text("Login as Employee"),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const shilpkar_auth.EmployeeLoginScreen()),
-                );
-              },
-            ),
           ],
         ),
       ),

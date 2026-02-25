@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import '../../data/repository/scheme_repository.dart';
+import '../../../auth/presentation/screens/edit_profile_screen.dart';
 
 class ApplySchemeScreen extends StatefulWidget {
   final String schemeId;
@@ -42,21 +43,65 @@ class _ApplySchemeScreenState extends State<ApplySchemeScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (errorMessage.toLowerCase().contains("bank details")) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+              action: SnackBarAction(
+                label: "Add Bank",
+                textColor: Colors.white,
+                onPressed: () {
+                  Navigator.pop(context); // Close this apply screen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                  );
+                },
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Unexpected error"),
-            backgroundColor: Colors.red,
-          ),
-        );
+        String errorMessage = e.toString().replaceAll('Exception: ', '');
+        
+        if (errorMessage.toLowerCase().contains("bank details")) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+              action: SnackBarAction(
+                label: "Add Bank",
+                textColor: Colors.white,
+                onPressed: () {
+                  Navigator.pop(context); // Close this apply screen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                  );
+                },
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage.isNotEmpty ? errorMessage : "Unexpected error"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } finally {
       if (mounted) {
