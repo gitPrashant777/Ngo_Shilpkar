@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/providers/language_provider.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/GradientActionCard.dart';
 import '../../../home/presentation/providers/homepage_provider.dart';
 import '../../../../features/ecommerce/presentation/screens/public/product_list_screen.dart';
@@ -36,9 +38,10 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.backgroundGrey,
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(l10n),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -50,10 +53,18 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Row(
                 children: [
-                  Container(width: 4, height: 18, decoration: BoxDecoration(color: AppColors.primaryBlue, borderRadius: BorderRadius.circular(2))),
+                  Container(
+                      width: 4,
+                      height: 18,
+                      decoration: BoxDecoration(
+                          color: AppColors.primaryBlue,
+                          borderRadius: BorderRadius.circular(2))),
                   const SizedBox(width: 10),
-                  const Text('Our Vision • Our Work • Our Impact',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87)),
+                  Text(l10n.ourVisionSection,
+                      style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87)),
                 ],
               ),
             ),
@@ -68,41 +79,44 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
 
                   // ─── Login Action Cards ──────────────────────
                   GradientActionCard(
-                    title: "Login as Employee",
-                    subtitle: "for field staff, coordinators and office team",
+                    title: l10n.loginAsEmployee,
+                    subtitle: l10n.loginAsEmployeeSubtitle,
                     icon: Icons.person_pin_rounded,
                     gradientColors: AppColors.employeeGradient,
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const EmployeeLoginScreen()),
+                      MaterialPageRoute(
+                          builder: (_) => const EmployeeLoginScreen()),
                     ),
                   ),
 
                   GradientActionCard(
-                    title: "Login as Beneficiary",
-                    subtitle: "for farmers, women, workers, students & citizens",
+                    title: l10n.loginAsBeneficiary,
+                    subtitle: l10n.loginAsBeneficiarySubtitle,
                     icon: Icons.group_add_rounded,
                     gradientColors: AppColors.beneficiaryGradient,
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const BeneficiaryLoginScreen()),
+                      MaterialPageRoute(
+                          builder: (_) => const BeneficiaryLoginScreen()),
                     ),
                   ),
 
                   GradientActionCard(
-                    title: "Login as Admin",
-                    subtitle: "for admins and super-admin",
+                    title: l10n.loginAsAdmin,
+                    subtitle: l10n.loginAsAdminSubtitle,
                     icon: Icons.admin_panel_settings_rounded,
                     gradientColors: AppColors.adminGradient,
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
+                      MaterialPageRoute(
+                          builder: (_) => const AdminLoginScreen()),
                     ),
                   ),
 
                   GradientActionCard(
-                    title: "Apply for a Job",
-                    subtitle: "View open positions and apply with your qualifications",
+                    title: l10n.applyForJob,
+                    subtitle: l10n.applyForJobSubtitle,
                     icon: Icons.work_outline,
                     gradientColors: AppColors.jobGradient,
                     onTap: () => Navigator.push(
@@ -120,9 +134,9 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                         child: _buildInfoBox(
                           icon: Icons.diversity_3_rounded,
                           iconColor: AppColors.primaryBlue,
-                          title: "Join Us on our social mission",
-                          subtitle: "Be a part of beautiful change",
-                          buttonLabel: "Join Now",
+                          title: l10n.joinUsSocialMission,
+                          subtitle: l10n.bePartOfChange,
+                          buttonLabel: l10n.joinNow,
                           buttonColor: AppColors.primaryBlue,
                           bgColor: AppColors.joinUsBg,
                           onTap: () {},
@@ -133,13 +147,16 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                         child: _buildInfoBox(
                           icon: Icons.volunteer_activism_rounded,
                           iconColor: AppColors.accentRed,
-                          title: "Purpose Driven Products",
-                          subtitle: "Every product you support creates impact",
-                          buttonLabel: "Explore Products",
+                          title: l10n.purposeDrivenProducts,
+                          subtitle: l10n.everyProductCreatesImpact,
+                          buttonLabel: l10n.exploreProducts,
                           buttonColor: AppColors.secondaryGreen,
                           bgColor: AppColors.productsBg,
                           onTap: () {
-                             Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen()));
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const ProductListScreen()));
                           },
                         ),
                       ),
@@ -155,9 +172,9 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                         child: _buildPillarCard(
                           icon: Icons.auto_awesome_rounded,
                           iconColor: AppColors.secondaryGreen,
-                          label: "Our Vision",
-                          sub: "Why we Exist",
-                          bgColor: const Color(0xFFE8F5E9),
+                          label: l10n.ourVision,
+                          sub: l10n.whyWeExist,
+                          bgColor: AppColors.visionBg,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -165,9 +182,9 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                         child: _buildPillarCard(
                           icon: Icons.handyman_rounded,
                           iconColor: AppColors.primaryBlue,
-                          label: "Our Work",
-                          sub: "what we do on the ground",
-                          bgColor: const Color(0xFFE3F2FD),
+                          label: l10n.ourWork,
+                          sub: l10n.whatWeDo,
+                          bgColor: AppColors.workBg,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -175,9 +192,9 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                         child: _buildPillarCard(
                           icon: Icons.emoji_events_rounded,
                           iconColor: AppColors.accentRed,
-                          label: "Our Impact",
-                          sub: "Lives touched & villages reached",
-                          bgColor: const Color(0xFFFCE4EC),
+                          label: l10n.ourImpact,
+                          sub: l10n.livesTouched,
+                          bgColor: AppColors.impactBg,
                         ),
                       ),
                     ],
@@ -186,12 +203,12 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                   const SizedBox(height: 16),
 
                   // ─── Schemes Section ─────────────────────────
-                  _buildSchemesSection(),
+                  _buildSchemesSection(l10n),
 
                   const SizedBox(height: 16),
 
                   // ─── Donate Card ─────────────────────────────
-                  _buildDonateCard(),
+                  _buildDonateCard(l10n),
 
                   const SizedBox(height: 24),
                 ],
@@ -206,7 +223,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   //  SCHEMES SECTION (public preview)
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Widget _buildSchemesSection() {
+  Widget _buildSchemesSection(AppLocalizations l10n) {
     return Consumer<SchemeProvider>(
       builder: (context, provider, _) {
         final schemes = provider.publishedSchemes;
@@ -219,16 +236,20 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
           child: Row(
             children: [
               Container(
-                width: 4, height: 18,
+                width: 4,
+                height: 18,
                 decoration: BoxDecoration(
                   color: AppColors.primaryBlue,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
               const SizedBox(width: 10),
-              const Text(
-                'Government & NGO Schemes',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+              Text(
+                l10n.governmentNgoSchemes,
+                style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87),
               ),
             ],
           ),
@@ -246,7 +267,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                   color: Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                child:
+                    const Center(child: CircularProgressIndicator(strokeWidth: 2)),
               ),
             ],
           );
@@ -261,26 +283,33 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5E9),
+                  color: AppColors.schemeGreenLight,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFA5D6A7)),
+                  border: Border.all(color: AppColors.schemeBorder),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.assignment_outlined, color: Color(0xFF388E3C), size: 36),
+                    const Icon(Icons.assignment_outlined,
+                        color: AppColors.schemeGreen, size: 36),
                     const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Schemes Available for You',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87),
+                          Text(
+                            l10n.schemesAvailableForYou,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Colors.black87),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            'Login as Beneficiary to view and apply for government & NGO schemes available in your area.',
-                            style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.4),
+                          Text(
+                            l10n.loginToViewSchemes,
+                            style: const TextStyle(
+                                fontSize: 11,
+                                color: Colors.black54,
+                                height: 1.4),
                           ),
                           const SizedBox(height: 10),
                           SizedBox(
@@ -289,17 +318,24 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                             child: ElevatedButton.icon(
                               onPressed: () => Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (_) => const BeneficiaryLoginScreen()),
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        const BeneficiaryLoginScreen()),
                               ),
-                              icon: const Icon(Icons.login, size: 15, color: Colors.white),
-                              label: const Text(
-                                'Login as Beneficiary',
-                                style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold),
+                              icon: const Icon(Icons.login,
+                                  size: 15, color: Colors.white),
+                              label: Text(
+                                l10n.loginAsBeneficiary,
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF388E3C),
+                                backgroundColor: AppColors.schemeGreen,
                                 elevation: 0,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8)),
                                 padding: EdgeInsets.zero,
                               ),
                             ),
@@ -326,21 +362,25 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.cardBackground,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6)
+                    BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 6)
                   ],
                 ),
                 child: Row(
                   children: [
                     Container(
-                      width: 40, height: 40,
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
                         color: AppColors.primaryBlue.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Icon(Icons.assignment_rounded, color: AppColors.primaryBlue, size: 22),
+                      child: const Icon(Icons.assignment_rounded,
+                          color: AppColors.primaryBlue, size: 22),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -348,27 +388,37 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(scheme.name,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                              maxLines: 1, overflow: TextOverflow.ellipsis),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 13),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis),
                           const SizedBox(height: 2),
                           Text(scheme.description,
-                              style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
-                              maxLines: 1, overflow: TextOverflow.ellipsis),
+                              style: TextStyle(
+                                  fontSize: 11, color: Colors.grey.shade500),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis),
                         ],
                       ),
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: isPaid ? Colors.orange.shade50 : Colors.green.shade50,
+                        color: isPaid
+                            ? Colors.orange.shade50
+                            : Colors.green.shade50,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        isPaid ? '₹${scheme.price.toInt()}' : 'FREE',
+                        isPaid ? '₹${scheme.price.toInt()}' : l10n.free,
                         style: TextStyle(
-                          fontSize: 11, fontWeight: FontWeight.bold,
-                          color: isPaid ? Colors.orange.shade700 : Colors.green.shade700,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: isPaid
+                              ? Colors.orange.shade700
+                              : Colors.green.shade700,
                         ),
                       ),
                     ),
@@ -380,14 +430,16 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
             GestureDetector(
               onTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const BeneficiaryLoginScreen()),
+                MaterialPageRoute(
+                    builder: (_) => const BeneficiaryLoginScreen()),
               ),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [AppColors.primaryBlue, const Color(0xFF1E5799)],
+                    colors: [AppColors.primaryBlue, AppColors.schemeGradientEnd],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                   ),
@@ -396,13 +448,17 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.login_rounded, color: Colors.white, size: 16),
+                    const Icon(Icons.login_rounded,
+                        color: Colors.white, size: 16),
                     const SizedBox(width: 8),
                     Text(
                       schemes.length > 3
-                          ? 'Login as Beneficiary to see all ${schemes.length} schemes & apply'
-                          : 'Login as Beneficiary to apply for these schemes',
-                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                          ? l10n.loginToSeeAllSchemes(schemes.length)
+                          : l10n.loginToApplySchemes,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -417,7 +473,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   //  APP BAR
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(AppLocalizations l10n) {
     return AppBar(
       backgroundColor: AppColors.appBarBlue,
       elevation: 0,
@@ -427,26 +483,16 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
         children: [
           Image.asset('assets/Images/logoSk.png', height: 35),
           const SizedBox(width: 8),
-          const Text(
-            "Shilpkar Foundation",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          Text(
+            l10n.shilpkarFoundation,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
         ],
       ),
       actions: [
-        Center(
-          child: Container(
-            margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text(
-              "English | मराठी",
-              style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold),
-            ),
-          ),
+        Consumer<LanguageProvider>(
+          builder: (context, langProvider, _) =>
+              langProvider.buildToggleWidget(),
         ),
       ],
     );
@@ -515,8 +561,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                     Text(
                       subtitle,
                       textAlign: TextAlign.center,
-                      style:
-                          const TextStyle(color: Colors.white70, fontSize: 12),
+                      style: const TextStyle(
+                          color: Colors.white70, fontSize: 12),
                     ),
                   ],
                 ),
@@ -570,12 +616,16 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: buttonColor,
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
                 padding: EdgeInsets.zero,
               ),
               child: Text(
                 buttonLabel,
-                style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    fontSize: 11,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -626,28 +676,30 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   //  DONATE CARD
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Widget _buildDonateCard() {
+  Widget _buildDonateCard(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: Row(
         children: [
-          const Icon(Icons.favorite_rounded, color: Colors.redAccent, size: 28),
+          const Icon(Icons.favorite_rounded,
+              color: AppColors.donateIconRed, size: 28),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Donate",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                Text(
+                  l10n.donate,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 Text(
-                  "Your support help us reach more communities",
+                  l10n.donateSubtitle,
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                 ),
               ],
@@ -658,12 +710,17 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.secondaryGreen,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             ),
-            child: const Text(
-              "Donate",
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+            child: Text(
+              l10n.donate,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13),
             ),
           ),
         ],

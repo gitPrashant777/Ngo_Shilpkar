@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../data/models/scheme_model.dart';
 import '../../data/repository/scheme_repository.dart';
+import '../../../../core/constants/app_colors.dart';
 
 class SchemeDetailScreen extends StatefulWidget {
   final SchemeModel scheme;
@@ -15,7 +16,6 @@ class SchemeDetailScreen extends StatefulWidget {
 
 class _SchemeDetailScreenState extends State<SchemeDetailScreen> {
   final SchemeRepository _repository = SchemeRepository();
-  final Color primaryBlue = const Color(0xFF4A78B0); // Matches your Foundation theme
 
   bool _isApplying = false;
   bool _isWithdrawLoading = false;
@@ -96,7 +96,7 @@ class _SchemeDetailScreenState extends State<SchemeDetailScreen> {
     final scheme = widget.scheme;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7F9),
+      backgroundColor: AppColors.lightBackground,
       appBar: AppBar(
         title: const Text("Scheme Details"),
         backgroundColor: Colors.white,
@@ -115,10 +115,10 @@ class _SchemeDetailScreenState extends State<SchemeDetailScreen> {
                   // --- Header Section ---
                   Text(
                     scheme.name,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: primaryBlue,
+                      color: AppColors.lightBlueScheme,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -209,7 +209,7 @@ class _SchemeDetailScreenState extends State<SchemeDetailScreen> {
               : ElevatedButton(
             onPressed: _isApplying ? null : _apply,
             style: ElevatedButton.styleFrom(
-              backgroundColor: primaryBlue,
+              backgroundColor: AppColors.lightBlueScheme,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               elevation: 0,
             ),

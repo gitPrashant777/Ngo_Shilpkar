@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../providers/scheme_provider.dart';
 import '../../data/models/scheme_model.dart';
 import '../../data/repository/scheme_repository.dart';
@@ -86,7 +87,6 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
       _payoutMode = scheme.payoutMode;
     });
     
-    // Smooth scroll to top
     if (_scrollController.hasClients) {
       _scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
     }
@@ -103,6 +103,7 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
 
     final auth = context.read<AuthProvider>();
     final provider = context.read<SchemeProvider>();
+    final l10n = AppLocalizations.of(context)!;
     
     if (auth.userProfile == null) await auth.fetchUserProfile();
     final userId = auth.userProfile?.user.id;
@@ -115,8 +116,7 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
       "schemeType": _schemeType,
       "financialType": _financialType,
       "payoutMode": _payoutMode,
-      "status": "DRAFT", // New schemes are created as draft usually, then published via status.
-      // 1 year valid by default for quick test
+      "status": "DRAFT",
       "startDate": DateTime.now().toIso8601String(),
       "endDate": DateTime.now().add(const Duration(days: 365)).toIso8601String(),
     };
@@ -127,31 +127,26 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
 
     try {
       if (_editingSchemeId == null) {
-        // Create new
         final success = await provider.createScheme(body);
         if (success) {
           if (mounted) {
              ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Scheme Created & Auto-Drafted"), backgroundColor: Colors.green),
+              SnackBar(content: Text(l10n.schemeCreatedDrafted), backgroundColor: Colors.green),
             );
             _clearForm();
           }
         } else {
-           if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(provider.error ?? "Failed to create", style: const TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+           if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(provider.error ?? l10n.failedToCreate, style: const TextStyle(color: Colors.white)), backgroundColor: Colors.red));
         }
       } else {
-        // Update handling in provider wasn't strictly exposed as a single method, let's use the repository if needed, or simply handle it via backend
-        // Since the prompt asks for it, I'll invoke a small fallback to repository just for this patch if provider missing
-        await provider.updateSchemeStatus(_editingSchemeId!, "DRAFT"); // Example. Really needs full update. But API docs said PATCH /api/schemes/:id
-        
-        // Hard fallback to repo since `updateScheme` isn't in Provider yet:
+        await provider.updateSchemeStatus(_editingSchemeId!, "DRAFT");
         final SchemeRepository repo = SchemeRepository();
         await repo.updateScheme(_editingSchemeId!, body);
         await provider.fetchAdminSchemes(refresh: true);
         
         if (mounted) {
            ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Scheme Updated")),
+            SnackBar(content: Text(l10n.schemeUpdated)),
           );
           _clearForm();
         }
@@ -162,13 +157,14 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
   }
 
   Future<void> _deleteScheme(String id) async {
+    final l10n = AppLocalizations.of(context)!;
     final provider = context.read<SchemeProvider>();
     final conf = await showDialog<bool>(context: context, builder: (_) => AlertDialog(
-      title: const Text("Delete Scheme?"),
-      content: const Text("Are you sure you want to delete this scheme? This will archive or soft delete it from the system."),
+      title: Text(l10n.deleteScheme),
+      content: Text(l10n.deleteSchemeConfirm),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
-        ElevatedButton(onPressed: () => Navigator.pop(context, true), style: ElevatedButton.styleFrom(backgroundColor: Colors.red), child: const Text("Delete")),
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
+        ElevatedButton(onPressed: () => Navigator.pop(context, true), style: ElevatedButton.styleFrom(backgroundColor: Colors.red), child: Text(l10n.delete)),
       ],
     ));
     if (conf != true || !mounted) return;
@@ -176,7 +172,7 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
     final suc = await provider.deleteScheme(id);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(suc ? "Scheme Deleted" : "Failed to delete"),
+        content: Text(suc ? l10n.schemeDeleted : l10n.failedToDelete),
         backgroundColor: suc ? Colors.red : Colors.orange,
       ));
     }
@@ -184,10 +180,11 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text("Scheme Management", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: Text(l10n.schemeManagement, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         backgroundColor: AppColors.primaryBlue,
         elevation: 0,
         actions: [
@@ -202,7 +199,7 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
           return CustomScrollView(
             controller: _scrollController,
             slivers: [
-              SliverToBoxAdapter(child: _buildFormCard()),
+              SliverToBoxAdapter(child: _buildFormCard(l10n)),
               SliverToBoxAdapter(child: _buildFilterTabs(provider)),
               SliverList(
                 delegate: SliverChildBuilderDelegate(
@@ -212,20 +209,20 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
                         return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
                       }
                       if (!provider.adminSchemesHasMore && provider.adminSchemes.isNotEmpty) {
-                        return const Padding(padding: EdgeInsets.all(20), child: Center(child: Text("End of results.")));
+                        return Padding(padding: const EdgeInsets.all(20), child: Center(child: Text(l10n.endOfResults)));
                       }
                       return const SizedBox();
                     }
-                    return _buildSchemeListItem(provider.adminSchemes[index], provider);
+                    return _buildSchemeListItem(provider.adminSchemes[index], provider, l10n);
                   },
                   childCount: provider.adminSchemes.length + 1,
                 ),
               ),
               if (!provider.isLoading && provider.adminSchemes.isEmpty)
-                const SliverToBoxAdapter(
+                SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.all(40),
-                    child: Center(child: Text("No Schemes Found.", style: TextStyle(color: Colors.grey))),
+                    padding: const EdgeInsets.all(40),
+                    child: Center(child: Text(l10n.noSchemesFound, style: const TextStyle(color: Colors.grey))),
                   ),
                 ),
             ],
@@ -235,7 +232,7 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
     );
   }
 
-  Widget _buildFormCard() {
+  Widget _buildFormCard(AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
@@ -250,27 +247,27 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              _editingSchemeId == null ? "Create New Scheme" : "Edit Scheme",
+              _editingSchemeId == null ? l10n.createNewScheme : l10n.editScheme,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             const SizedBox(height: 16),
-            _buildCustomField("Scheme Name", _nameController, false),
-            _buildCustomField("Description", _descController, true),
-            _buildCustomField("Benefits (comma separated)", _benefitsController, true),
+            _buildCustomField(l10n.schemeName, _nameController, false),
+            _buildCustomField(l10n.description, _descController, true),
+            _buildCustomField(l10n.benefitsCommaSep, _benefitsController, true),
             
             Row(
               children: [
-                Expanded(child: _buildDropdown("Type", ["FREE", "PAID"], _schemeType, (v) => setState(() => _schemeType = v!))),
+                Expanded(child: _buildDropdown(l10n.schemeType, ["FREE", "PAID"], _schemeType, (v) => setState(() => _schemeType = v!))),
                 const SizedBox(width: 12),
-                Expanded(child: _buildCustomField("Price (₹)", _priceController, false, isNumeric: true)),
+                Expanded(child: _buildCustomField(l10n.priceInr, _priceController, false, isNumeric: true)),
               ],
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(child: _buildDropdown("Financial", ["SUBSIDY", "LOAN", "GRANT"], _financialType, (v) => setState(() => _financialType = v!))),
+                Expanded(child: _buildDropdown(l10n.financial, ["SUBSIDY", "LOAN", "GRANT"], _financialType, (v) => setState(() => _financialType = v!))),
                 const SizedBox(width: 12),
-                Expanded(child: _buildDropdown("Payout Mode", ["MONTHLY", "ONE_TIME", "MILESTONE"], _payoutMode, (v) => setState(() => _payoutMode = v!))),
+                Expanded(child: _buildDropdown(l10n.payoutMode, ["MONTHLY", "ONE_TIME", "MILESTONE"], _payoutMode, (v) => setState(() => _payoutMode = v!))),
               ],
             ),
             const SizedBox(height: 24),
@@ -285,14 +282,14 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
               child: _isSaving
                   ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                   : Text(
-                      _editingSchemeId == null ? "Create Scheme" : "Save Changes",
+                      _editingSchemeId == null ? l10n.createScheme : l10n.saveChanges,
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                     ),
             ),
             if (_editingSchemeId != null)
               TextButton(
                 onPressed: _clearForm,
-                child: const Text("Cancel Editing", style: TextStyle(color: Colors.red)),
+                child: Text(l10n.cancelEditing, style: const TextStyle(color: Colors.red)),
               ),
           ],
         ),
@@ -326,6 +323,7 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
   }
 
   Widget _buildCustomField(String label, TextEditingController controller, bool isLarge, {bool isNumeric = false}) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextFormField(
@@ -339,7 +337,7 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
           contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         ),
-        validator: (v) => v!.isEmpty ? "Required" : null,
+        validator: (v) => v!.isEmpty ? l10n.required : null,
       ),
     );
   }
@@ -382,7 +380,7 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
     );
   }
 
-  Widget _buildSchemeListItem(SchemeModel scheme, SchemeProvider provider) {
+  Widget _buildSchemeListItem(SchemeModel scheme, SchemeProvider provider, AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
@@ -428,19 +426,18 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
               Row(
                 children: [
                   if (scheme.status == "DRAFT")
-                    _buildActionButton("Publish", Colors.green, () => provider.updateSchemeStatus(scheme.id, "PUBLISHED")),
+                    _buildActionButton(l10n.publish, Colors.green, () => provider.updateSchemeStatus(scheme.id, "PUBLISHED")),
                   if (scheme.status == "PUBLISHED")
-                    _buildActionButton("Archive", Colors.orange, () => provider.updateSchemeStatus(scheme.id, "ARCHIVED")),
+                    _buildActionButton(l10n.archive, Colors.orange, () => provider.updateSchemeStatus(scheme.id, "ARCHIVED")),
                   if (scheme.status == "ARCHIVED")
-                    _buildActionButton("Republish", Colors.green, () => provider.updateSchemeStatus(scheme.id, "PUBLISHED")),
+                    _buildActionButton(l10n.republish, Colors.green, () => provider.updateSchemeStatus(scheme.id, "PUBLISHED")),
                 ],
               ),
               Row(
                 children: [
-                  // View Applications button
                   IconButton(
                     icon: const Icon(Icons.people_outline, color: Colors.teal, size: 20),
-                    tooltip: 'View Applications',
+                    tooltip: l10n.viewApplications,
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -453,7 +450,7 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
                   ),
                   IconButton(
                     icon: const Icon(Icons.dashboard_outlined, color: Colors.blueGrey, size: 20),
-                    tooltip: 'View Dashboard',
+                    tooltip: l10n.viewDashboard,
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(

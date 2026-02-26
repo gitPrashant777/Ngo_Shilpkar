@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../l10n/app_localizations.dart';
+
 class EmployeeSuccessScreen extends StatelessWidget {
   final String username;
   final String password;
@@ -11,23 +13,23 @@ class EmployeeSuccessScreen extends StatelessWidget {
     required this.password,
   });
 
-  void _copy(BuildContext context, String value, String label) {
+  void _copy(BuildContext context, String value, String label, AppLocalizations l10n) {
     Clipboard.setData(ClipboardData(text: value));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text("$label copied to clipboard"),
+        content: Text(l10n.copiedToClipboard(label)),
         backgroundColor: Colors.green,
       ),
     );
   }
 
-  void _copyAll(BuildContext context) {
+  void _copyAll(BuildContext context, AppLocalizations l10n) {
     final combined = "Username: $username\nPassword: $password";
     Clipboard.setData(ClipboardData(text: combined));
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Credentials copied successfully"),
+      SnackBar(
+        content: Text(l10n.credentialsCopied),
         backgroundColor: Colors.green,
       ),
     );
@@ -35,6 +37,8 @@ class EmployeeSuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -45,9 +49,9 @@ class EmployeeSuccessScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 40),
 
-              const Text(
-                "Shilpkar Foundation",
-                style: TextStyle(
+              Text(
+                l10n.appName,
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF55789A),
@@ -56,9 +60,9 @@ class EmployeeSuccessScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              const Text(
-                "Employee Created Successfully",
-                style: TextStyle(
+              Text(
+                l10n.employeeCreatedSuccess,
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF7A9E6F),
@@ -67,9 +71,9 @@ class EmployeeSuccessScreen extends StatelessWidget {
 
               const SizedBox(height: 32),
 
-              const Text(
-                "The credentials for the created employee are:",
-                style: TextStyle(fontSize: 16),
+              Text(
+                l10n.credentialsForEmployee,
+                style: const TextStyle(fontSize: 16),
               ),
 
               const SizedBox(height: 24),
@@ -79,7 +83,7 @@ class EmployeeSuccessScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: SelectableText(
-                      "Username: $username",
+                      l10n.usernameLabel(username),
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 16),
                     ),
@@ -87,7 +91,7 @@ class EmployeeSuccessScreen extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.copy),
                     onPressed: () =>
-                        _copy(context, username, "Username"),
+                        _copy(context, username, "Username", l10n),
                   )
                 ],
               ),
@@ -99,7 +103,7 @@ class EmployeeSuccessScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: SelectableText(
-                      "Password: $password",
+                      l10n.passwordLabel(password),
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 16),
                     ),
@@ -107,7 +111,7 @@ class EmployeeSuccessScreen extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.copy),
                     onPressed: () =>
-                        _copy(context, password, "Password"),
+                        _copy(context, password, "Password", l10n),
                   )
                 ],
               ),
@@ -116,9 +120,12 @@ class EmployeeSuccessScreen extends StatelessWidget {
 
               Center(
                 child: ElevatedButton.icon(
-                  onPressed: () => _copyAll(context),
+                  onPressed: () => _copyAll(context, l10n),
                   icon: const Icon(Icons.copy),
-                  label: const Text("Copy All Credentials",style: TextStyle(color: Colors.white),),
+                  label: Text(
+                    l10n.copyAllCredentials,
+                    style: const TextStyle(color: Colors.white),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF55789A),
                   ),
@@ -133,9 +140,9 @@ class EmployeeSuccessScreen extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey,
                   ),
-                  child: const Text(
-                    "OK",
-                    style: TextStyle(color: Colors.white),
+                  child: Text(
+                    l10n.ok,
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ),
               ),
@@ -146,3 +153,4 @@ class EmployeeSuccessScreen extends StatelessWidget {
     );
   }
 }
+

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:shilpkar/l10n/app_localizations.dart';
 import 'package:shilpkar/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:shilpkar/features/onboarding/presentation/screens/onboarding_screen.dart';
 
@@ -146,27 +147,28 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   List<Widget> _getNavItems(String? role) {
+    final l10n = AppLocalizations.of(context)!;
     if (role == "BENEFICIARY") {
       return [
-        _buildNavItem(0, Icons.work, "Jobs"),        // Swapped
-        _buildNavItem(1, Icons.home, "Home"),        // Swapped
-        _buildNavItem(2, Icons.assignment, "Schemes"),
-        _buildNavItem(3, Icons.person, "Profile"),
+        _buildNavItem(0, Icons.work, l10n.navJobs),
+        _buildNavItem(1, Icons.home, l10n.navHome),
+        _buildNavItem(2, Icons.assignment, l10n.navSchemes),
+        _buildNavItem(3, Icons.person, l10n.navProfile),
       ];
     } else if (role == "FIELD" || role == "COORDINATOR" || role == "EMPLOYEE") {
       return [
-        _buildNavItem(0, Icons.chat, "Chat"),        // Swapped
-        _buildNavItem(1, Icons.dashboard, "Dashboard"), // Swapped
-        _buildNavItem(2, Icons.history, "History"),
-        _buildNavItem(3, Icons.person, "Profile"),
+        _buildNavItem(0, Icons.chat, l10n.navChat),
+        _buildNavItem(1, Icons.dashboard, l10n.navDashboard),
+        _buildNavItem(2, Icons.history, l10n.navAttendance),
+        _buildNavItem(3, Icons.person, l10n.navProfile),
       ];
     } else {
-      // Admin / Super Admin
+      // Admin / Super Admin and Guest
       return [
-        _buildNavItem(0, Icons.work_outline_rounded, "Jobs"), // Swapped
-        _buildNavItem(1, Icons.home_rounded, "Home"),        // Swapped
-        _buildNavItem(2, Icons.assignment_outlined, "Schemes"),
-        _buildNavItem(3, Icons.person_outline_rounded, "Profile"),
+        _buildNavItem(0, Icons.work_outline_rounded, l10n.navJobs),
+        _buildNavItem(1, Icons.home_rounded, l10n.navHome),
+        _buildNavItem(2, Icons.assignment_outlined, l10n.navSchemes),
+        _buildNavItem(3, Icons.person_outline_rounded, l10n.navProfile),
       ];
     }
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shilpkar/features/auth/presentation/screens/public_home_screen.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/models/job_model.dart';
 import '../../data/repository/job_repository.dart';
 import '../providers/job_provider.dart';
@@ -48,12 +49,12 @@ class _JobListScreenState extends State<JobListScreen> {
               const SizedBox(height: 10),
               TextField(
                 controller: _cityController,
-                decoration: const InputDecoration(labelText: "City", border: OutlineInputBorder()),
+                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.city, border: const OutlineInputBorder()),
               ),
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
                 value: _selectedCategory,
-                decoration: const InputDecoration(labelText: "Category", border: OutlineInputBorder()),
+                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.category, border: const OutlineInputBorder()),
                 items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                 onChanged: (val) {
                   setState(() => _selectedCategory = val);
@@ -70,7 +71,7 @@ class _JobListScreenState extends State<JobListScreen> {
                         Navigator.pop(context);
                         _fetchJobs();
                       },
-                      child: const Text("Clear"),
+                      child: Text(AppLocalizations.of(context)!.clear),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -80,7 +81,7 @@ class _JobListScreenState extends State<JobListScreen> {
                         Navigator.pop(context);
                         _fetchJobs();
                       },
-                      child: const Text("Apply"),
+                      child: Text(AppLocalizations.of(context)!.apply),
                     ),
                   ),
                 ],
@@ -94,14 +95,15 @@ class _JobListScreenState extends State<JobListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          "Shilpkar Foundation",
-          style: TextStyle(color: Color(0xFF4A698C), fontWeight: FontWeight.bold),
+        title: Text(
+          l10n.shilpkarFoundation,
+          style: const TextStyle(color: Color(0xFF4A698C), fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
@@ -126,7 +128,7 @@ class _JobListScreenState extends State<JobListScreen> {
                 child: provider.isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : provider.jobs.isEmpty 
-                        ? const Center(child: Text("No jobs found"))
+                        ? Center(child: Text(l10n.noJobsFound))
                         : ListView.builder(
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             itemCount: provider.jobs.length,
@@ -188,7 +190,7 @@ class _JobListScreenState extends State<JobListScreen> {
             Row(
               children: [
                 Expanded(child: _iconText(Icons.calendar_today_outlined, job.duration.isNotEmpty ? job.duration : "N/A")), 
-                Expanded(child: _iconText(Icons.payments_outlined, job.stipend.isNotEmpty ? "₹${job.stipend}" : "Unpaid")),
+                Expanded(child: _iconText(Icons.payments_outlined, job.stipend.isNotEmpty ? "₹${job.stipend}" : AppLocalizations.of(context)!.unpaid)),
               ],
             ),
              const SizedBox(height: 12),
@@ -203,7 +205,7 @@ class _JobListScreenState extends State<JobListScreen> {
                   backgroundColor: const Color(0xFF3B76D1),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                child: const Text("View Details", style: TextStyle(color: Colors.white)),
+                child: Text(AppLocalizations.of(context)!.viewDetails, style: const TextStyle(color: Colors.white)),
               ),
             ),
           ],

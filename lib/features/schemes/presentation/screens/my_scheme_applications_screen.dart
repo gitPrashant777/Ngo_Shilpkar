@@ -6,6 +6,7 @@ import '../../../../core/services/razorpay_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/scheme_provider.dart';
 import '../../data/models/scheme_application_model.dart';
+import '../../../../core/constants/app_colors.dart';
 
 class MySchemeApplicationsScreen extends StatefulWidget {
   const MySchemeApplicationsScreen({super.key});
@@ -15,7 +16,6 @@ class MySchemeApplicationsScreen extends StatefulWidget {
 }
 
 class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen> {
-  static const _kBlue = Color(0xFF4A78B0);
   late RazorpayService _razorpayService;
 
   @override
@@ -60,9 +60,9 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7F9),
+      backgroundColor: AppColors.lightBackground,
       appBar: AppBar(
-        backgroundColor: _kBlue,
+        backgroundColor: AppColors.lightBlueScheme,
         foregroundColor: Colors.white,
         elevation: 0,
         title: const Column(
@@ -219,7 +219,7 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
                   icon: const Icon(Icons.payment, size: 16),
                   label: Text(provider.isLoading ? 'Processing...' : 'Proceed to Payment'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _kBlue,
+                    backgroundColor: AppColors.lightBlueScheme,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     padding: const EdgeInsets.symmetric(vertical: 10),
@@ -243,9 +243,28 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
 
   Future<void> _startPayment(SchemeApplicationModel app, SchemeProvider provider) async {
     try {
-      // Pass schemeId (not applicationId) to get a Razorpay order
-      print('🚀 [SCHEME PAYMENT] Starting payment for scheme: ${app.schemeId}, app: ${app.id}');
-      final razorpayData = await provider.initiatePayment(app.schemeId);
+      // Resolve price — applications list may not populate scheme.price
+      // If it's 0, fetch it from the public scheme endpoint first
+      double amount = app.schemePrice;
+      if (amount <= 0 && app.schemeId.isNotEmpty) {
+        print('⚠️ [SCHEME PAYMENT] schemePrice is 0 — fetching live price for schemeId=${app.schemeId}');
+        amount = await provider.getSchemePrice(app.schemeId);
+        print('💰 [SCHEME PAYMENT] Live price fetched: ₹$amount');
+      }
+
+      if (amount <= 0) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not determine scheme amount. Contact support.'), backgroundColor: Colors.red),
+          );
+        }
+        return;
+      }
+
+      // POST /api/payments/create-order
+      // Body: { module: "SCHEME", moduleRefId: applicationId, amount }
+      print('🚀 [SCHEME PAYMENT] applicationId=${app.id} | amount=$amount');
+      final razorpayData = await provider.initiatePayment(app.id, amount);
 
       if (!mounted) return;
 
@@ -258,7 +277,6 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
 
       print('🚀 [SCHEME PAYMENT] Full razorpayData: $razorpayData');
 
-      // If no razorpayOrderId exists → scheme may be FREE or already applied
       final String orderId = razorpayData['razorpayOrderId'] ?? '';
       if (orderId.isEmpty) {
         print('⚠️ [SCHEME PAYMENT] No razorpayOrderId in response - refreshing applications');
@@ -275,10 +293,7 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
       final userMobile = user?.user.mobile ?? '';
       final userEmail = user?.user.email ?? '';
 
-      // Mirror e-commerce exactly: (amount as num).toDouble() * 100
       final double amountInPaise = ((razorpayData['amount'] as num).toDouble()) * 100;
-
-      // Mirror e-commerce exactly: use hardcoded key
       final String rzpKey = RazorpayConfig.keyId;
 
       print('🚀 [SCHEME] key=$rzpKey paise=$amountInPaise orderId=$orderId');

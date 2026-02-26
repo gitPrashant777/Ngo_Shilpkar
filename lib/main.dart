@@ -1,15 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
-// Top-level function for background messages
-
-
 import 'package:shilpkar/core/navigation/main_navigation.dart';
 import 'package:shilpkar/features/admin/presentation/screens/superAdmin_dashboard.dart';
 import 'core/constants/app_colors.dart';
+import 'core/providers/language_provider.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
 import 'features/auth/presentation/screens/public_home_screen.dart';
 import 'features/auth/presentation/screens/splash_screen.dart';
@@ -28,25 +27,29 @@ import 'features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'features/status/presentation/providers/status_provider.dart';
 import 'features/notifications/presentation/providers/notification_provider.dart';
 import 'features/attendance/presentation/providers/attendance_provider.dart';
+import 'l10n/app_localizations.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   debugPrint("Handling a background message: ${message.messageId}");
 }
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 🔥 Initialize Firebase
   await Firebase.initializeApp();
-  
+
   // Register background handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => LanguageProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => JobProvider()),
         ChangeNotifierProvider(create: (_) => SchemeProvider()),
@@ -76,7 +79,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-
   @override
   void initState() {
     super.initState();
@@ -114,7 +116,6 @@ class _MyAppState extends State<MyApp> {
 
       // Handle App Open via Notification
       _setupPushNotificationRouting();
-
     } catch (e) {
       print("❌ Error getting FCM token: $e");
     }
@@ -129,10 +130,9 @@ class _MyAppState extends State<MyApp> {
 
     // 2. Background state tap
     FirebaseMessaging.onMessageOpenedApp.listen(_handlePushTap);
-    
+
     // 3. Foreground state receive
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      // You can trigger unread count refresh here if desired
       if (navigatorKey.currentContext != null) {
         navigatorKey.currentContext!.read<NotificationProvider>().fetchUnreadCount();
       }
@@ -141,22 +141,34 @@ class _MyAppState extends State<MyApp> {
 
   void _handlePushTap(RemoteMessage message) {
     if (message.data.containsKey('type')) {
-      final type = message.data['type'];
-      // Routing logic (adjust with actual routes as needed)
-      // e.g., if (type == 'ATTENDANCE_MARKED') navigatorKey.currentState?.pushNamed('/attendance');
-      // For now, redirect to notifications screen
       if (navigatorKey.currentState != null) {
-         // Need to use push to a generic route or handle specific routing here.
+        // Handle specific routing here if needed
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final languageProvider = context.watch<LanguageProvider>();
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Shilpkar Foundation',
       navigatorKey: navigatorKey,
+
+      // ── Localization ───────────────────────────────────────────────────────
+      locale: languageProvider.locale,
+      supportedLocales: const [
+        Locale('en'),
+        Locale('mr'),
+      ],
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+
       theme: ThemeData(
         useMaterial3: true,
         primaryColor: AppColors.appBarBlue,
@@ -209,22 +221,20 @@ class _BroadcastListenerWrapperState
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final chatProvider = context.read<ChatProvider>();
-      _subscription =
-          chatProvider.broadcastStream.listen((message) {
-            if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  "📢 System Broadcast: $message",
-                  style:
-                  const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                backgroundColor: Colors.orange,
-                duration: const Duration(seconds: 5),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          });
+      _subscription = chatProvider.broadcastStream.listen((message) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "📢 System Broadcast: $message",
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: AppColors.broadcastOrange,
+            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      });
     });
   }
 

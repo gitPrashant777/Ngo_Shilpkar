@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../auth/data/repository/user_repository.dart';
 import 'SuperEmployeeSuccessScreen.dart';
 
@@ -85,6 +86,7 @@ class _MakeEmployeeScreenState extends State<MakeEmployeeScreen> {
   @override
   Widget build(BuildContext context) {
     final repository = UserRepository();
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -93,7 +95,7 @@ class _MakeEmployeeScreenState extends State<MakeEmployeeScreen> {
         elevation: 0,
         leading: const BackButton(color: Colors.black),
         title: Text(
-          "Create ${widget.role}",
+          l10n.createRoleTitle(widget.role),
           style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
       ),
@@ -116,45 +118,45 @@ class _MakeEmployeeScreenState extends State<MakeEmployeeScreen> {
 
                 // PERSONAL INFORMATION
                 _sectionHeader("Personal Information"),
-                _buildTextField("First Name*", firstNameController, validator: (v) => v!.isEmpty ? "Required" : null),
-                _buildTextField("Last Name*", lastNameController, validator: (v) => v!.isEmpty ? "Required" : null),
-                _buildTextField("Mobile*", mobileController,
+                _buildTextField(l10n.firstNameStar, firstNameController, validator: (v) => v!.isEmpty ? l10n.required : null),
+                _buildTextField(l10n.lastNameStar, lastNameController, validator: (v) => v!.isEmpty ? l10n.required : null),
+                _buildTextField(l10n.mobileStar, mobileController,
                     keyboardType: TextInputType.number,
-                    validator: (v) => (v!.length != 10) ? "10 digits required" : null),
-                _buildTextField("Email*", emailController,
-                    validator: (v) => !v!.contains("@") ? "Invalid email" : null),
-                if (widget.role == "COORDINATOR") _buildDOBField(),
+                    validator: (v) => (v!.length != 10) ? l10n.mobileMustBe10 : null),
+                _buildTextField(l10n.emailStar, emailController,
+                    validator: (v) => !v!.contains("@") ? l10n.enterValidEmail : null),
+                if (widget.role == "COORDINATOR") _buildDOBField(l10n),
 
                 const SizedBox(height: 20),
 
                 // LOCATION
                 _sectionHeader("Location Details"),
-                _buildDropdown("District*", selectedDistrict, districtTalukaMap.keys.toList(), (val) {
+                _buildDropdown(l10n.districtStar, selectedDistrict, districtTalukaMap.keys.toList(), (val) {
                   setState(() {
                     selectedDistrict = val;
                     selectedTaluka = null;
                     selectedVillage = null;
                   });
-                }),
-                _buildDropdown("Taluka*", selectedTaluka,
+                }, l10n),
+                _buildDropdown(l10n.talukaStar, selectedTaluka,
                     selectedDistrict == null ? [] : districtTalukaMap[selectedDistrict!]!,
-                        (val) => setState(() => selectedTaluka = val)),
-                _buildDropdown("Village*", selectedVillage,
+                        (val) => setState(() => selectedTaluka = val), l10n),
+                _buildDropdown(l10n.villageStar, selectedVillage,
                     selectedTaluka == null ? [] : talukaVillageMap[selectedTaluka!]!,
-                        (val) => setState(() => selectedVillage = val)),
+                        (val) => setState(() => selectedVillage = val), l10n),
 
                 const SizedBox(height: 20),
 
                 // BANK DETAILS
                 _sectionHeader("Bank Information"),
-                _buildTextField("Account Number*", accountNumberController,
+                _buildTextField(l10n.accountNumberStar, accountNumberController,
                     keyboardType: TextInputType.number,
-                    validator: (v) => v!.length < 9 ? "Too short" : null),
-                _buildTextField("Account Holder*", accountHolderController, validator: (v) => v!.isEmpty ? "Required" : null),
-                _buildTextField("IFSC*", ifscController,
-                    validator: (v) => (v!.length != 11) ? "11 characters required" : null),
-                _buildDropdown("Account Type*", selectedAccountType, ["Savings", "Current"],
-                        (val) => setState(() => selectedAccountType = val)),
+                    validator: (v) => v!.length < 9 ? l10n.tooShort : null),
+                _buildTextField(l10n.accountHolderStar, accountHolderController, validator: (v) => v!.isEmpty ? l10n.required : null),
+                _buildTextField(l10n.ifscStar, ifscController,
+                    validator: (v) => (v!.length != 11) ? l10n.elevenCharsRequired : null),
+                _buildDropdown(l10n.accountTypeStar, selectedAccountType, ["Savings", "Current"],
+                        (val) => setState(() => selectedAccountType = val), l10n),
 
                 const SizedBox(height: 40),
 
@@ -171,19 +173,19 @@ class _MakeEmployeeScreenState extends State<MakeEmployeeScreen> {
                       // FIXED: Removed redundant manual null checks.
                       // Form validators now handle everything correctly.
                       if (_formKey.currentState!.validate()) {
-                        await _submit(repository);
+                        await _submit(repository, l10n);
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Please complete all required fields"),
+                          SnackBar(
+                            content: Text(l10n.pleaseCompleteFields),
                             backgroundColor: Colors.red,
                           ),
                         );
                       }
                     },
-                    child: const Text(
-                      "CREATE EMPLOYEE",
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1),
+                    child: Text(
+                      l10n.createEmployeeBtn,
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1),
                     ),
                   ),
                 ),
@@ -224,12 +226,12 @@ class _MakeEmployeeScreenState extends State<MakeEmployeeScreen> {
     );
   }
 
-  Widget _buildDropdown(String label, String? value, List<String> items, Function(String?) onChanged) {
+  Widget _buildDropdown(String label, String? value, List<String> items, Function(String?) onChanged, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
       child: DropdownButtonFormField<String>(
         value: value,
-        validator: (val) => (val == null || val.isEmpty) ? "Required" : null,
+        validator: (val) => (val == null || val.isEmpty) ? l10n.required : null,
         items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
         onChanged: (val) {
           onChanged(val);
@@ -246,15 +248,15 @@ class _MakeEmployeeScreenState extends State<MakeEmployeeScreen> {
     );
   }
 
-  Widget _buildDOBField() {
+  Widget _buildDOBField(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
       child: TextFormField(
         controller: dobController,
         readOnly: true,
-        validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
+        validator: (v) => (v == null || v.isEmpty) ? l10n.required : null,
         decoration: InputDecoration(
-          labelText: "Date of Birth*",
+          labelText: l10n.dateOfBirthStar,
           suffixIcon: const Icon(Icons.calendar_today, size: 20),
           filled: true,
           fillColor: Colors.grey.shade50,
@@ -279,7 +281,7 @@ class _MakeEmployeeScreenState extends State<MakeEmployeeScreen> {
     );
   }
 
-  Future<void> _submit(UserRepository repository) async {
+  Future<void> _submit(UserRepository repository, AppLocalizations l10n) async {
     _allFormData.addAll({
       "firstName": firstNameController.text,
       "lastName": lastNameController.text,
@@ -311,7 +313,7 @@ class _MakeEmployeeScreenState extends State<MakeEmployeeScreen> {
       }
     } on DioException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.response?.data["message"] ?? "Error creating employee"), backgroundColor: Colors.red),
+        SnackBar(content: Text(e.response?.data["message"] ?? l10n.errorCreatingEmployee), backgroundColor: Colors.red),
       );
     }
   }

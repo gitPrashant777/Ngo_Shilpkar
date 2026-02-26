@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/SelectableItemCard.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import 'SuperMakeEmployeeScreen.dart';
@@ -18,6 +19,8 @@ class _SelectEmployeeRoleScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FB),
       appBar: AppBar(
@@ -30,36 +33,36 @@ class _SelectEmployeeRoleScreenState
         child: Column(
           children: [
             const SizedBox(height: 40),
-            const Text(
-              "Select Employee Role",
-              style: TextStyle(
+            Text(
+              l10n.selectEmployeeRole,
+              style: const TextStyle(
                   fontSize: 26, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const Text(
-              "Choose the type of employee to create",
-              style: TextStyle(color: Colors.grey),
+            Text(
+              l10n.chooseEmployeeType,
+              style: const TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 40),
 
             _buildRoleCard(
-              title: "Field Employee",
-              subtitle: "Works on ground operations",
+              title: l10n.fieldEmployeeLabel,
+              subtitle: l10n.worksOnGround,
               role: "FIELD",
             ),
 
             const SizedBox(height: 20),
 
             _buildRoleCard(
-              title: "Coordinator",
-              subtitle: "Manages field employees",
+              title: l10n.coordinatorLabel,
+              subtitle: l10n.managesFieldEmployees,
               role: "COORDINATOR",
             ),
 
             const Spacer(),
 
             CustomButton(
-              text: "Continue",
+              text: l10n.continue_btn,
               onPressed: selectedRole == null
                   ? null
                   : () {
@@ -97,3 +100,4 @@ class _SelectEmployeeRoleScreenState
     );
   }
 }
+

@@ -1,7 +1,10 @@
 class ApiEndpoints {
-  static const String baseUrl = "https://8hddfh1m-3000.inc1.devtunnels.ms/api";
+  static const String baseUrl = "http://13.222.160.206:5003/api/";
+      // "https://8hddfh1m-3000.inc1.devtunnels.ms/api";
+  //
 
-
+  // http://13.222.160.206:5002/
+  //
   // https://ngo-project-r7cc.onrender.com/api
 
   // Auth

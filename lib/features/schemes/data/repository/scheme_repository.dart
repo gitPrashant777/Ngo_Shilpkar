@@ -94,11 +94,24 @@ class SchemeRepository {
     return PaginatedSchemesModel.fromJson(response.data);
   }
 
-  /// Get Single Scheme
+  /// Get Single Scheme (Admin)
   Future<SchemeModel> getSingleScheme(String schemeId) async {
     final response = await _dio.get("/schemes/admin/$schemeId");
     final data = response.data["data"] ?? response.data;
     return SchemeModel.fromJson(data);
+  }
+
+  /// Get Public Scheme Price (Beneficiary)
+  /// GET /api/schemes/:schemeId — used to fetch scheme price when not populated in application
+  Future<double> getPublicSchemePrice(String schemeId) async {
+    try {
+      final response = await _dio.get("/schemes/$schemeId");
+      final data = response.data["data"] ?? response.data;
+      return (data["price"] as num?)?.toDouble() ?? 0.0;
+    } on DioException catch (e) {
+      print("⚠️ getPublicSchemePrice failed: ${e.response?.data}");
+      return 0.0;
+    }
   }
 
   /// Soft Delete Scheme
@@ -266,15 +279,24 @@ class SchemeRepository {
     );
   }
 
-  /// Initiate Payment for a Scheme (calls apply endpoint with schemeId)
-  /// POST /schemes/:schemeId/apply
-  /// Returns razorpay order data when scheme is PAID type
-  Future<Map<String, dynamic>> initiateSchemePayment(String schemeId) async {
+  /// Step 3 of Scheme User Journey: "Create Order"
+  /// POST /api/payments/create-order
+  /// Body: { module: "SCHEME", moduleRefId: applicationId, amount }
+  /// Returns: { razorpayOrderId, amount, currency, key }
+  Future<Map<String, dynamic>> initiateSchemePayment(String applicationId, double amount) async {
     print("=================================================");
-    print("🚀 API CALL: POST /schemes/$schemeId/apply");
+    print("🚀 API CALL: POST /payments/create-order");
+    print("   moduleRefId: $applicationId | amount: $amount");
     print("=================================================");
     try {
-      final response = await _dio.post("/schemes/$schemeId/apply");
+      final response = await _dio.post(
+        "/payments/create-order",
+        data: {
+          "module": "SCHEME",
+          "moduleRefId": applicationId,
+          "amount": amount,
+        },
+      );
       print("✅ API RESPONSE SUCCESS: ${response.data}");
       final data = response.data["data"] ?? response.data;
       return data is Map<String, dynamic> ? data : Map<String, dynamic>.from(data as Map);

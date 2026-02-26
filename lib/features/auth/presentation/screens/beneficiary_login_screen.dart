@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/SelectableItemCard.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../core/navigation/main_navigation.dart';
@@ -17,7 +19,7 @@ class BeneficiaryLoginScreen extends StatefulWidget {
 }
 
 class _BeneficiaryLoginScreenState extends State<BeneficiaryLoginScreen> {
-  String? selectedCategory; // Nullable to handle initial state
+  String? selectedCategory;
   bool showLoginForm = false;
   bool _isObscure = true;
 
@@ -28,9 +30,10 @@ class _BeneficiaryLoginScreenState extends State<BeneficiaryLoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB),
+      backgroundColor: AppColors.backgroundGrey,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -39,28 +42,28 @@ class _BeneficiaryLoginScreenState extends State<BeneficiaryLoginScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
-          mainAxisSize: MainAxisSize.min, // Fixes unbounded height crash
+          mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 20),
-            const Text(
-              "Login As Beneficiary",
-              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+            Text(
+              l10n.loginAsBeneficiaryFull,
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const Text(
-              "Select your category and continue",
-              style: TextStyle(color: Colors.grey, fontSize: 16),
+            Text(
+              l10n.selectCategoryToContinue,
+              style: const TextStyle(color: Colors.grey, fontSize: 16),
             ),
             const SizedBox(height: 30),
 
             // STEP 1: CATEGORY SELECTION CARD
-            _buildCategorySelectionCard(),
+            _buildCategorySelectionCard(l10n),
 
             const SizedBox(height: 20),
 
             // STEP 2: LOGIN CREDENTIALS CARD
             if (showLoginForm)
-              _buildLoginCard(authProvider)
+              _buildLoginCard(authProvider, l10n)
             else
               const SizedBox(height: 100),
           ],
@@ -69,27 +72,27 @@ class _BeneficiaryLoginScreenState extends State<BeneficiaryLoginScreen> {
     );
   }
 
-  Widget _buildCategorySelectionCard() {
+  Widget _buildCategorySelectionCard(AppLocalizations l10n) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
             child: Text(
-              "Select Your Category",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              l10n.selectYourCategory,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
-          _buildCategoryList(),
+          _buildCategoryList(l10n),
           Padding(
             padding: const EdgeInsets.all(20),
             child: CustomButton(
-              text: "Continue",
+              text: l10n.continue_btn,
               onPressed: selectedCategory == null
                   ? null
                   : () => setState(() => showLoginForm = true),
@@ -100,11 +103,11 @@ class _BeneficiaryLoginScreenState extends State<BeneficiaryLoginScreen> {
     );
   }
 
-  Widget _buildLoginCard(AuthProvider authProvider) {
+  Widget _buildLoginCard(AuthProvider authProvider, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.grey.shade200),
       ),
@@ -112,77 +115,88 @@ class _BeneficiaryLoginScreenState extends State<BeneficiaryLoginScreen> {
         key: _formKey,
         child: Column(
           children: [
-            const Text(
-              "Shilpkar Foundations - Maharashtra",
+            Text(
+              l10n.shilpkarMaharashtra,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            const Text(
-              "Beneficiary Access Only", // Matches design
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+            Text(
+              l10n.beneficiaryAccessOnly,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
             const SizedBox(height: 30),
 
-            _buildInputLabel("Beneficiary ID"),
+            _buildInputLabel(l10n.beneficiaryId),
             const SizedBox(height: 8),
             TextFormField(
               controller: _idController,
-              decoration: _inputDecoration("Enter ID"),
-              validator: (v) => v == null || v.isEmpty ? "Required" : null,
+              decoration: _inputDecoration(l10n.enterId),
+              validator: (v) =>
+                  v == null || v.isEmpty ? l10n.required : null,
             ),
 
             const SizedBox(height: 20),
 
-            _buildInputLabel("Password"),
+            _buildInputLabel(l10n.password),
             const SizedBox(height: 8),
             TextFormField(
               controller: _passwordController,
               obscureText: _isObscure,
               decoration: InputDecoration(
-                hintText: "Enter Password",
+                hintText: l10n.enterPassword,
                 hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade300)),
+                enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade300)),
                 suffixIcon: IconButton(
-                    icon: Icon(_isObscure ? Icons.visibility_off : Icons.visibility),
-                    onPressed: () => setState(() => _isObscure = !_isObscure),
+                  icon: Icon(
+                      _isObscure ? Icons.visibility_off : Icons.visibility),
+                  onPressed: () =>
+                      setState(() => _isObscure = !_isObscure),
                 ),
               ),
-              validator: (v) => v == null || v.isEmpty ? "Required" : null,
+              validator: (v) =>
+                  v == null || v.isEmpty ? l10n.required : null,
             ),
-
-
 
             const SizedBox(height: 10),
 
             authProvider.isLoading
                 ? const CircularProgressIndicator()
                 : CustomButton(
-              text: "Continue",
-              onPressed: () => _handleLogin(authProvider),
-            ),
+                    text: l10n.continue_btn,
+                    onPressed: () => _handleLogin(authProvider, l10n),
+                  ),
 
             const SizedBox(height: 20),
-            const Text(
-              "Use ID and Password Created by the Admin Panel",
+            Text(
+              l10n.useBeneficiaryIdNote,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 11, color: Colors.grey),
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
             ),
             const SizedBox(height: 20),
-            // Autofill Button (Debug)
+            // Debug Autofill
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                border: Border.all(
+                    color: AppColors.errorRed.withValues(alpha: 0.3)),
                 borderRadius: BorderRadius.circular(8),
-                color: Colors.red.withValues(alpha: 0.05),
+                color: AppColors.debugRedBg,
               ),
               child: Column(
                 children: [
                   const Text(
                     "Debug Autofill (Tap to fill)",
-                    style: TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: AppColors.errorRed,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   SizedBox(
@@ -193,7 +207,7 @@ class _BeneficiaryLoginScreenState extends State<BeneficiaryLoginScreen> {
                         _passwordController.text = "vkLVs6CjWu";
                       },
                       style: TextButton.styleFrom(
-                        foregroundColor: Colors.red,
+                        foregroundColor: AppColors.errorRed,
                         padding: EdgeInsets.zero,
                         visualDensity: VisualDensity.compact,
                       ),
@@ -209,13 +223,13 @@ class _BeneficiaryLoginScreenState extends State<BeneficiaryLoginScreen> {
     );
   }
 
-  // UI Helpers to maintain consistency
   Widget _buildInputLabel(String label) {
     return Align(
       alignment: Alignment.centerLeft,
       child: Text(
         label,
-        style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black87),
+        style: const TextStyle(
+            fontWeight: FontWeight.w600, color: Colors.black87),
       ),
     );
   }
@@ -224,7 +238,8 @@ class _BeneficiaryLoginScreenState extends State<BeneficiaryLoginScreen> {
     return InputDecoration(
       hintText: hint,
       hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: BorderSide(color: Colors.grey.shade300),
@@ -236,54 +251,55 @@ class _BeneficiaryLoginScreenState extends State<BeneficiaryLoginScreen> {
     );
   }
 
-  Widget _buildCategoryList() {
+  Widget _buildCategoryList(AppLocalizations l10n) {
     final categories = {
-      "Farmer": "Works in a farm",
-      "Student": "Studying in a higher institution",
-      "Women": "Housewife or daily wage workers",
-      "Worker": "Daily wage workers or labours",
-      "Citizen": "Citizens of Latur"
+      l10n.farmer: l10n.farmerSubtitle,
+      l10n.student: l10n.studentSubtitle,
+      l10n.women: l10n.womenSubtitle,
+      l10n.worker: l10n.workerSubtitle,
+      l10n.citizen: l10n.citizenSubtitle,
     };
 
     return Column(
-      children: categories.entries.map((e) => SelectableItemCard(
-        title: e.key,
-        subtitle: e.value,
-        isSelected: selectedCategory == e.key,
-        onTap: () {
-          setState(() {
-            selectedCategory = e.key;
-            showLoginForm = false; // Reset form if category changes
-          });
-        },
-      )).toList(),
+      children: categories.entries
+          .map((e) => SelectableItemCard(
+                title: e.key,
+                subtitle: e.value,
+                isSelected: selectedCategory == e.key,
+                onTap: () {
+                  setState(() {
+                    selectedCategory = e.key;
+                    showLoginForm = false;
+                  });
+                },
+              ))
+          .toList(),
     );
   }
 
-  void _handleLogin(AuthProvider authProvider) async {
+  void _handleLogin(AuthProvider authProvider, AppLocalizations l10n) async {
     if (!_formKey.currentState!.validate()) return;
 
     final request = LoginRequest(
       username: _idController.text.trim(),
       password: _passwordController.text.trim(),
-      // API requires BENEFICIARY role for this flow
       loginAsRole: "BENEFICIARY",
     );
 
     final success = await authProvider.login(request);
 
     if (success && mounted) {
-      // Navigate to Main Navigation Screen (index 1 is Home) and remove all previous routes
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const MainNavigationScreen(initialIndex: 1)),
-            (route) => false,
+        MaterialPageRoute(
+            builder: (_) => const MainNavigationScreen(initialIndex: 1)),
+        (route) => false,
       );
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(authProvider.errorMessage ?? "Login failed"),
-          backgroundColor: Colors.red,
+          content: Text(authProvider.errorMessage ?? l10n.loginFailed),
+          backgroundColor: AppColors.errorRed,
         ),
       );
     }

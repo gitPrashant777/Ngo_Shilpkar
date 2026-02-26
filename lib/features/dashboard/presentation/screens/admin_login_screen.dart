@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/navigation/main_navigation.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/SelectableItemCard.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../admin/presentation/screens/admin_dashboard.dart'; // Standard Admin Dashboard
@@ -36,6 +37,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FB),
@@ -50,23 +52,23 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 20),
-            const Text(
-              "Login As Admin",
-              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+            Text(
+              l10n.loginTitle(l10n.adminLabel),
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const Text(
-              "Select your administration level",
-              style: TextStyle(color: Colors.grey, fontSize: 16),
+            Text(
+              l10n.selectAdminLevel,
+              style: const TextStyle(color: Colors.grey, fontSize: 16),
             ),
             const SizedBox(height: 30),
 
-            _buildRoleSelectionCard(),
+            _buildRoleSelectionCard(l10n),
 
             const SizedBox(height: 20),
 
             if (showLoginForm)
-              _buildLoginCard(authProvider)
+              _buildLoginCard(authProvider, l10n)
             else
               _buildAutofillSection(),
               const SizedBox(height: 50),
@@ -76,7 +78,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     );
   }
 
-  Widget _buildRoleSelectionCard() {
+  Widget _buildRoleSelectionCard(AppLocalizations l10n) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -85,16 +87,16 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
       ),
       child: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
             child: Text(
-              "Select Admin Type",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              l10n.selectAdminType,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
           SelectableItemCard(
-            title: "Super Admin",
-            subtitle: "Full system access & user management",
+            title: l10n.superAdmin,
+            subtitle: l10n.fullSystemAccess,
             isSelected: selectedRole == "SUPER_ADMIN",
             onTap: () {
               setState(() {
@@ -104,8 +106,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
             },
           ),
           SelectableItemCard(
-            title: "Admin",
-            subtitle: "Manage jobs, schemes, and beneficiaries", // Updated subtitle
+            title: l10n.adminLabel,
+            subtitle: l10n.manageJobsSchemesB,
             isSelected: selectedRole == "ADMIN",
             onTap: () {
               setState(() {
@@ -117,7 +119,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
           Padding(
             padding: const EdgeInsets.all(20),
             child: CustomButton(
-              text: "Continue",
+              text: l10n.continue_btn,
               onPressed: selectedRole == null
                   ? null
                   : () => setState(() => showLoginForm = true),
@@ -128,7 +130,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     );
   }
 
-  Widget _buildLoginCard(AuthProvider authProvider) {
+  Widget _buildLoginCard(AuthProvider authProvider, AppLocalizations l10n) {
     final bool isSuperAdmin = selectedRole == "SUPER_ADMIN";
 
     return Container(
@@ -142,24 +144,24 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         key: _formKey,
         child: Column(
           children: [
-            const Text(
-              "Admin Panel Access",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              l10n.adminPanelAccess,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            const Text(
-              "Authorized Personnel Only",
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+            Text(
+              l10n.authorizedOnly,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
             const SizedBox(height: 30),
 
             TextFormField(
               controller: _idController,
               decoration: InputDecoration(
-                labelText: isSuperAdmin ? "Email Address" : "Admin ID",
+                labelText: isSuperAdmin ? l10n.emailAddress : l10n.adminIdLabel,
                 prefixIcon: Icon(isSuperAdmin ? Icons.email_outlined : Icons.badge_outlined),
                 border: const OutlineInputBorder(),
               ),
-              validator: (v) => v == null || v.isEmpty ? "Required" : null,
+              validator: (v) => v == null || v.isEmpty ? l10n.required : null,
             ),
 
             const SizedBox(height: 20),
@@ -168,14 +170,14 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               controller: _passwordController,
               obscureText: _isObscure,
               decoration: InputDecoration(
-                labelText: "Password",
+                labelText: l10n.password,
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   icon: Icon(_isObscure ? Icons.visibility_off : Icons.visibility),
                   onPressed: () => setState(() => _isObscure = !_isObscure),
                 ),
               ),
-              validator: (v) => v == null || v.isEmpty ? "Required" : null,
+              validator: (v) => v == null || v.isEmpty ? l10n.required : null,
             ),
 
             Align(
@@ -187,7 +189,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                     MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
                   );
                 },
-                child: const Text("Forgot Password?"),
+                child: Text(l10n.forgotPassword),
               ),
             ),
 
@@ -196,8 +198,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
             authProvider.isLoading
                 ? const CircularProgressIndicator()
                 : CustomButton(
-              text: "Login",
-              onPressed: () => _handleLogin(authProvider),
+              text: l10n.login,
+              onPressed: () => _handleLogin(authProvider, l10n),
             ),
           ],
         ),
@@ -251,7 +253,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     );
   }
 
-  void _handleLogin(AuthProvider authProvider) async {
+  void _handleLogin(AuthProvider authProvider, AppLocalizations l10n) async {
     if (!_formKey.currentState!.validate()) return;
 
     final bool isSuperAdmin = selectedRole == "SUPER_ADMIN";
@@ -274,7 +276,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(authProvider.errorMessage ?? "Login failed"),
+          content: Text(authProvider.errorMessage ?? l10n.loginFailed),
           backgroundColor: Colors.red,
         ),
       );

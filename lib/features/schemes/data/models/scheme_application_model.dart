@@ -3,6 +3,7 @@ class SchemeApplicationModel {
   final String status;
   final String schemeId;
   final String schemeName;
+  final double schemePrice; // amount required for PAID scheme
   final bool isActive;
   final String paymentStatus;
 
@@ -17,6 +18,7 @@ class SchemeApplicationModel {
     required this.status,
     required this.schemeId,
     required this.schemeName,
+    required this.schemePrice,
     required this.isActive,
     required this.paymentStatus,
     required this.beneficiaryName,
@@ -33,6 +35,7 @@ class SchemeApplicationModel {
       status: json["status"] ?? "",
       schemeId: schemeData is Map ? schemeData["_id"] ?? "" : "",
       schemeName: schemeData is Map ? schemeData["name"] ?? "" : "",
+      schemePrice: schemeData is Map ? (schemeData["price"] as num?)?.toDouble() ?? 0.0 : 0.0,
       isActive: json["isActive"] ?? true,
       paymentStatus: json["paymentStatus"] ?? "PENDING",
       beneficiaryName: beneficiary?["name"] ?? beneficiary?["firstName"] ?? "",
@@ -50,6 +53,7 @@ class SchemeApplicationModel {
       status: status ?? this.status,
       schemeId: schemeId,
       schemeName: schemeName,
+      schemePrice: schemePrice,
       isActive: isActive,
       paymentStatus: paymentStatus ?? this.paymentStatus,
       beneficiaryName: beneficiaryName,

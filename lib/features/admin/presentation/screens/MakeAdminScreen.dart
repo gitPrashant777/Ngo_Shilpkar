@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../auth/data/repository/user_repository.dart';
 import 'SuperAdminSuccessScreen.dart';
 
@@ -36,10 +37,12 @@ class _MakeAdminScreenState extends State<MakeAdminScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: primaryBlue,
-        title: const Text("Make Admin"),
+        title: Text(l10n.makeAdmin),
       ),
       body: SafeArea(
         child: Form(
@@ -51,9 +54,9 @@ class _MakeAdminScreenState extends State<MakeAdminScreen> {
               CrossAxisAlignment.start,
               children: [
 
-                const Text(
-                  "Admin Details",
-                  style: TextStyle(
+                Text(
+                  l10n.adminDetails,
+                  style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold),
                 ),
@@ -61,56 +64,56 @@ class _MakeAdminScreenState extends State<MakeAdminScreen> {
                 const SizedBox(height: 20),
 
                 _buildTextField(
-                  "First Name*",
+                  l10n.firstNameStar,
                   firstNameController,
                   validator: (value) =>
                   value == null || value.isEmpty
-                      ? "First name required"
+                      ? l10n.firstNameRequired
                       : null,
                 ),
 
                 _buildTextField(
-                  "Last Name*",
+                  l10n.lastNameStar,
                   lastNameController,
                   validator: (value) =>
                   value == null || value.isEmpty
-                      ? "Last name required"
+                      ? l10n.lastNameRequired
                       : null,
                 ),
 
                 _buildTextField(
-                  "Mobile*",
+                  l10n.mobileStar,
                   mobileController,
                   keyboardType:
                   TextInputType.number,
                   validator: (value) {
                     if (value == null ||
                         value.isEmpty)
-                      return "Mobile required";
+                      return l10n.mobileRequired;
                     if (!RegExp(
                         r'^[0-9]{10}$')
                         .hasMatch(value))
-                      return "Mobile must be 10 digits";
+                      return l10n.mobileMustBe10;
                     return null;
                   },
                 ),
 
                 _buildTextField(
-                  "Email*",
+                  l10n.emailStar,
                   emailController,
                   validator: (value) {
                     if (value == null ||
                         value.isEmpty)
-                      return "Email required";
+                      return l10n.emailRequired;
                     if (!RegExp(
                         r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$')
                         .hasMatch(value))
-                      return "Enter valid email";
+                      return l10n.enterValidEmail;
                     return null;
                   },
                 ),
 
-                _buildDOBField(),
+                _buildDOBField(l10n),
 
                 const SizedBox(height: 40),
 
@@ -132,7 +135,7 @@ class _MakeAdminScreenState extends State<MakeAdminScreen> {
                       if (_formKey
                           .currentState!
                           .validate()) {
-                        await _submit();
+                        await _submit(l10n);
                       }
                     },
                     child: _isLoading
@@ -146,9 +149,9 @@ class _MakeAdminScreenState extends State<MakeAdminScreen> {
                         Colors.white,
                       ),
                     )
-                        : const Text(
-                      "Make Admin",
-                      style: TextStyle(
+                        : Text(
+                      l10n.makeAdmin,
+                      style: const TextStyle(
                           color: Colors
                               .white),
                     ),
@@ -162,7 +165,7 @@ class _MakeAdminScreenState extends State<MakeAdminScreen> {
     );
   }
 
-  Future<void> _submit() async {
+  Future<void> _submit(AppLocalizations l10n) async {
     setState(() => _isLoading = true);
 
     try {
@@ -196,7 +199,7 @@ class _MakeAdminScreenState extends State<MakeAdminScreen> {
         SnackBar(
           content: Text(
               e.response?.data["message"] ??
-                  "Error creating admin"),
+                  l10n.errorCreatingAdmin),
           backgroundColor: Colors.red,
         ),
       );
@@ -233,7 +236,7 @@ class _MakeAdminScreenState extends State<MakeAdminScreen> {
     );
   }
 
-  Widget _buildDOBField() {
+  Widget _buildDOBField(AppLocalizations l10n) {
     return Padding(
       padding:
       const EdgeInsets.only(bottom: 15),
@@ -243,14 +246,14 @@ class _MakeAdminScreenState extends State<MakeAdminScreen> {
         validator: (value) =>
         value == null ||
             value.isEmpty
-            ? "DOB required"
+            ? l10n.dobRequired
             : null,
         decoration:
-        const InputDecoration(
-          labelText: "DOB*",
+        InputDecoration(
+          labelText: l10n.dobStar,
           border:
-          OutlineInputBorder(),
-          suffixIcon: Icon(
+          const OutlineInputBorder(),
+          suffixIcon: const Icon(
               Icons.calendar_today),
         ),
         onTap: () async {
@@ -275,3 +278,4 @@ class _MakeAdminScreenState extends State<MakeAdminScreen> {
     );
   }
 }
+

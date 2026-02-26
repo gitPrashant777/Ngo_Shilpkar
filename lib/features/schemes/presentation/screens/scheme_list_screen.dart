@@ -18,7 +18,6 @@ class SchemeListScreen extends StatefulWidget {
 }
 
 class _SchemeListScreenState extends State<SchemeListScreen> {
-  final Color primaryBlue = const Color(0xFF4A78B0);
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -67,7 +66,7 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
     final role = context.watch<AuthProvider>().role;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7F9),
+      backgroundColor: AppColors.lightBackground,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,7 +98,7 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                             icon: const Icon(Icons.refresh),
                             label: const Text("Retry"),
                             style: ElevatedButton.styleFrom(
-                                backgroundColor: primaryBlue, foregroundColor: Colors.white),
+                                backgroundColor: AppColors.lightBlueScheme, foregroundColor: Colors.white),
                           ),
                         ],
                       ),
@@ -122,7 +121,7 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                               icon: const Icon(Icons.add),
                               label: const Text("Create First Scheme"),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: primaryBlue,
+                                backgroundColor: AppColors.lightBlueScheme,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10)),
@@ -174,7 +173,7 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
       floatingActionButton: _isAdmin(role)
           ? FloatingActionButton.extended(
               onPressed: _openAddScheme,
-              backgroundColor: primaryBlue,
+              backgroundColor: AppColors.lightBlueScheme,
               foregroundColor: Colors.white,
               icon: const Icon(Icons.add),
               label: const Text("Add Scheme", style: TextStyle(fontWeight: FontWeight.bold)),
@@ -192,11 +191,11 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.assignment_outlined, color: primaryBlue, size: 20),
+              const Icon(Icons.assignment_outlined, color: AppColors.lightBlueScheme, size: 20),
               const SizedBox(width: 8),
-              Text("Shilpkar Foundation",
+              const Text("Shilpkar Foundation",
                   style: TextStyle(
-                      fontSize: 13, color: primaryBlue, fontWeight: FontWeight.w600)),
+                      fontSize: 13, color: AppColors.lightBlueScheme, fontWeight: FontWeight.w600)),
             ],
           ),
           const SizedBox(height: 6),
@@ -222,21 +221,21 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                             decoration: BoxDecoration(
-                              color: primaryBlue.withValues(alpha: 0.1),
+                              color: AppColors.lightBlueScheme.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                  color: primaryBlue.withValues(alpha: 0.4), width: 1),
+                                  color: AppColors.lightBlueScheme.withValues(alpha: 0.4), width: 1),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.checklist_rounded, size: 15, color: primaryBlue),
+                                const Icon(Icons.checklist_rounded, size: 15, color: AppColors.lightBlueScheme),
                                 const SizedBox(width: 4),
                                 Text(
                                   count > 0 ? "My Applications ($count)" : "My Applications",
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       fontSize: 12,
-                                      color: primaryBlue,
+                                      color: AppColors.lightBlueScheme,
                                       fontWeight: FontWeight.w600),
                                 ),
                               ],
@@ -253,7 +252,7 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2))
                         : IconButton(
-                            icon: Icon(Icons.refresh, color: primaryBlue),
+                            icon: const Icon(Icons.refresh, color: AppColors.lightBlueScheme),
                             onPressed: () {
                               prov.fetchPublishedSchemes(refresh: true);
                               if (_isBeneficiary(role)) prov.fetchMyApplications();
@@ -303,7 +302,7 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
               gradient: LinearGradient(
                 colors: isApplied
                     ? [Colors.green.shade600, Colors.green.shade800]
-                    : [primaryBlue.withValues(alpha: 0.9), primaryBlue],
+                    : [AppColors.lightBlueScheme.withValues(alpha: 0.9), AppColors.lightBlueScheme],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -394,8 +393,8 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                         MaterialPageRoute(builder: (_) => SchemeDetailScreen(scheme: scheme)),
                       ),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: primaryBlue,
-                        side: BorderSide(color: primaryBlue),
+                        foregroundColor: AppColors.lightBlueScheme,
+                        side: const BorderSide(color: AppColors.lightBlueScheme),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       ),
@@ -411,7 +410,7 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                           : ElevatedButton(
                               onPressed: () => _apply(scheme.id, provider, role),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: primaryBlue,
+                                backgroundColor: AppColors.lightBlueScheme,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8)),
@@ -456,7 +455,7 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.lock_outline_rounded, size: 48, color: Color(0xFF4A78B0)),
+            const Icon(Icons.lock_outline_rounded, size: 48, color: AppColors.lightBlueScheme),
             const SizedBox(height: 12),
             const Text('Login Required',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -479,7 +478,7 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                 label: const Text('Login as Beneficiary',
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4A78B0),
+                  backgroundColor: AppColors.lightBlueScheme,
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),

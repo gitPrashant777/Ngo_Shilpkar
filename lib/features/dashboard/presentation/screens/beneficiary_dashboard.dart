@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:shilpkar/features/jobs/presentation/screens/job_list_screen.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/navigation/main_navigation.dart';
+import '../../../../core/providers/language_provider.dart';
 import '../../../../core/utils/storage_service.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/action_card.dart';
 import '../../../../shared/widgets/dashboard_info_card.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -33,7 +35,7 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
     });
   }
 
-  Widget _buildSupportCard(BuildContext context) {
+  Widget _buildSupportCard(BuildContext context, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -45,16 +47,16 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
           const Icon(Icons.forum_outlined,
               color: Color(0xFF55789A), size: 30),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Connect with Admin",
-                    style: TextStyle(
+                Text(l10n.connectWithAdmin,
+                    style: const TextStyle(
                         fontWeight: FontWeight.bold, fontSize: 16)),
-                Text("Connect to resolve queries",
+                Text(l10n.connectWithAdminSub,
                     style:
-                    TextStyle(fontSize: 11, color: Colors.grey)),
+                    const TextStyle(fontSize: 11, color: Colors.grey)),
               ],
             ),
           ),
@@ -72,8 +74,8 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
               backgroundColor: const Color(0xFF55789A),
               shape: const StadiumBorder(),
             ),
-            child: const Text("Chat",
-                style: TextStyle(color: Colors.white)),
+            child: Text(l10n.chat,
+                style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -82,6 +84,7 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         _buildAppBar(context),
@@ -95,8 +98,8 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
                   child: Column(
                     children: [
                       _buildFullWidthAction(
-                        "Apply for a Job",
-                        "View open positions and apply with your qualifications",
+                        l10n.applyForAJob,
+                        l10n.applyForAJobSub,
                         Icons.edit_document,
                         const Color(0xFFD9A05B),
                             () {
@@ -110,9 +113,9 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
                         children: [
                           Expanded(
                             child: _buildCategoryBox(
-                              "My Job Applications",
-                              "Track your applied benefits",
-                              "View Applications",
+                              l10n.myJobApplications,
+                              l10n.myJobApplicationsSub,
+                              l10n.viewApplications,
                               Icons.work,
                               const Color(0xFF55789A),
                                   () {
@@ -124,9 +127,9 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: _buildCategoryBox(
-                              "Products",
-                              "Explore purpose driven products",
-                              "Explore",
+                              l10n.products,
+                              l10n.productsSub,
+                              l10n.explore,
                               Icons.shopping_bag_rounded,
                               const Color(0xFF7A9E6F),
                                   () {
@@ -139,8 +142,8 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
                       const SizedBox(height: 16),
                       
                       _buildFullWidthAction(
-                        "Announcements",
-                        "View important system messages",
+                        l10n.announcements,
+                        l10n.announcementsSub,
                         Icons.campaign_outlined,
                         const Color(0xFF6B8E23),
                             () {
@@ -151,8 +154,8 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
                       const SizedBox(height: 16),
                       
                       _buildFullWidthAction(
-                        "My Orders",
-                        "Track your purchases and refund requests",
+                        l10n.myOrders,
+                        l10n.myOrdersSub,
                         Icons.shopping_cart_checkout_rounded,
                         const Color(0xFF4373AD), 
                             () {
@@ -162,10 +165,10 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
                       ),
                       const SizedBox(height: 16),
     
-                      _buildInfoGrid(),
+                      _buildInfoGrid(l10n),
                       const SizedBox(height: 16),
     
-                      _buildSupportCard(context),
+                      _buildSupportCard(context, l10n),
                       const SizedBox(height: 40), 
                     ],
                   ),
@@ -189,10 +192,10 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
         children: [
           Image.asset('assets/Images/logoSk.png', height: 40),
           const SizedBox(width: 6),
-          const Expanded(
+          Expanded(
             child: Text(
-              "Shilpkar Foundation",
-              style: TextStyle(
+              AppLocalizations.of(context)!.shilpkarFoundation,
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
                 color: Colors.white,
@@ -203,7 +206,9 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
         ],
       ),
       actions: [
-        _buildLanguageToggle(),
+        Consumer<LanguageProvider>(
+          builder: (context, langProvider, _) => langProvider.buildToggleWidget(),
+        ),
         const NotificationBell(iconColor: Colors.white),
         const SizedBox(width: 2),
         IconButton(
@@ -249,19 +254,24 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
               colorFilter: const ColorFilter.mode(Colors.black45, BlendMode.darken),
             ),
           ),
-          child: const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("Welcome to Shilpkar Foundation",
-                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Text("Empowering communities with purpose driven actions",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white, fontSize: 12)),
-                ),
-              ],
+          child: Center(
+            child: Consumer<LanguageProvider>(
+              builder: (context, _, __) {
+                final l10n = AppLocalizations.of(context)!;
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(l10n.welcomeShilpkar,
+                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(l10n.empoweringCommunities,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white, fontSize: 12)),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         );
@@ -331,14 +341,14 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
     );
   }
 
-  Widget _buildInfoGrid() {
+  Widget _buildInfoGrid(AppLocalizations l10n) {
     return Row(
       children: [
-        _buildMiniCard("Our Vision", Icons.track_changes_rounded, Colors.orange),
+        _buildMiniCard(l10n.ourVision, Icons.track_changes_rounded, Colors.orange),
         const SizedBox(width: 8),
-        _buildMiniCard("Our Work", Icons.auto_graph_rounded, Colors.blue),
+        _buildMiniCard(l10n.ourWork, Icons.auto_graph_rounded, Colors.blue),
         const SizedBox(width: 8),
-        _buildMiniCard("Our Impact", Icons.public_rounded, Colors.green),
+        _buildMiniCard(l10n.ourImpact, Icons.public_rounded, Colors.green),
       ],
     );
   }
@@ -360,14 +370,4 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
   }
 
 
-  Widget _buildLanguageToggle() {
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.only(right: 16),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-        child: const Text("English | मराठी", style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
-      ),
-    );
-  }
 }
