@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import '../../data/repository/scheme_repository.dart';
 import '../../../auth/presentation/screens/edit_profile_screen.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class ApplySchemeScreen extends StatefulWidget {
   final String schemeId;
@@ -23,8 +24,8 @@ class _ApplySchemeScreenState extends State<ApplySchemeScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Application submitted successfully"),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.applicationSubmittedSuccess),
             backgroundColor: Colors.green,
           ),
         );
@@ -32,7 +33,7 @@ class _ApplySchemeScreenState extends State<ApplySchemeScreen> {
         Navigator.pop(context);
       }
     } on DioException catch (e) {
-      String errorMessage = "Something went wrong";
+      String errorMessage = AppLocalizations.of(context)!.errorOccurred;
 
       if (e.response != null && e.response?.data != null) {
         final data = e.response?.data;
@@ -50,7 +51,7 @@ class _ApplySchemeScreenState extends State<ApplySchemeScreen> {
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 5),
               action: SnackBarAction(
-                label: "Add Bank",
+                label: AppLocalizations.of(context)!.addBank,
                 textColor: Colors.white,
                 onPressed: () {
                   Navigator.pop(context); // Close this apply screen
@@ -82,7 +83,7 @@ class _ApplySchemeScreenState extends State<ApplySchemeScreen> {
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 5),
               action: SnackBarAction(
-                label: "Add Bank",
+                label: AppLocalizations.of(context)!.addBank,
                 textColor: Colors.white,
                 onPressed: () {
                   Navigator.pop(context); // Close this apply screen
@@ -97,7 +98,7 @@ class _ApplySchemeScreenState extends State<ApplySchemeScreen> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(errorMessage.isNotEmpty ? errorMessage : "Unexpected error"),
+              content: Text(errorMessage.isNotEmpty ? errorMessage : AppLocalizations.of(context)!.unexpectedError),
               backgroundColor: Colors.red,
             ),
           );
@@ -112,15 +113,16 @@ class _ApplySchemeScreenState extends State<ApplySchemeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text("Apply for Scheme")),
+      appBar: AppBar(title: Text(l10n.applyScheme)),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const Text(
-              "Are you sure you want to apply for this scheme?",
-              style: TextStyle(fontSize: 16),
+            Text(
+              l10n.areYouSureApplyScheme,
+              style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 30),
             SizedBox(
@@ -129,7 +131,7 @@ class _ApplySchemeScreenState extends State<ApplySchemeScreen> {
                 onPressed: _isLoading ? null : _applyScheme,
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("Apply Now"),
+                    : Text(l10n.apply),
               ),
             )
           ],

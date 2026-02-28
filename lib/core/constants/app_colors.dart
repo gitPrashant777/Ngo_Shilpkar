@@ -80,4 +80,18 @@ class AppColors {
   static const Color goldYellow = Color(0xFFFFD700);       // pinned border/icon
   static const Color darkOrange = Color(0xFFFF8C00);       // pinned push-pin icon
   static const Color pinnedBg = Color(0xFFFFF8E1);         // pinned card background
+
+  // ── E-Commerce Colors ─────────────────────────────────────────────────────
+  static const Color shopAccentOrange = Color(0xFFFFA000);  // Buy Now / CTA button
+  static const Color shopPricePrimary  = Color(0xFF2E7D32); // Price text (dark green)
+  static const Color shopSelectedBorder= Color(0xFF1565C0); // Selected order card border (blue)
+  static const Color shopStarGold     = Color(0xFFFFB300);  // Star rating gold
+  static const Color shopDeliveredGreen= Color(0xFF43A047); // Delivered status
+  static const Color shopOrderCardBg  = Color(0xFFFFFFFF);  // Order card white
+  static const Color shopOrderBuyAgainBg = Color(0xFFF5F5F5); // Buy Again section bg
+  static const Color shopSectionTitle = Color(0xFF1A1A1A);  // Section bold titles
+  static const Color shopBodyGrey     = Color(0xFFF0F2F5);  // Overall scaffold background
+  static const Color shopBlueCta      = Color(0xFF1565C0);  // Blue CTA buttons (Replace/Refund)
+  static const Color shopRefundPurple = Color(0xFF7B1FA2);  // Refund status purple
+  static const Color shopDivider      = Color(0xFFE0E0E0);  // Divider lines
 }

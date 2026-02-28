@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/repository/scheme_repository.dart';
 import '../../data/models/scheme_application_model.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class SuperAdminSchemeApplicationsScreen extends StatefulWidget {
   final String schemeId;
@@ -68,7 +69,7 @@ class _SuperAdminSchemeApplicationsScreenState
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Application $status")),
+          SnackBar(content: Text(AppLocalizations.of(context)!.applicationStatusUpdated(status))),
         );
       }
     } catch (e) {
@@ -102,12 +103,12 @@ class _SuperAdminSchemeApplicationsScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Applications - ${widget.schemeName}"),
+        title: Text(AppLocalizations.of(context)!.applicationsFor(widget.schemeName)),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _applications.isEmpty
-          ? const Center(child: Text("No Applications"))
+          ? Center(child: Text(AppLocalizations.of(context)!.noApplications))
           : ListView.builder(
         itemCount: _applications.length,
         itemBuilder: (context, index) {
@@ -128,10 +129,10 @@ class _SuperAdminSchemeApplicationsScreenState
                         fontSize: 16),
                   ),
                   const SizedBox(height: 6),
-                  Text("Category: ${app.category}"),
+                  Text(AppLocalizations.of(context)!.categoryLabel(app.category)),
                   const SizedBox(height: 6),
                   Text(
-                    "Status: ${app.status}",
+                    AppLocalizations.of(context)!.statusLabel(app.status),
                     style: TextStyle(
                       color:
                       _statusColor(app.status),
@@ -154,8 +155,7 @@ class _SuperAdminSchemeApplicationsScreenState
                               backgroundColor:
                               Colors.green,
                             ),
-                            child:
-                            const Text("Approve"),
+                            child: Text(AppLocalizations.of(context)!.approveBtn),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -171,8 +171,7 @@ class _SuperAdminSchemeApplicationsScreenState
                               backgroundColor:
                               Colors.red,
                             ),
-                            child:
-                            const Text("Reject"),
+                            child: Text(AppLocalizations.of(context)!.rejectBtn),
                           ),
                         ),
                       ],

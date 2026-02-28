@@ -72,3 +72,35 @@ class PaginatedSchemesModel {
     );
   }
 }
+
+/// Same shape – used for the public / beneficiary published-schemes list
+class PaginatedPublishedSchemesModel {
+  final int page;
+  final int limit;
+  final int total;
+  final int totalPages;
+  final List<SchemeModel> data;
+
+  PaginatedPublishedSchemesModel({
+    required this.page,
+    required this.limit,
+    required this.total,
+    required this.totalPages,
+    required this.data,
+  });
+
+  factory PaginatedPublishedSchemesModel.fromJson(Map<String, dynamic> json) {
+    List<dynamic> rawList = [];
+    if (json['data'] is List) rawList = json['data'] as List;
+    else if (json['schemes'] is List) rawList = json['schemes'] as List;
+    else if (json['results'] is List) rawList = json['results'] as List;
+
+    return PaginatedPublishedSchemesModel(
+      page: (json["page"] as num?)?.toInt() ?? 1,
+      limit: (json["limit"] as num?)?.toInt() ?? 10,
+      total: (json["total"] as num?)?.toInt() ?? 0,
+      totalPages: (json["totalPages"] as num?)?.toInt() ?? 1,
+      data: rawList.map((e) => SchemeModel.fromJson(e as Map<String, dynamic>)).toList(),
+    );
+  }
+}

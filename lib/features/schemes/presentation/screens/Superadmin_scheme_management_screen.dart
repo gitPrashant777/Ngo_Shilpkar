@@ -39,15 +39,6 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SchemeProvider>().fetchAdminSchemes(refresh: true);
     });
-
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
-        final provider = context.read<SchemeProvider>();
-        if (provider.adminSchemesHasMore && !provider.isLoading) {
-          provider.fetchAdminSchemes();
-        }
-      }
-    });
   }
 
   @override
@@ -204,18 +195,9 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
               SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    if (index == provider.adminSchemes.length) {
-                      if (provider.isLoading) {
-                        return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
-                      }
-                      if (!provider.adminSchemesHasMore && provider.adminSchemes.isNotEmpty) {
-                        return Padding(padding: const EdgeInsets.all(20), child: Center(child: Text(l10n.endOfResults)));
-                      }
-                      return const SizedBox();
-                    }
                     return _buildSchemeListItem(provider.adminSchemes[index], provider, l10n);
                   },
-                  childCount: provider.adminSchemes.length + 1,
+                  childCount: provider.adminSchemes.length,
                 ),
               ),
               if (!provider.isLoading && provider.adminSchemes.isEmpty)
@@ -225,6 +207,14 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
                     child: Center(child: Text(l10n.noSchemesFound, style: const TextStyle(color: Colors.grey))),
                   ),
                 ),
+              SliverToBoxAdapter(
+                child: _AdminPaginationBar(
+                  currentPage: provider.adminSchemesCurrentPage,
+                  totalPages: provider.adminSchemesTotalPages,
+                  isLoading: provider.isLoading,
+                  onPageChanged: (p) => provider.goToAdminSchemesPage(p),
+                ),
+              ),
             ],
           );
         },
@@ -511,6 +501,62 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+      ),
+    );
+  }
+}
+
+class _AdminPaginationBar extends StatelessWidget {
+  final int currentPage;
+  final int totalPages;
+  final bool isLoading;
+  final Function(int) onPageChanged;
+
+  const _AdminPaginationBar({
+    required this.currentPage,
+    required this.totalPages,
+    required this.isLoading,
+    required this.onPageChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (totalPages <= 1) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            onPressed: (currentPage > 1 && !isLoading) ? () => onPageChanged(currentPage - 1) : null,
+            icon: Icon(Icons.chevron_left, color: (currentPage > 1) ? AppColors.primaryBlue : Colors.grey),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "${AppLocalizations.of(context)!.page} $currentPage ${AppLocalizations.of(context)!.ofText} $totalPages",
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+            ],
+          ),
+          IconButton(
+            onPressed: (currentPage < totalPages && !isLoading) ? () => onPageChanged(currentPage + 1) : null,
+            icon: Icon(Icons.chevron_right, color: (currentPage < totalPages) ? AppColors.primaryBlue : Colors.grey),
+          ),
+        ],
       ),
     );
   }

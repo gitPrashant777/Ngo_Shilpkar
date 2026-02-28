@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shilpkar/features/admin/presentation/screens/select_employee_role_screen.dart';
-import 'package:shilpkar/features/auth/presentation/screens/public_home_screen.dart';
-import 'package:shilpkar/features/jobs/presentation/screens/job_list_screen.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/navigation/main_navigation.dart';
 import '../../../../core/providers/language_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/utils/storage_service.dart';
 import '../../../../shared/widgets/action_card.dart';
+import '../../../../shared/widgets/dashboard_section.dart';
 import '../../../ecommerce/presentation/screens/public/product_list_screen.dart';
 import '../../../jobs/presentation/screens/admin_job_management_screen.dart';
 import '../../../schemes/presentation/screens/Superadmin_scheme_management_screen.dart';
@@ -86,294 +85,265 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                   ),
                   const StatusRingRow(),
                   const SizedBox(height: 10),
-                  // Row for User Management
-                  // lib/features/admin/presentation/screens/admin_dashboard.dart
 
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildAdminFeatureBox(
-                          l10n.makeOthersAdmin,
-                          l10n.makeOthersAdminSub,
-                          l10n.makeAdmin,
-                          Icons.admin_panel_settings,
-                          const Color(0xFF638FB4),
-                              () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const MakeAdminScreen()),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _buildAdminFeatureBox(
-                          l10n.makeEmployee,
-                          l10n.makeEmployeeSub,
-                          l10n.makeEmployee,
-                          Icons.person_add,
-                          const Color(0xFF7A9E6F),
-                              () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const SelectEmployeeRoleScreen(),
+                  // ─── User Management ──────────────────────────────────────
+                  DashboardSection(
+                    title: l10n.userManagement ?? "User Management",
+                    icon: Icons.people_alt_outlined,
+                    color: const Color(0xFF55789A),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildAdminFeatureBox(
+                                l10n.makeOthersAdmin,
+                                l10n.makeOthersAdminSub,
+                                l10n.makeAdmin,
+                                Icons.admin_panel_settings,
+                                const Color(0xFF638FB4),
+                                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MakeAdminScreen())),
                               ),
-                            );
-                          },
-                        ),
-
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _buildAdminFeatureBox(
-                          l10n.makeBeneficiary,
-                          l10n.makeBeneficiarySub,
-                          l10n.create,
-                          Icons.group_add,
-                          const Color(0xFFE57373),
-                              () => Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const CreateBeneficiaryScreen()),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Payment Fixture Bar
-                  _buildFullWidthAction(
-                    l10n.paymentFixture,
-                    l10n.paymentFixtureSub,
-                    Icons.currency_rupee,
-                    const Color(0xFFD9A05B),
-                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OnboardingAdminScreen())),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Management Row
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildAdminFeatureBox(
-                          l10n.exploreProducts,
-                          l10n.exploreProductsSub,
-                          l10n.explore,
-                          Icons.shopping_bag_outlined,
-                          const Color(0xFF4CAF50),
-                              () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const ProductListScreen(),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildAdminFeatureBox(
+                                l10n.makeEmployee,
+                                l10n.makeEmployeeSub,
+                                l10n.makeEmployee,
+                                Icons.person_add,
+                                const Color(0xFF7A9E6F),
+                                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SelectEmployeeRoleScreen())),
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildAdminFeatureBox(
-                          l10n.jobRequests,
-                          l10n.jobRequestsSub,
-                          l10n.see,
-                          Icons.work_history,
-                          const Color(0xFF638FB4),
-                              () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const AdminJobManagementScreen(),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _buildAdminFeatureBox(
+                                l10n.makeBeneficiary,
+                                l10n.makeBeneficiarySub,
+                                l10n.create,
+                                Icons.group_add,
+                                const Color(0xFFE57373),
+                                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateBeneficiaryScreen())),
                               ),
-                            );
-                          },
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Payment History Bar
-                  _buildFullWidthAction(
-                    l10n.paymentHistory,
-                    l10n.paymentHistorySub,
-                    Icons.history,
-                    const Color(0xFFB4C8B4),
-                        () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const GlobalPaymentsScreen()),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Attendance Bar
-                  _buildFullWidthAction(
-                    l10n.attendanceRecords,
-                    l10n.attendanceSub,
-                    Icons.fingerprint_rounded,
-                    const Color(0xFFE0F2F1),
-                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceListScreen())),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Schemes Management
-                  _buildFullWidthAction(
-                    l10n.manageSchemes,
-                    l10n.manageSchemeSub,
-                    Icons.assignment,
-                    const Color(0xFF4A78B0),
-                        () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const SuperAdminSchemeManagementScreen()),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // E-COMMERCE MANAGEMENT HEADER
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4),
-                      child: Text(
-                        l10n.ecommerceManagement,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blueGrey),
-                      ),
+                      ],
                     ),
                   ),
+                  const SizedBox(height: 10),
 
-                  // E-COMMERCE ROW
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildAdminFeatureBox(
-                          l10n.products,
-                          l10n.manageInventory,
-                          l10n.manage,
-                          Icons.inventory_2_outlined,
-                          const Color(0xFFE57373),
-                              () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const AdminProductManagementScreen(),
+                  // ─── Operations & Finance ─────────────────────────────────
+                  DashboardSection(
+                    title: l10n.operationsFinance ?? "Operations & Finance",
+                    icon: Icons.account_balance_wallet_outlined,
+                    color: const Color(0xFFD9A05B),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.onboardingConfig,
+                                l10n.onboardingConfigSub,
+                                Icons.settings_applications_outlined,
+                                const Color(0xFFE0F2F1),
+                                const Color(0xFF009688),
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OnboardingAdminScreen())),
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildAdminFeatureBox(
-                          l10n.categories,
-                          l10n.manageCategories,
-                          l10n.manage,
-                          Icons.category_outlined,
-                          const Color(0xFFBA68C8),
-                              () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const AdminCategoryManagementScreen(),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.paymentHistory,
+                                l10n.paymentHistorySub,
+                                Icons.history,
+                                const Color(0xFFE8EAF6),
+                                const Color(0xFF5C6BC0),
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GlobalPaymentsScreen())),
                               ),
-                            );
-                          },
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // --- Quick Access Grid (2x2, light pastel cards) ---
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4),
-                      child: Text(
-                        l10n.quickAccess,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blueGrey),
-                      ),
+                      ],
                     ),
                   ),
-                  Row(
-                    children: [
+                  const SizedBox(height: 10),
 
-                      Expanded(
-                        child: _buildLightCardAction(
-                          l10n.chatRequests,
-                          l10n.chatRequestsSub,
-                          Icons.chat_bubble_outline,
-                          const Color(0xFFE8EAF6),
-                          const Color(0xFF5C6BC0),
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const shilpkar.ChatListScreen())),
+                  // ─── Programs & Attendance ────────────────────────────────
+                  DashboardSection(
+                    title: l10n.programsAttendance ?? "Programs & Attendance",
+                    icon: Icons.assignment_turned_in_outlined,
+                    color: const Color(0xFF4A78B0),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.manageSchemes,
+                                l10n.manageSchemeSub,
+                                Icons.assignment_outlined,
+                                const Color(0xFFE3F2FD),
+                                const Color(0xFF1976D2),
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SuperAdminSchemeManagementScreen())),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.jobRequests,
+                                l10n.jobRequestsSub,
+                                Icons.work_history_outlined,
+                                const Color(0xFFFFF3E0),
+                                const Color(0xFFF57C00),
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminJobManagementScreen())),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.attendanceRecords,
+                                l10n.attendanceSub,
+                                Icons.fingerprint_rounded,
+                                const Color(0xFFF3E5F5),
+                                const Color(0xFF7B1FA2),
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceListScreen())),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const Expanded(child: SizedBox()), // Empty space to maintain uniformity
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildLightCardAction(
-                          l10n.systemBroadcasts,
-                          l10n.systemBroadcastsSub,
-                          Icons.campaign_outlined,
-                          const Color(0xFFFFF3E0),
-                          const Color(0xFFFF9800),
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminBroadcastScreen())),
+                  const SizedBox(height: 10),
+
+                  // ─── E-Commerce ───────────────────────────────────────────
+                  DashboardSection(
+                    title: l10n.ecommerceManagement,
+                    icon: Icons.storefront_outlined,
+                    color: const Color(0xFFE57373),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.products,
+                                l10n.manageInventory,
+                                Icons.inventory_2_outlined,
+                                const Color(0xFFFFEBEE),
+                                const Color(0xFFE53935),
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminProductManagementScreen())),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.categories,
+                                l10n.manageCategories,
+                                Icons.category_outlined,
+                                const Color(0xFFF3E5F5),
+                                const Color(0xFF8E24AA),
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminCategoryManagementScreen())),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildLightCardAction(
-                          l10n.onboardingConfig,
-                          l10n.onboardingConfigSub,
-                          Icons.account_balance_wallet_outlined,
-                          const Color(0xFFE0F2F1),
-                          const Color(0xFF009688),
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OnboardingAdminScreen())),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.exploreProducts,
+                                l10n.exploreProductsSub,
+                                Icons.shopping_bag_outlined,
+                                const Color(0xFFE8F5E9),
+                                const Color(0xFF4CAF50),
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen())),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.manageOrders,
+                                l10n.manageOrdersSub,
+                                Icons.local_shipping_outlined,
+                                const Color(0xFFFFF8E1),
+                                const Color(0xFFFFA000),
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminOrderManagementScreen())),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.refundRequests,
+                                l10n.refundRequestsSub,
+                                Icons.assignment_return_outlined,
+                                const Color(0xFFE0F7FA),
+                                const Color(0xFF00BCD4),
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminRefundManagementScreen())),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const Expanded(child: SizedBox()), // Empty space to maintain uniformity
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildLightCardAction(
-                          l10n.manageOrders,
-                          l10n.manageOrdersSub,
-                          Icons.local_shipping_outlined,
-                          const Color(0xFFF3E5F5),
-                          const Color(0xFF9C27B0),
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminOrderManagementScreen())),
+                  const SizedBox(height: 10),
+
+                  // ─── Communication & Quick Access ─────────────────────────
+                  DashboardSection(
+                    title: l10n.communication ?? "Communication",
+                    icon: Icons.forum_outlined,
+                    color: const Color(0xFF5C6BC0),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.chatRequests,
+                                l10n.chatRequestsSub,
+                                Icons.chat_bubble_outline,
+                                const Color(0xFFE8EAF6),
+                                const Color(0xFF5C6BC0),
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const shilpkar.ChatListScreen())),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.systemBroadcasts,
+                                l10n.systemBroadcastsSub,
+                                Icons.campaign_outlined,
+                                const Color(0xFFFFF3E0),
+                                const Color(0xFFFF9800),
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminBroadcastScreen())),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildLightCardAction(
-                          l10n.refundRequests,
-                          l10n.refundRequestsSub,
-                          Icons.assignment_return_outlined,
-                          const Color(0xFFFFEBEE),
-                          const Color(0xFFE53935),
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminRefundManagementScreen())),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 24),
-        ]
-              ),
-            ),
+                ],
+              )
+            )
           ],
         ),
       ),

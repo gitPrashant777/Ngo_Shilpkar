@@ -9,6 +9,7 @@ import 'Superadmin_scheme_management_screen.dart';
 import 'scheme_detail_screen.dart';
 import 'my_scheme_applications_screen.dart';
 import '../../../auth/presentation/screens/beneficiary_login_screen.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class SchemeListScreen extends StatefulWidget {
   const SchemeListScreen({super.key});
@@ -18,35 +19,19 @@ class SchemeListScreen extends StatefulWidget {
 }
 
 class _SchemeListScreenState extends State<SchemeListScreen> {
-  final ScrollController _scrollController = ScrollController();
-
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final provider = context.read<SchemeProvider>();
         final role = context.read<AuthProvider>().role;
         provider.fetchPublishedSchemes(refresh: true);
-        // Only fetch my applications for beneficiaries/guests
         if (role == 'BENEFICIARY' || role == 'GUEST') {
           provider.fetchMyApplications();
         }
       }
     });
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
-      context.read<SchemeProvider>().fetchPublishedSchemes();
-    }
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
   }
 
   bool _isAdmin(String? role) => role == 'ADMIN' || role == 'SUPER_ADMIN';
@@ -72,101 +57,113 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(role),
-            Expanded(
-              child: Consumer<SchemeProvider>(
-                builder: (context, provider, _) {
-                  if (provider.isLoading && provider.publishedSchemes.isEmpty) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+          Expanded(
+            child: Consumer<SchemeProvider>(
+              builder: (context, provider, _) {
+                if (provider.isLoading && provider.publishedSchemes.isEmpty) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                  if (provider.error != null && provider.publishedSchemes.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.error_outline, color: Colors.red.shade300, size: 48),
-                          const SizedBox(height: 12),
-                          Text("Failed to load schemes",
-                              style: TextStyle(color: Colors.grey.shade600, fontSize: 15)),
-                          const SizedBox(height: 4),
-                          Text(provider.error!,
-                              style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
-                              textAlign: TextAlign.center),
-                          const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: () => context.read<SchemeProvider>().fetchPublishedSchemes(refresh: true),
-                            icon: const Icon(Icons.refresh),
-                            label: const Text("Retry"),
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.lightBlueScheme, foregroundColor: Colors.white),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  if (provider.publishedSchemes.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.assignment_outlined, size: 64, color: Colors.grey.shade300),
-                          const SizedBox(height: 16),
-                          Text("No schemes available",
-                              style: TextStyle(color: Colors.grey.shade500, fontSize: 16)),
-                          if (_isAdmin(role)) ...[
-                            const SizedBox(height: 16),
-                            ElevatedButton.icon(
-                              onPressed: _openAddScheme,
-                              icon: const Icon(Icons.add),
-                              label: const Text("Create First Scheme"),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.lightBlueScheme,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    );
-                  }
-
-                  // Build a quick lookup: schemeId → application
-                  final Map<String, SchemeApplicationModel> appliedMap = {
-                    for (final app in provider.myApplications)
-                      if (app.schemeId.isNotEmpty) app.schemeId: app
-                  };
-
-                  return RefreshIndicator(
-                    onRefresh: () async {
-                      await provider.fetchPublishedSchemes(refresh: true);
-                      if (_isBeneficiary(role)) await provider.fetchMyApplications();
-                    },
-                    child: ListView.builder(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 90),
-                      itemCount: provider.publishedSchemes.length + (provider.publishedSchemesHasMore ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index == provider.publishedSchemes.length) {
-                          return const Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Center(child: CircularProgressIndicator()),
-                          );
-                        }
-                        return _buildSchemeCard(
-                          provider.publishedSchemes[index],
-                          role,
-                          appliedMap,
-                          provider,
-                        );
-                      },
+                if (provider.error != null && provider.publishedSchemes.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red.shade300, size: 48),
+                        const SizedBox(height: 12),
+                        Text(AppLocalizations.of(context)!.failedToLoadSchemes,
+                            style: TextStyle(color: Colors.grey.shade600, fontSize: 15)),
+                        const SizedBox(height: 4),
+                        Text(provider.error!,
+                            style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+                            textAlign: TextAlign.center),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: () => context.read<SchemeProvider>().fetchPublishedSchemes(refresh: true),
+                          icon: const Icon(Icons.refresh),
+                          label: Text(AppLocalizations.of(context)!.retry),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.lightBlueScheme, foregroundColor: Colors.white),
+                        ),
+                      ],
                     ),
                   );
-                },
-              ),
+                }
+
+                if (provider.publishedSchemes.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.assignment_outlined, size: 64, color: Colors.grey.shade300),
+                        const SizedBox(height: 16),
+                        Text(AppLocalizations.of(context)!.noSchemesAvailable,
+                            style: TextStyle(color: Colors.grey.shade500, fontSize: 16)),
+                        if (_isAdmin(role)) ...[
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: _openAddScheme,
+                            icon: const Icon(Icons.add),
+                            label: Text(AppLocalizations.of(context)!.createFirstScheme),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.lightBlueScheme,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                }
+
+                // Build a quick lookup: schemeId → application
+                final Map<String, SchemeApplicationModel> appliedMap = {
+                  for (final app in provider.myApplications)
+                    if (app.schemeId.isNotEmpty) app.schemeId: app
+                };
+
+              return Column(
+                  children: [
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: () async {
+                          await provider.fetchPublishedSchemes(refresh: true);
+                          if (_isBeneficiary(role)) await provider.fetchMyApplications();
+                        },
+                        child: ListView.builder(
+                          // Add bottom padding so the last card isn't hidden by the pagination bar or FAB
+                          padding: EdgeInsets.fromLTRB(
+                            16, 4, 16,
+                            _isAdmin(role) ? 80 : 8, // extra room for FAB when admin
+                          ),
+                          itemCount: provider.publishedSchemes.length,
+                          itemBuilder: (context, index) {
+                            return _buildSchemeCard(
+                              provider.publishedSchemes[index],
+                              role,
+                              appliedMap,
+                              provider,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+
+                    // ── Pagination bar ─────────────────────────────────────
+                    _PaginationBar(
+                      currentPage: provider.publishedCurrentPage,
+                      totalPages: provider.publishedTotalPages,
+                      total: provider.publishedTotal,
+                      isLoading: provider.isLoading,
+                      onPageChanged: (p) => provider.goToPublishedPage(p),
+                    ),
+                  ],
+                );
+              },
             ),
+          ),
           ],
         ),
       ),
@@ -176,35 +173,46 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
               backgroundColor: AppColors.lightBlueScheme,
               foregroundColor: Colors.white,
               icon: const Icon(Icons.add),
-              label: const Text("Add Scheme", style: TextStyle(fontWeight: FontWeight.bold)),
+              label: Text(AppLocalizations.of(context)!.addScheme, style: const TextStyle(fontWeight: FontWeight.bold)),
               elevation: 4,
             )
           : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
   Widget _buildHeader(String? role) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.assignment_outlined, color: AppColors.lightBlueScheme, size: 20),
+              const Icon(Icons.assignment_outlined, color: AppColors.lightBlueScheme, size: 18),
               const SizedBox(width: 8),
-              const Text("Shilpkar Foundation",
-                  style: TextStyle(
-                      fontSize: 13, color: AppColors.lightBlueScheme, fontWeight: FontWeight.w600)),
+              Flexible(
+                child: Text(
+                  AppLocalizations.of(context)!.shilpkarFoundation,
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.lightBlueScheme, fontWeight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 6),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Schemes",
-                  style: TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)),
+              Flexible(
+                child: Text(
+                  AppLocalizations.of(context)!.schemes,
+                  style: const TextStyle(
+                      fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
               Row(
                 children: [
                   // "My Applications" button for beneficiaries
@@ -219,7 +227,7 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                                 builder: (_) => const MySchemeApplicationsScreen()),
                           ).then((_) => prov.fetchMyApplications()),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                             decoration: BoxDecoration(
                               color: AppColors.lightBlueScheme.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(20),
@@ -229,12 +237,14 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.checklist_rounded, size: 15, color: AppColors.lightBlueScheme),
+                                const Icon(Icons.checklist_rounded, size: 14, color: AppColors.lightBlueScheme),
                                 const SizedBox(width: 4),
                                 Text(
-                                  count > 0 ? "My Applications ($count)" : "My Applications",
+                                  count > 0
+                                      ? AppLocalizations.of(context)!.myApplicationsCount(count)
+                                      : AppLocalizations.of(context)!.myApplications,
                                   style: const TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 11,
                                       color: AppColors.lightBlueScheme,
                                       fontWeight: FontWeight.w600),
                                 ),
@@ -331,7 +341,7 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      myApp!.status.isNotEmpty ? myApp.status : 'APPLIED',
+                      myApp!.status.isNotEmpty ? myApp.status : AppLocalizations.of(context)!.applied,
                       style: const TextStyle(
                           color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
@@ -344,7 +354,7 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      isPaid ? "₹${scheme.price.toInt()}" : "FREE",
+                      isPaid ? "₹${scheme.price.toInt()}" : AppLocalizations.of(context)!.free,
                       style: TextStyle(
                           color: isPaid ? Colors.orange.shade800 : Colors.green.shade800,
                           fontWeight: FontWeight.bold,
@@ -398,7 +408,7 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       ),
-                      child: const Text("Details", style: TextStyle(fontSize: 12)),
+                      child: Text(AppLocalizations.of(context)!.viewDetails, style: const TextStyle(fontSize: 12)),
                     ),
                     const SizedBox(width: 8),
                     // Apply / Withdraw button (beneficiaries only)
@@ -417,7 +427,7 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 elevation: 0,
                               ),
-                              child: const Text("Apply", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                              child: Text(AppLocalizations.of(context)!.apply, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                             ),
                   ],
                 ),
@@ -439,7 +449,7 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
     final ok = appId != null;
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(ok ? '\u2705 Applied successfully!' : '\u274c ${provider.error}'),
+        content: Text(ok ? AppLocalizations.of(context)!.appliedSuccessfully : '\u274c ${provider.error}'),
         backgroundColor: ok ? Colors.green : Colors.red,
       ));
     }
@@ -457,11 +467,11 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
           children: [
             const Icon(Icons.lock_outline_rounded, size: 48, color: AppColors.lightBlueScheme),
             const SizedBox(height: 12),
-            const Text('Login Required',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(AppLocalizations.of(context)!.loginRequired,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            const Text(
-              'Please login as a Beneficiary to apply for schemes.',
+            Text(
+              AppLocalizations.of(context)!.loginRequiredDesc,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13, color: Colors.black54),
             ),
@@ -475,8 +485,8 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                       MaterialPageRoute(builder: (_) => const BeneficiaryLoginScreen()));
                 },
                 icon: const Icon(Icons.login, color: Colors.white, size: 16),
-                label: const Text('Login as Beneficiary',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                label: Text(AppLocalizations.of(context)!.loginAsBeneficiaryBtn,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.lightBlueScheme,
                   padding: const EdgeInsets.symmetric(vertical: 13),
@@ -494,14 +504,14 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Withdraw Application?'),
-        content: const Text('Are you sure you want to withdraw this scheme application?'),
+        title: Text(AppLocalizations.of(context)!.withdrawApplicationQ),
+        content: Text(AppLocalizations.of(context)!.areYouSureWithdrawScheme),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppLocalizations.of(context)!.cancel)),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Withdraw', style: TextStyle(color: Colors.white)),
+            child: Text(AppLocalizations.of(context)!.withdraw, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -510,7 +520,7 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
     final ok = await provider.withdrawApplication(applicationId, schemeId: schemeId);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(ok ? '\u2705 Application withdrawn' : '\u274c ${provider.error}'),
+        content: Text(ok ? AppLocalizations.of(context)!.applicationWithdrawn : '\u274c ${provider.error}'),
         backgroundColor: ok ? Colors.orange : Colors.red,
       ));
     }
@@ -538,11 +548,174 @@ class _WithdrawButton extends StatelessWidget {
     return OutlinedButton.icon(
       onPressed: onWithdraw,
       icon: const Icon(Icons.undo_rounded, size: 15, color: Colors.red),
-      label: const Text("Withdraw", style: TextStyle(fontSize: 12, color: Colors.red)),
+      label: Text(AppLocalizations.of(context)!.withdraw, style: const TextStyle(fontSize: 12, color: Colors.red)),
       style: OutlinedButton.styleFrom(
         side: const BorderSide(color: Colors.red),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      ),
+    );
+  }
+}
+
+// ─── Pagination Bar ──────────────────────────────────────────────────────────
+class _PaginationBar extends StatelessWidget {
+  final int currentPage;
+  final int totalPages;
+  final int total;
+  final bool isLoading;
+  final void Function(int page) onPageChanged;
+
+  const _PaginationBar({
+    required this.currentPage,
+    required this.totalPages,
+    required this.total,
+    required this.isLoading,
+    required this.onPageChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (totalPages <= 1 && total == 0) return const SizedBox.shrink();
+
+    final bool hasPrev = currentPage > 1;
+    final bool hasNext = currentPage < totalPages;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Page number chips (if ≤ 7 pages)
+          if (totalPages > 1 && totalPages <= 7)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(totalPages, (i) {
+                  final page = i + 1;
+                  final isActive = page == currentPage;
+                  return GestureDetector(
+                    onTap: isLoading || isActive ? null : () => onPageChanged(page),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: isActive ? 34 : 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: isActive ? AppColors.lightBlueScheme : Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isActive ? AppColors.lightBlueScheme : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$page',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                            color: isActive ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+
+          // Prev / Page info / Next row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Prev button
+              _NavBtn(
+                label: '← Prev',
+                enabled: hasPrev && !isLoading,
+                onTap: () => onPageChanged(currentPage - 1),
+              ),
+
+              // Centre info
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isLoading)
+                    const SizedBox(
+                      width: 16, height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  else
+                    Text(
+                      'Page $currentPage of $totalPages',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  if (total > 0)
+                    Text(
+                      '$total scheme${total == 1 ? '' : 's'} total',
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                    ),
+                ],
+              ),
+
+              // Next button
+              _NavBtn(
+                label: 'Next →',
+                enabled: hasNext && !isLoading,
+                onTap: () => onPageChanged(currentPage + 1),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NavBtn extends StatelessWidget {
+  final String label;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  const _NavBtn({required this.label, required this.enabled, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: enabled ? AppColors.lightBlueScheme : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: enabled ? AppColors.lightBlueScheme : Colors.grey.shade300,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: enabled ? Colors.white : Colors.grey.shade400,
+          ),
+        ),
       ),
     );
   }

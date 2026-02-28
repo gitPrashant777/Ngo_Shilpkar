@@ -24,14 +24,21 @@ import '../../features/schemes/presentation/screens/user_scheme_list_screen.dart
 import '../../features/attendance/presentation/screens/attendance_screen.dart';
 import '../../features/chat/presentation/screens/chat_list_screen.dart' as shilpkar;
 
+// Simple helper class to hold navigation data
+class NavItem {
+  final IconData icon;
+  final String label;
+
+  NavItem({required this.icon, required this.label});
+}
+
 class MainNavigationScreen extends StatefulWidget {
   final int initialIndex;
   // Defaulting to 1, which is the "Home" tab for all roles.
   const MainNavigationScreen({super.key, this.initialIndex = 1});
 
   @override
-  State<MainNavigationScreen> createState() =>
-      _MainNavigationScreenState();
+  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
@@ -71,49 +78,49 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       if (status == 'PENDING' || status == 'WAIVER_PENDING') {
         return const OnboardingScreen();
       }
-      
+
       // Reset flag if status changes to allow re-check after login
       if (status == 'PAID' || status == 'WAIVER_APPROVED') {
         // Pass through to normal app
       }
     }
 
-    // Define pages based on role - Swapped Home and Jobs
+    // Define pages based on role
     List<Widget> pages = [];
     if (role == "SUPER_ADMIN") {
       pages = [
-        const AdminJobManagementScreen(),            // Index 0: Jobs
-        const SuperAdminDashboard(),                 // Index 1: Home
-        const SuperAdminSchemeManagementScreen(),    // Index 2: Full scheme management
+        const AdminJobManagementScreen(),
+        const SuperAdminDashboard(),
+        const SuperAdminSchemeManagementScreen(),
         const ProfileScreen(),
       ];
     } else if (role == "ADMIN") {
       pages = [
-        const AdminJobManagementScreen(),            // Index 0: Jobs
-        const AdminDashboard(),                      // Index 1: Home
-        const SuperAdminSchemeManagementScreen(),    // Index 2: Full scheme management
+        const AdminJobManagementScreen(),
+        const AdminDashboard(),
+        const SuperAdminSchemeManagementScreen(),
         const ProfileScreen(),
       ];
     } else if (role == "BENEFICIARY") {
       pages = [
-        const JobListScreen(),        // Index 0: Jobs
-        const BeneficiaryDashboard(), // Index 1: Home
-        const SchemeListScreen(),     // Index 2: Schemes (published only)
+        const JobListScreen(),
+        const BeneficiaryDashboard(),
+        const SchemeListScreen(),
         const ProfileScreen(),
       ];
     } else if (role == "FIELD" || role == "COORDINATOR" || role == "EMPLOYEE") {
       pages = [
-        const shilpkar.ChatListScreen(), // Index 0: Chat
-        const EmployeeDashboard(),       // Index 1: Dashboard
+        const shilpkar.ChatListScreen(),
+        const EmployeeDashboard(),
         const AttendanceScreen(),
         const ProfileScreen(),
       ];
     } else {
       // Default / Guest
       pages = [
-        const JobListScreen(),           // Index 0: Jobs
-        const PublicHomeScreen(),        // Index 1: Home
-        const PublicSchemeLoginGate(),   // Index 2: Schemes login gate
+        const JobListScreen(),
+        const PublicHomeScreen(),
+        const PublicSchemeLoginGate(),
         const ProfileScreen(),
       ];
     }
@@ -124,116 +131,167 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     }
 
     return Scaffold(
-      extendBody: false,
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: pages,
+      extendBody: true,
+      // Remove the manual Padding — extendBody:true + correct nav bar height
+      // means MediaQuery.padding.bottom inside child screens == barHeight + systemInset,
+      // which is exactly what SafeArea needs. No manual padding required.
+      body: SafeArea(
+        top: false,
+        bottom: true,
+        child: IndexedStack(
+          index: _selectedIndex,
+          children: pages,
+        ),
       ),
       bottomNavigationBar: _buildBottomNav(role),
     );
   }
 
-  Widget _buildBottomNav(String? role) {
-    return Container(
-      height: 100,
-      color: const Color(0xFF55789A),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          children: _getNavItems(role),
-        ),
-      ),
-    );
-  }
-
-  List<Widget> _getNavItems(String? role) {
+  List<NavItem> _getNavItemsData(String? role) {
     final l10n = AppLocalizations.of(context)!;
     if (role == "BENEFICIARY") {
       return [
-        _buildNavItem(0, Icons.work, l10n.navJobs),
-        _buildNavItem(1, Icons.home, l10n.navHome),
-        _buildNavItem(2, Icons.assignment, l10n.navSchemes),
-        _buildNavItem(3, Icons.person, l10n.navProfile),
+        NavItem(icon: Icons.work, label: l10n.navJobs),
+        NavItem(icon: Icons.home, label: l10n.navHome),
+        NavItem(icon: Icons.assignment, label: l10n.navSchemes),
+        NavItem(icon: Icons.person, label: l10n.navProfile),
       ];
     } else if (role == "FIELD" || role == "COORDINATOR" || role == "EMPLOYEE") {
       return [
-        _buildNavItem(0, Icons.chat, l10n.navChat),
-        _buildNavItem(1, Icons.dashboard, l10n.navDashboard),
-        _buildNavItem(2, Icons.history, l10n.navAttendance),
-        _buildNavItem(3, Icons.person, l10n.navProfile),
+        NavItem(icon: Icons.chat, label: l10n.navChat),
+        NavItem(icon: Icons.dashboard, label: l10n.navDashboard),
+        NavItem(icon: Icons.history, label: l10n.navAttendance),
+        NavItem(icon: Icons.person, label: l10n.navProfile),
       ];
     } else {
       // Admin / Super Admin and Guest
       return [
-        _buildNavItem(0, Icons.work_outline_rounded, l10n.navJobs),
-        _buildNavItem(1, Icons.home_rounded, l10n.navHome),
-        _buildNavItem(2, Icons.assignment_outlined, l10n.navSchemes),
-        _buildNavItem(3, Icons.person_outline_rounded, l10n.navProfile),
+        NavItem(icon: Icons.work_outline_rounded, label: l10n.navJobs),
+        NavItem(icon: Icons.home_rounded, label: l10n.navHome),
+        NavItem(icon: Icons.assignment_outlined, label: l10n.navSchemes),
+        NavItem(icon: Icons.person_outline_rounded, label: l10n.navProfile),
       ];
     }
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    final bool isSelected = _selectedIndex == index;
+  Widget _buildBottomNav(String? role) {
+    final items = _getNavItemsData(role);
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        behavior: HitTestBehavior.opaque,
-        child: SizedBox(
-          height: 60,
-          child: Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.bottomCenter,
-            children: [
-              // Floating Animated Icon
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOutBack,
-                bottom: isSelected ? 26 : 12,
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: isSelected
-                      ? BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
+    const double barHeight = 65.0;
+    // floatingHeight is only visual overflow — the Container only reports barHeight
+    // so MediaQuery.padding.bottom in child screens = barHeight + systemInset (correct!)
+    const double floatingHeight = 55.0;
+
+    // Report only the solid bar height to Flutter's layout system.
+    // The floating icon will overflow upward via Clip.none — it's purely visual.
+    return SizedBox(
+      height: barHeight + bottomPadding,
+      child: Stack(
+        clipBehavior: Clip.none, // allow floating icon to overflow above the bar
+        alignment: Alignment.bottomCenter,
+        children: [
+          // 1. Solid Blue Background (fills the full SizedBox)
+          Positioned.fill(
+            child: Container(
+              color: const Color(0xFF55789A),
+            ),
+          ),
+
+          // 2. Interaction & Animation Layer — extends upward by floatingHeight
+          //    via negative bottom so it overflows above the bar visually
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: barHeight + floatingHeight + bottomPadding,
+            child: Row(
+              children: List.generate(items.length, (index) {
+                final isSelected = _selectedIndex == index;
+
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedIndex = index;
+                      });
+                    },
+                    behavior: HitTestBehavior.opaque,
+                    child: SizedBox(
+                      height: barHeight + floatingHeight + bottomPadding,
+                      child: Stack(
+                        alignment: Alignment.bottomCenter,
+                        clipBehavior: Clip.none,
+                        children: [
+                          // UNSELECTED STATE
+                          Positioned(
+                            bottom: bottomPadding + 12,
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 200),
+                              opacity: isSelected ? 0.0 : 1.0,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    items[index].icon,
+                                    color: Colors.white,
+                                    size: 22,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    items[index].label,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // SELECTED STATE (Bouncing Icon)
+                          AnimatedPositioned(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOutBack,
+                            bottom: isSelected
+                                ? bottomPadding + 40
+                                : bottomPadding,
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 200),
+                              opacity: isSelected ? 1.0 : 0.0,
+                              child: Container(
+                                width: 48,
+                                height: 48,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                                padding: const EdgeInsets.all(4),
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF55789A),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    items[index].icon,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  )
-                      : const BoxDecoration(),
-                  child: Icon(
-                    icon,
-                    color: isSelected ? const Color(0xFF4373AD) : Colors.white,
-                    size: isSelected ? 28 : 24,
-                  ),
-                ),
-              ),
-
-              // Label (only for unselected)
-              if (!isSelected)
-                Positioned(
-                  bottom: 2,
-                  child: Text(
-                    label,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                ),
-            ],
+                );
+              }),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

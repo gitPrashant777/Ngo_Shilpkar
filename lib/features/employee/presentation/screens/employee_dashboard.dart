@@ -8,12 +8,11 @@ import '../../../../shared/widgets/dashboard_info_card.dart';
 import '../../../attendance/presentation/screens/attendance_screen.dart';
 import '../../../attendance/presentation/screens/attendance_list_screen.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../chat/presentation/screens/chat_list_screen.dart';
 import '../../../chat/presentation/screens/chat_request_screen.dart';
-import '../../../ecommerce/presentation/screens/public/product_list_screen.dart';
 import '../../../home/presentation/providers/homepage_provider.dart';
 import '../../../chat/presentation/screens/public_broadcast_screen.dart';
 import '../../../../features/admin/presentation/screens/create_beneficiary_screen.dart';
+import '../../../../shared/widgets/dashboard_section.dart';
 import 'package:shilpkar/features/notifications/presentation/widgets/notification_bell.dart';
 
 class EmployeeDashboard extends StatefulWidget {
@@ -47,77 +46,107 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      _buildAttendanceAction(
-                        l10n.attendance,
-                        l10n.attendancePunchInOut,
-                        AppColors.jobCard,
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const AttendanceScreen()),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      DashboardInfoCard(
-                        icon: Icons.forum_rounded,
-                        iconColor: AppColors.primaryBlue,
-                        title: l10n.connectWithAdmin,
-                        subtitle: l10n.resolveQueries,
-                        buttonLabel: l10n.chatNow,
-                        buttonColor: AppColors.primaryBlue,
-                        bgColor: AppColors.joinUsBg,
-                        onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const ChatRequestScreen())),
-                      ),
-                      const SizedBox(height: 16),
-
-                      const SizedBox(height: 16),
-
-                      // ── Attendance Records  +  Announcements (side by side) ──
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: DashboardInfoCard(
-                              icon: Icons.fingerprint_rounded,
-                              iconColor: AppColors.attendanceTeal,
-                              title: l10n.attendance,
-                              subtitle: l10n.attendanceViewAll,
-                              buttonLabel: l10n.viewList,
-                              buttonColor: AppColors.attendanceTeal,
-                              bgColor: AppColors.attendanceTealBg,
-                              onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) =>
-                                          const AttendanceListScreen())),
+                  // ─── Daily Operations ───────────────────────────────────────
+                  DashboardSection(
+                    title: l10n.attendance ?? "Daily Operations",
+                    icon: Icons.access_time_filled_outlined,
+                    color: AppColors.attendanceTeal,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.attendance,
+                                l10n.attendancePunchInOut,
+                                Icons.access_time,
+                                AppColors.jobCard,
+                                Colors.black,
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceScreen())),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: DashboardInfoCard(
-                              icon: Icons.campaign_rounded,
-                              iconColor: AppColors.announcementOlive,
-                              title: l10n.announcements,
-                              subtitle: l10n.systemMessages,
-                              buttonLabel: l10n.viewAll,
-                              buttonColor: AppColors.announcementOlive,
-                              bgColor: AppColors.announcementOliveBg,
-                              onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) =>
-                                          const PublicBroadcastScreen())),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.attendance,
+                                l10n.attendanceViewAll,
+                                Icons.fingerprint_rounded,
+                                AppColors.attendanceTealBg,
+                                AppColors.attendanceTeal,
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceListScreen())),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // ─── Communication & Support ─────────────────────────────────
+                  DashboardSection(
+                    title: l10n.communication ?? "Communication",
+                    icon: Icons.chat_bubble_outline,
+                    color: AppColors.primaryBlue,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.connectWithAdmin,
+                                l10n.resolveQueries,
+                                Icons.forum_rounded,
+                                AppColors.joinUsBg,
+                                AppColors.primaryBlue,
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatRequestScreen())),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.announcements,
+                                l10n.systemMessages,
+                                Icons.campaign_rounded,
+                                AppColors.announcementOliveBg,
+                                AppColors.announcementOlive,
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PublicBroadcastScreen())),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // ─── User Management ─────────────────────────────────────────
+                  DashboardSection(
+                    title: l10n.userManagement ?? "User Management",
+                    icon: Icons.people_alt_outlined,
+                    color: AppColors.appBarBlue,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.makeBeneficiary,
+                                l10n.makeBeneficiarySub,
+                                Icons.group_add,
+                                Colors.blue.shade50,
+                                AppColors.appBarBlue,
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateBeneficiaryScreen())),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            const Expanded(child: SizedBox()),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
 
                       _buildInfoGrid(l10n),
                       const SizedBox(height: 40),
@@ -228,27 +257,23 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
     );
   }
 
-  Widget _buildAttendanceAction(
-      String title, String sub, Color color, VoidCallback onTap) {
+  Widget _buildLightCardAction(
+    String title, String sub, IconData icon,
+    Color bgColor, Color iconColor, VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(12),
-        ),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(14)),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.black)),
-            Text(sub,
-                style:
-                    const TextStyle(fontSize: 11, color: Colors.black87)),
+            Icon(icon, color: iconColor, size: 26),
+            const SizedBox(height: 8),
+            Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: iconColor)),
+            const SizedBox(height: 2),
+            Text(sub, style: const TextStyle(fontSize: 10, color: Colors.black45)),
           ],
         ),
       ),

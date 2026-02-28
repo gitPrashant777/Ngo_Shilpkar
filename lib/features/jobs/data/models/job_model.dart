@@ -60,3 +60,32 @@ class JobModel {
     };
   }
 }
+
+class PaginatedJobsModel {
+  final int page;
+  final int limit;
+  final int total;
+  final int totalPages;
+  final List<JobModel> data;
+
+  PaginatedJobsModel({
+    required this.page,
+    required this.limit,
+    required this.total,
+    required this.totalPages,
+    required this.data,
+  });
+
+  factory PaginatedJobsModel.fromJson(Map<String, dynamic> json) {
+    return PaginatedJobsModel(
+      page: json['page'] ?? 1,
+      limit: json['limit'] ?? 10,
+      total: json['total'] ?? 0,
+      totalPages: json['totalPages'] ?? 1,
+      data: (json['data'] as List<dynamic>?)
+              ?.map((e) => JobModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+    );
+  }
+}

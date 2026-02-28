@@ -5,18 +5,19 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/constants/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../providers/job_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
-
-// ─── Shilpkar Foundation brand colours ───────────────────────────────────────
-const _kPrimary = Color(0xFF1E5799);
-const _kAccent = Color(0xFF2F7FC6);
-const _kBg = Color(0xFFF5F7FA);
-const _kCard = Colors.white;
-const _kLabel = Color(0xFF333333);
-const _kSubLabel = Color(0xFF666666);
-const _kBorder = Color(0xFFCCCCCC);
+// ─── Colour aliases mapping old constants → AppColors ───────────────────────
+const _kPrimary  = AppColors.profileBlue;        // 0xFF1E5799
+const _kAccent   = AppColors.lightBlueScheme;    // 0xFF4A78B0
+const _kBg       = AppColors.lightBackground;    // 0xFFF5F7F9
+const _kCard     = AppColors.cardBackground;     // white
+const _kLabel    = AppColors.textPrimary;        // 0xFF2D3134
+const _kSubLabel = AppColors.textSecondary;      // 0xFF6C757D
+const _kBorder   = AppColors.dividerGrey;        // 0xFFE0E0E0
 
 // ─── Step definitions ─────────────────────────────────────────────────────────
 enum _Step { basic, location, education }
@@ -62,7 +63,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
   String? _resumeSize; // Human-readable file size
   File? _photoFile;
   String? _photoSize;
-  
+
   // Role Check
   bool _isBeneficiary = false;
 
@@ -71,27 +72,27 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
   late final AnimationController _animCtrl;
   late Animation<double> _fadeAnim;
 
-  final List<String> _qualifications = [
-    '10th / SSC',
-    '12th / HSC',
-    'Diploma',
-    'Graduate (BA/BSc/BCom)',
-    'Post Graduate',
-    'Other',
+  List<String> _getQualifications(AppLocalizations l10n) => [
+    l10n.qual10thSSC,
+    l10n.qual12thHSC,
+    l10n.qualDiploma,
+    l10n.qualGraduate,
+    l10n.qualPostGraduate,
+    l10n.qualOther,
   ];
 
-  final List<String> _experienceLevels = [
-    'Fresher (0 years)',
-    '1 – 2 years',
-    '3 – 5 years',
-    '5 + years',
+  List<String> _getExperienceLevels(AppLocalizations l10n) => [
+    l10n.expFresher,
+    l10n.exp1To2Years,
+    l10n.exp3To5Years,
+    l10n.exp5PlusYears,
   ];
 
-  final List<String> _jobTypes = [
-    'Full Time',
-    'Part Time',
-    'Contract',
-    'Volunteer',
+  List<String> _getJobTypes(AppLocalizations l10n) => [
+    l10n.jobTypeFullTime,
+    l10n.jobTypePartTime,
+    l10n.jobTypeContract,
+    l10n.jobTypeVolunteer,
   ];
 
   @override
@@ -104,48 +105,48 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
     _fadeAnim = CurvedAnimation(parent: _animCtrl, curve: Curves.easeInOut);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-       final role = authProvider.role;
-       
-       if (role == 'BENEFICIARY') {
-         setState(() {
-           _isBeneficiary = true;
-           _current = _Step.education; // Skip to Education for Beneficiaries
-         });
-       }
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final role = authProvider.role;
 
-       // Fetch Profile to pre-fill
-       if (authProvider.userProfile == null) {
-         await authProvider.fetchUserProfile();
-       }
+      if (role == 'BENEFICIARY') {
+        setState(() {
+          _isBeneficiary = true;
+          _current = _Step.education; // Skip to Education for Beneficiaries
+        });
+      }
 
-       final profile = authProvider.userProfile?.profile;
-       final user = authProvider.userProfile?.user;
+      // Fetch Profile to pre-fill
+      if (authProvider.userProfile == null) {
+        await authProvider.fetchUserProfile();
+      }
 
-       if (profile != null) {
-         setState(() {
-           // Pre-fill fields
-           _firstNameCtrl.text = profile.firstName ?? user?.username ?? '';
-           _lastNameCtrl.text = profile.lastName ?? '';
-           _dobCtrl.text = profile.dob ?? '';
-           _mobileCtrl.text = user?.mobile ?? '';
-           _emailCtrl.text = user?.email ?? '';
+      final profile = authProvider.userProfile?.profile;
+      final user = authProvider.userProfile?.user;
 
-           _state = profile.location.state ?? 'Maharashtra';
-           _districtCtrl.text = profile.location.district ?? '';
-           _talukaCtrl.text = profile.location.taluka ?? '';
-           _villageCtrl.text = profile.location.village ?? '';
-           _addressCtrl.text = profile.location.address ?? '';
-         });
-       }
-       
-       // Only forward animation if starting at Basic (Guest)
-       // If Beneficiary, we are already at Education, no need for step transition animation immediately
-       if (!_isBeneficiary) {
-         _animCtrl.forward();
-       } else {
-         _animCtrl.value = 1.0; // Show immediately
-       }
+      if (profile != null) {
+        setState(() {
+          // Pre-fill fields
+          _firstNameCtrl.text = profile.firstName ?? user?.username ?? '';
+          _lastNameCtrl.text = profile.lastName ?? '';
+          _dobCtrl.text = profile.dob ?? '';
+          _mobileCtrl.text = user?.mobile ?? '';
+          _emailCtrl.text = user?.email ?? '';
+
+          _state = profile.location.state ?? 'Maharashtra';
+          _districtCtrl.text = profile.location.district ?? '';
+          _talukaCtrl.text = profile.location.taluka ?? '';
+          _villageCtrl.text = profile.location.village ?? '';
+          _addressCtrl.text = profile.location.address ?? '';
+        });
+      }
+
+      // Only forward animation if starting at Basic (Guest)
+      // If Beneficiary, we are already at Education, no need for step transition animation immediately
+      if (!_isBeneficiary) {
+        _animCtrl.forward();
+      } else {
+        _animCtrl.value = 1.0; // Show immediately
+      }
     });
   }
 
@@ -267,8 +268,8 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("✅ Application Submitted Successfully!"),
+          SnackBar(
+            content: Text("✅ ${AppLocalizations.of(context)!.applicationSubmittedSuccess}"),
             backgroundColor: Colors.green,
           ),
         );
@@ -331,7 +332,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                '❌ Resume too large (${_formatFileSize(sizeBytes)}). Max allowed is 5 MB.',
+                '❌ ${AppLocalizations.of(context)!.resumeTooLarge(_formatFileSize(sizeBytes))}',
               ),
               backgroundColor: Colors.redAccent,
               duration: const Duration(seconds: 4),
@@ -367,7 +368,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                '❌ Photo too large (${_formatFileSize(sizeBytes)}). Max allowed is 2 MB.',
+                '❌ ${AppLocalizations.of(context)!.photoTooLarge(_formatFileSize(sizeBytes))}',
               ),
               backgroundColor: Colors.redAccent,
               duration: const Duration(seconds: 4),
@@ -393,33 +394,34 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
   // ────────────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: _kBg,
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(l10n),
       body: Column(
         children: [
           _StepIndicator(currentStep: _stepIndex),
           if (_isBeneficiary)
-             Container(
-               width: double.infinity,
-               color: Colors.green.shade50,
-               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-               child: Row(
-                 mainAxisAlignment: MainAxisAlignment.center,
-                 children: [
-                   const Icon(Icons.check_circle, size: 16, color: Colors.green),
-                   const SizedBox(width: 8),
-                   Text(
-                     "Logged in as ${_firstNameCtrl.text} ${_lastNameCtrl.text}",
-                     style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-                   ),
-                 ],
-               ),
-             ),
+            Container(
+              width: double.infinity,
+              color: Colors.green.shade50,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.check_circle, size: 16, color: Colors.green),
+                  const SizedBox(width: 8),
+                  Text(
+                    l10n.loggedInAs('${_firstNameCtrl.text} ${_lastNameCtrl.text}'),
+                    style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
           Expanded(
             child: FadeTransition(
               opacity: _fadeAnim,
-              child: _buildCurrentStep(),
+              child: _buildCurrentStep(l10n),
             ),
           ),
         ],
@@ -427,7 +429,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(AppLocalizations l10n) {
     return AppBar(
       elevation: 0,
       backgroundColor: _kCard,
@@ -442,7 +444,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Shilpkar Foundation',
+            l10n.shilpkarFoundation,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -450,9 +452,9 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
               letterSpacing: 0.3,
             ),
           ),
-          const Text(
-            'Job Application',
-            style: TextStyle(
+          Text(
+            l10n.jobApplication,
+            style: const TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w700,
               color: _kLabel,
@@ -478,8 +480,8 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
     );
   }
 
-  // ── step router ───────────────────────────────────────────────────────────────
-  Widget _buildCurrentStep() {
+  // ── step router
+  Widget _buildCurrentStep(AppLocalizations l10n) {
     switch (_current) {
       case _Step.basic:
         return _BasicDetailsStep(
@@ -509,9 +511,9 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
       case _Step.education:
         return _EducationStep(
           formKey: _educationKey,
-          qualifications: _qualifications,
-          experienceLevels: _experienceLevels,
-          jobTypes: _jobTypes,
+          qualifications: _getQualifications(l10n),
+          experienceLevels: _getExperienceLevels(l10n),
+          jobTypes: _getJobTypes(l10n),
           selectedQualification: _qualification,
           selectedExperience: _experienceLevel,
           selectedJobType: _jobType,
@@ -543,15 +545,15 @@ class _StepIndicator extends StatelessWidget {
   final int currentStep;
   const _StepIndicator({required this.currentStep});
 
-  static const _labels = ['Basic Details', 'Location', 'Education'];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final labels = [l10n.basicDetails, l10n.locationDetails, l10n.educationExperience];
     return Container(
       color: _kCard,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
-        children: List.generate(_labels.length, (i) {
+        children: List.generate(labels.length, (i) {
           final active = i == currentStep;
           final done = i < currentStep;
           return Expanded(
@@ -561,7 +563,7 @@ class _StepIndicator extends StatelessWidget {
                 const SizedBox(width: 6),
                 Flexible(
                   child: Text(
-                    _labels[i],
+                    labels[i],
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight:
@@ -575,7 +577,7 @@ class _StepIndicator extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (i < _labels.length - 1)
+                if (i < labels.length - 1)
                   Expanded(
                     child: Container(
                       height: 1,
@@ -743,7 +745,7 @@ class _FormField extends StatelessWidget {
             ),
             validator: required
                 ? (v) =>
-            (v == null || v.trim().isEmpty) ? 'Required field' : null
+            (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.requiredField : null
                 : null,
           ),
         ],
@@ -793,8 +795,8 @@ class _DropdownField extends StatelessWidget {
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
             value: value,
-            hint: const Text('select',
-                style: TextStyle(color: _kBorder, fontSize: 13)),
+            hint: Text(AppLocalizations.of(context)!.selectHint,
+                style: const TextStyle(color: _kBorder, fontSize: 13)),
             isExpanded: true,
             icon: const Icon(Icons.keyboard_arrow_down_rounded,
                 color: _kSubLabel),
@@ -826,7 +828,7 @@ class _DropdownField extends StatelessWidget {
                 .toList(),
             onChanged: onChanged,
             validator: required
-                ? (v) => (v == null || v.isEmpty) ? 'Required field' : null
+                ? (v) => (v == null || v.isEmpty) ? AppLocalizations.of(context)!.requiredField : null
                 : null,
           ),
         ],
@@ -894,6 +896,7 @@ class _BasicDetailsStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Form(
@@ -901,41 +904,28 @@ class _BasicDetailsStep extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _SectionTitle('Basic Details'),
+            _SectionTitle(l10n.basicDetails),
+            _FormField(label: l10n.firstName, controller: firstNameCtrl, required: true),
+            _FormField(label: l10n.lastName, controller: lastNameCtrl, required: true),
             _FormField(
-              label: 'First Name',
-              controller: firstNameCtrl,
-              required: true,
-            ),
-            _FormField(
-              label: 'Last Name',
-              controller: lastNameCtrl,
-              required: true,
-            ),
-            _FormField(
-              label: 'Date Of Birth',
+              label: l10n.dateOfBirth,
               controller: dobCtrl,
               required: true,
               readOnly: true,
               hint: 'dd/mm/yyyy',
               onTap: onPickDate,
-              suffix: const Icon(Icons.calendar_today_outlined,
-                  size: 18, color: _kSubLabel),
+              suffix: const Icon(Icons.calendar_today_outlined, size: 18, color: _kSubLabel),
             ),
             _FormField(
-              label: 'Mobile Number',
+              label: l10n.mobileNumber,
               controller: mobileCtrl,
               required: true,
               keyboardType: TextInputType.phone,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             ),
-            _FormField(
-              label: 'Email',
-              controller: emailCtrl,
-              keyboardType: TextInputType.emailAddress,
-            ),
+            _FormField(label: l10n.emailAddress, controller: emailCtrl, keyboardType: TextInputType.emailAddress),
             const SizedBox(height: 24),
-            Center(child: _ContinueButton(onPressed: onContinue)),
+            Center(child: _ContinueButton(label: l10n.continueBtn, onPressed: onContinue)),
           ],
         ),
       ),
@@ -967,6 +957,7 @@ class _LocationStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Form(
@@ -974,65 +965,33 @@ class _LocationStep extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _SectionTitle('Location Details'),
-
-            // Read-only State field
+            _SectionTitle(l10n.locationDetails),
             Padding(
               padding: const EdgeInsets.only(bottom: 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'State',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: _kLabel,
-                    ),
-                  ),
+                  Text(l10n.stateLbl, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: _kLabel)),
                   const SizedBox(height: 6),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 13),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF0F0F0),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(color: _kBorder),
                     ),
-                    child: Text(
-                      state,
-                      style: const TextStyle(
-                          fontSize: 14, color: _kSubLabel),
-                    ),
+                    child: Text(state, style: const TextStyle(fontSize: 14, color: _kSubLabel)),
                   ),
                 ],
               ),
             ),
-
-            _FormField(
-              label: 'District',
-              controller: districtCtrl,
-              required: true,
-            ),
-            _FormField(
-              label: 'Taluka/TQ',
-              controller: talukaCtrl,
-              required: true,
-            ),
-            _FormField(
-              label: 'Village',
-              controller: villageCtrl,
-              required: true,
-            ),
-            _FormField(
-              label: 'Address',
-              controller: addressCtrl,
-              required: true,
-              maxLines: 2,
-            ),
+            _FormField(label: l10n.district, controller: districtCtrl, required: true),
+            _FormField(label: l10n.talukaOrTq, controller: talukaCtrl, required: true),
+            _FormField(label: l10n.village, controller: villageCtrl, required: true),
+            _FormField(label: l10n.address, controller: addressCtrl, required: true, maxLines: 2),
             const SizedBox(height: 24),
-            Center(child: _ContinueButton(onPressed: onContinue)),
+            Center(child: _ContinueButton(label: l10n.continueBtn, onPressed: onContinue)),
           ],
         ),
       ),
@@ -1101,6 +1060,7 @@ class _EducationStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Form(
@@ -1108,24 +1068,24 @@ class _EducationStep extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _SectionTitle('Education & Experience'),
+            _SectionTitle(l10n.educationExperience),
 
             _DropdownField(
-              label: 'Highest Qualification',
+              label: l10n.highestQualification,
               value: selectedQualification,
               items: qualifications,
               onChanged: onQualificationChanged,
               required: true,
             ),
             _DropdownField(
-              label: 'Experience Level',
+              label: l10n.experienceLevel,
               value: selectedExperience,
               items: experienceLevels,
               onChanged: onExperienceChanged,
               required: true,
             ),
             _DropdownField(
-              label: 'Job Type',
+              label: l10n.jobType,
               value: selectedJobType,
               items: jobTypes,
               onChanged: onJobTypeChanged,
@@ -1138,9 +1098,9 @@ class _EducationStep extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Availability & Willingness*',
-                    style: TextStyle(
+                  Text(
+                    l10n.availabilityWillingness,
+                    style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                       color: _kLabel,
@@ -1148,17 +1108,17 @@ class _EducationStep extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   _CheckRow(
-                    label: 'Willing to work in field locations',
+                    label: l10n.willingFieldLocations,
                     value: fieldLocations,
                     onChanged: onFieldLocationsChanged,
                   ),
                   _CheckRow(
-                    label: 'Comfortable working with communities',
+                    label: l10n.comfortableWithCommunities,
                     value: communities,
                     onChanged: onCommunitiesChanged,
                   ),
                   _CheckRow(
-                    label: 'Willing to travel within district',
+                    label: l10n.willingTravelDistrict,
                     value: travelDistrict,
                     onChanged: onTravelChanged,
                   ),
@@ -1167,9 +1127,9 @@ class _EducationStep extends StatelessWidget {
             ),
 
             // ── Resume upload ───────────────────────────────────────────────
-            const Text(
-              'Upload Resume',
-              style: TextStyle(
+            Text(
+              l10n.uploadResume,
+              style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: _kLabel,
@@ -1177,24 +1137,24 @@ class _EducationStep extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             _UploadRow(
-              buttonLabel: 'Upload Resume',
+              buttonLabel: l10n.uploadResume,
               statusText: resumeName != null
                   ? '$resumeName${resumeSize != null ? ' ($resumeSize)' : ''}'
-                  : 'No file chosen',
+                  : l10n.noFileChosen,
               onTap: onPickResume,
             ),
-            const Padding(
-              padding: EdgeInsets.only(top: 4, bottom: 14),
+            Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 14),
               child: Text(
-                'PDF only • Max 5 MB',
-                style: TextStyle(fontSize: 11, color: _kSubLabel),
+                l10n.pdfOnlyMax5Mb,
+                style: const TextStyle(fontSize: 11, color: _kSubLabel),
               ),
             ),
 
             // ── Photo upload ────────────────────────────────────────────────
-            const Text(
-              'Upload Photo',
-              style: TextStyle(
+            Text(
+              l10n.uploadPhoto,
+              style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: _kLabel,
@@ -1202,24 +1162,24 @@ class _EducationStep extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             _UploadRow(
-              buttonLabel: 'Open Camera',
+              buttonLabel: l10n.openCameraBtn,
               statusText: photoFile != null
-                  ? 'Photo captured ✓${photoSize != null ? ' ($photoSize)' : ''}'
-                  : 'Open Camera for Live Photo',
+                  ? '${l10n.photoCaptured} ✓${photoSize != null ? ' ($photoSize)' : ''}'
+                  : l10n.openCameraForLivePhoto,
               onTap: onOpenCamera,
             ),
-            const Padding(
-              padding: EdgeInsets.only(top: 4, bottom: 0),
+            Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 0),
               child: Text(
-                'Live photo only • Max 2 MB',
-                style: TextStyle(fontSize: 11, color: _kSubLabel),
+                l10n.livePhotoOnlyMax2Mb,
+                style: const TextStyle(fontSize: 11, color: _kSubLabel),
               ),
             ),
 
             const SizedBox(height: 28),
             Center(
               child: _ContinueButton(
-                label: 'Submit Application',
+                label: l10n.submitApplication,
                 onPressed: onSubmit,
               ),
             ),

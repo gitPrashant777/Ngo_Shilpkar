@@ -15,7 +15,7 @@ class JobRepository {
   // =============================
   // GET ALL JOBS (WITH FILTERS)
   // =============================
-  Future<List<JobModel>> getJobs({
+  Future<PaginatedJobsModel> getJobs({
     String? city,
     String? category,
     int? page,
@@ -51,9 +51,7 @@ class JobRepository {
         print("Failed to cache jobs: $e");
       }
 
-      return jobList
-          .map((e) => JobModel.fromJson(e))
-          .toList();
+      return PaginatedJobsModel.fromJson(json);
     } on DioException catch (e) {
       
       // Try to load from cache
@@ -62,8 +60,7 @@ class JobRepository {
         if (cached != null && cached.isNotEmpty) {
            print("📦 JOBS LOADED FROM CACHE");
            final Map<String, dynamic> json = jsonDecode(cached);
-           final List<dynamic> jobList = json["data"] ?? [];
-           return jobList.map((e) => JobModel.fromJson(e)).toList();
+           return PaginatedJobsModel.fromJson(json);
         }
       } catch (cacheError) {
         print("Failed to load job cache: $cacheError");

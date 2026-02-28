@@ -17,6 +17,7 @@ import '../../../schemes/presentation/screens/user_scheme_list_screen.dart';
 import '../../../home/presentation/providers/homepage_provider.dart';
 import '../../../chat/presentation/screens/public_broadcast_screen.dart';
 import '../../../ecommerce/presentation/screens/public/my_orders_screen.dart';
+import '../../../../shared/widgets/dashboard_section.dart';
 import 'package:shilpkar/features/notifications/presentation/widgets/notification_bell.dart';
 
 class BeneficiaryDashboard extends StatefulWidget {
@@ -97,79 +98,118 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      _buildFullWidthAction(
-                        l10n.applyForAJob,
-                        l10n.applyForAJobSub,
-                        Icons.edit_document,
-                        const Color(0xFFD9A05B),
-                            () {
-                          Navigator.push(context, MaterialPageRoute(
-                              builder: (_) => const JobListScreen()));
-                        },
-                      ),
-                      const SizedBox(height: 16),
-    
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildCategoryBox(
-                              l10n.myJobApplications,
-                              l10n.myJobApplicationsSub,
-                              l10n.viewApplications,
-                              Icons.work,
-                              const Color(0xFF55789A),
-                                  () {
-                                Navigator.push(context, MaterialPageRoute(
-                                    builder: (_) => const MyApplicationsScreen()));
-                              },
+                  // ─── Programs & Jobs ─────────────────────────────────────
+                  DashboardSection(
+                    title: l10n.applyForAJob ?? "Programs & Jobs",
+                    icon: Icons.work_outline,
+                    color: const Color(0xFFD9A05B),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.applyForAJob,
+                                l10n.applyForAJobSub,
+                                Icons.edit_document,
+                                const Color(0xFFFFF3E0),
+                                const Color(0xFFF57C00),
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const JobListScreen())),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildCategoryBox(
-                              l10n.products,
-                              l10n.productsSub,
-                              l10n.explore,
-                              Icons.shopping_bag_rounded,
-                              const Color(0xFF7A9E6F),
-                                  () {
-                                 Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen()));
-                              },
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.myJobApplications,
+                                l10n.myJobApplicationsSub,
+                                Icons.work,
+                                const Color(0xFFE3F2FD),
+                                const Color(0xFF1976D2),
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyApplicationsScreen())),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      _buildFullWidthAction(
-                        l10n.announcements,
-                        l10n.announcementsSub,
-                        Icons.campaign_outlined,
-                        const Color(0xFF6B8E23),
-                            () {
-                          Navigator.push(context, MaterialPageRoute(
-                              builder: (_) => const PublicBroadcastScreen()));
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      _buildFullWidthAction(
-                        l10n.myOrders,
-                        l10n.myOrdersSub,
-                        Icons.shopping_cart_checkout_rounded,
-                        const Color(0xFF4373AD), 
-                            () {
-                          Navigator.push(context, MaterialPageRoute(
-                              builder: (_) => const MyOrdersScreen()));
-                        },
-                      ),
-                      const SizedBox(height: 16),
-    
-                      _buildInfoGrid(l10n),
-                      const SizedBox(height: 16),
-    
-                      _buildSupportCard(context, l10n),
-                      const SizedBox(height: 40), 
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // ─── E-Commerce  ──────────────────────────────────────────
+                  DashboardSection(
+                    title: l10n.products ?? "E-Commerce",
+                    icon: Icons.storefront_outlined,
+                    color: const Color(0xFF7A9E6F),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.products,
+                                l10n.productsSub,
+                                Icons.shopping_bag_rounded,
+                                const Color(0xFFE8F5E9),
+                                const Color(0xFF4CAF50),
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen())),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.myOrders,
+                                l10n.myOrdersSub,
+                                Icons.shopping_cart_checkout_rounded,
+                                const Color(0xFFFFF8E1),
+                                const Color(0xFFFFA000),
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyOrdersScreen())),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // ─── Communication & Support ──────────────────────────────
+                  DashboardSection(
+                    title: l10n.announcements ?? "Communication & Support",
+                    icon: Icons.campaign_outlined,
+                    color: const Color(0xFF6B8E23),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.announcements,
+                                l10n.announcementsSub,
+                                Icons.campaign_outlined,
+                                const Color(0xFFF3E5F5),
+                                const Color(0xFF8E24AA),
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PublicBroadcastScreen())),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _buildLightCardAction(
+                                l10n.connectWithAdmin,
+                                l10n.connectWithAdminSub,
+                                Icons.forum_outlined,
+                                const Color(0xFFE8EAF6),
+                                const Color(0xFF5C6BC0),
+                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const shilpkar.ChatListScreen())),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  _buildInfoGrid(l10n),
+                  const SizedBox(height: 40),
                     ],
                   ),
                 ),
@@ -311,30 +351,23 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
     );
   }
 
-  Widget _buildFullWidthAction(String title, String sub, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildLightCardAction(
+    String title, String sub, IconData icon,
+    Color bgColor, Color iconColor, VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
-        ),
-        child: Row(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(14)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: Colors.white, size: 30),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
-                  Text(sub, style: const TextStyle(fontSize: 11, color: Colors.white70)),
-                ],
-              ),
-            ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 14),
+            Icon(icon, color: iconColor, size: 26),
+            const SizedBox(height: 8),
+            Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: iconColor)),
+            const SizedBox(height: 2),
+            Text(sub, style: const TextStyle(fontSize: 10, color: Colors.black45)),
           ],
         ),
       ),

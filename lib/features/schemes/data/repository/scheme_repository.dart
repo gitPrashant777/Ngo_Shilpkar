@@ -12,35 +12,31 @@ class SchemeRepository {
   /// BENEFICIARY SECTION
   /// ============================================
 
-  /// Get Published Schemes (Public)
-  Future<List<SchemeModel>> getPublishedSchemes({int? page, int? limit}) async {
+  /// Get Published Schemes (Public) — returns full pagination metadata
+  Future<PaginatedPublishedSchemesModel> getPublishedSchemesPage({
+    int page = 1,
+    int limit = 10,
+  }) async {
     try {
       final response = await _dio.get(
         "/schemes",
-        queryParameters: {
-          if (page != null) "page": page,
-          if (limit != null) "limit": limit,
-        },
+        queryParameters: {"page": page, "limit": limit},
       );
       final raw = response.data;
-
-      // API may return { "data": [...] } or { "schemes": [...] } or a raw list
-      List<dynamic> list;
-      if (raw is List) {
-        list = raw;
-      } else if (raw is Map) {
-        list = (raw['data'] ?? raw['schemes'] ?? raw['results'] ?? []) as List;
-      } else {
-        list = [];
-      }
-
-      return list.map((e) => SchemeModel.fromJson(e)).toList();
+      return PaginatedPublishedSchemesModel.fromJson(
+          raw is Map<String, dynamic> ? raw : {});
     } on DioException catch (e) {
       final msg = e.response?.data?['message'] ?? 'Failed to fetch schemes';
       throw Exception(msg);
     } catch (e) {
       throw Exception('Failed to fetch schemes: $e');
     }
+  }
+
+  /// Legacy – kept so other callers still compile
+  Future<List<SchemeModel>> getPublishedSchemes({int? page, int? limit}) async {
+    final res = await getPublishedSchemesPage(page: page ?? 1, limit: limit ?? 10);
+    return res.data;
   }
 
   Future<String> applyForScheme(String schemeId) async {

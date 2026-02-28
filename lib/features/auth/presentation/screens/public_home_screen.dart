@@ -43,6 +43,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
       backgroundColor: AppColors.backgroundGrey,
       appBar: _buildAppBar(l10n),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 8),
         child: Column(
           children: [
             // ─── Hero Banner ─────────────────────────────────
@@ -210,7 +211,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                   // ─── Donate Card ─────────────────────────────
                   _buildDonateCard(l10n),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),

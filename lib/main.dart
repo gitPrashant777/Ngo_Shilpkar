@@ -7,6 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'package:shilpkar/core/navigation/main_navigation.dart';
 import 'package:shilpkar/features/admin/presentation/screens/superAdmin_dashboard.dart';
+import 'package:shilpkar/features/jobs/presentation/screens/user_job_list_screen.dart';
 import 'core/constants/app_colors.dart';
 import 'core/providers/language_provider.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
@@ -27,6 +28,12 @@ import 'features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'features/status/presentation/providers/status_provider.dart';
 import 'features/notifications/presentation/providers/notification_provider.dart';
 import 'features/attendance/presentation/providers/attendance_provider.dart';
+import 'features/notifications/presentation/providers/notification_provider.dart';
+import 'features/attendance/presentation/providers/attendance_provider.dart';
+import 'features/attendance/presentation/screens/attendance_list_screen.dart';
+import 'features/dashboard/presentation/screens/my_applications_screen.dart';
+import 'features/ecommerce/presentation/screens/public/my_orders_screen.dart';
+import 'features/notifications/presentation/screens/notification_screen.dart';
 import 'l10n/app_localizations.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -108,7 +115,9 @@ class _MyAppState extends State<MyApp> {
 
         if (navigatorKey.currentContext != null) {
           final authProvider = navigatorKey.currentContext!.read<AuthProvider>();
-          if (authProvider.isAuthenticated) {
+          final customerAuthProvider = navigatorKey.currentContext!.read<CustomerAuthProvider>();
+          
+          if (authProvider.isAuthenticated || customerAuthProvider.isAuthenticated) {
             navigatorKey.currentContext!.read<NotificationProvider>().registerFcmToken(newToken);
           }
         }
@@ -141,9 +150,38 @@ class _MyAppState extends State<MyApp> {
 
   void _handlePushTap(RemoteMessage message) {
     if (message.data.containsKey('type')) {
+      final type = message.data['type'];
+      print("🚀 Routing push notification tap to type: $type");
+      
       if (navigatorKey.currentState != null) {
-        // Handle specific routing here if needed
+        final context = navigatorKey.currentState!.context;
+        
+        switch (type) {
+          case 'ATTENDANCE_MARKED':
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceListScreen()));
+            break;
+          case 'JOB_APPLIED':
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const UserJobListScreen()));
+            break;
+          case 'SCHEME_APPROVED':
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const MyApplicationsScreen()));
+            break;
+          case 'ORDER_DELIVERED':
+          case 'ORDER_CONFIRMED':
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const MyOrdersScreen()));
+            break;
+          case 'BROADCAST':
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen()));
+            break;
+          default:
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen()));
+        }
       }
+    } else {
+       // Fallback directly to Notifications if no type specified
+       if (navigatorKey.currentState != null) {
+          Navigator.push(navigatorKey.currentState!.context, MaterialPageRoute(builder: (_) => const NotificationScreen()));
+       }
     }
   }
 
