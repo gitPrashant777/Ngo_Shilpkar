@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
 
 import '../../../auth/data/repository/user_repository.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../shared/widgets/form_fields.dart';
 
 class MakeCoordinatorScreen extends StatefulWidget {
   const MakeCoordinatorScreen({super.key});
@@ -11,8 +12,7 @@ class MakeCoordinatorScreen extends StatefulWidget {
       _MakeCoordinatorScreenState();
 }
 
-class _MakeCoordinatorScreenState
-    extends State<MakeCoordinatorScreen> {
+class _MakeCoordinatorScreenState extends State<MakeCoordinatorScreen> {
   int _currentStep = 1;
 
   final _formKey = GlobalKey<FormState>();
@@ -20,9 +20,8 @@ class _MakeCoordinatorScreenState
   // STEP 1 Controllers
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
-  final TextEditingController mobileController = TextEditingController(); // Added
+  final TextEditingController mobileController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
-  // Removed Username/Password controllers as they should be generated
 
   // STEP 2 Controllers
   final TextEditingController stateController = TextEditingController();
@@ -38,22 +37,75 @@ class _MakeCoordinatorScreenState
   final TextEditingController accountTypeController = TextEditingController();
   final TextEditingController upiController = TextEditingController();
 
-  final UserRepository _repository = UserRepository(); // Use Repository
+  final UserRepository _repository = UserRepository();
+
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Make Coordinator")),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: _buildCurrentStep(),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black),
+        title: const Text(
+          "Shilpkar Foundation",
+          style: TextStyle(
+            color: AppColors.appBarBlue,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: false,
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Make Coordinator",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _getStepTitle(),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildCurrentStep(),
+                ],
+              ),
+            ),
           ),
         ),
       ),
     );
+  }
+
+  String _getStepTitle() {
+    switch (_currentStep) {
+      case 1:
+        return "Coordinator Details (Step 1 of 3)";
+      case 2:
+        return "Location Details (Step 2 of 3)";
+      case 3:
+        return "Bank Details (Step 3 of 3)";
+      default:
+        return "Coordinator Details";
+    }
   }
 
   Widget _buildCurrentStep() {
@@ -75,17 +127,14 @@ class _MakeCoordinatorScreenState
       children: [
         _buildField(firstNameController, "First Name*"),
         _buildField(lastNameController, "Last Name*"),
-        _buildField(mobileController, "Mobile Number*", keyboardType: TextInputType.phone), // Added
+        _buildField(mobileController, "Mobile Number*", keyboardType: TextInputType.phone),
         _buildField(emailController, "Email*"),
         const SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () {
-            if (_validateStep1()) {
-              setState(() => _currentStep = 2);
-            }
-          },
-          child: const Text("Continue"),
-        )
+        _buildButton("Continue", () {
+          if (_validateStep1()) {
+            setState(() => _currentStep = 2);
+          }
+        }),
       ],
     );
   }
@@ -100,13 +149,18 @@ class _MakeCoordinatorScreenState
         _buildField(villageController, "Village*"),
         _buildField(addressController, "Address*"),
         const SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () {
-            if (_validateStep2()) {
-              setState(() => _currentStep = 3);
-            }
-          },
-          child: const Text("Continue"),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildButton("Back", () {
+              setState(() => _currentStep = 1);
+            }, isOutlined: true),
+            _buildButton("Continue", () {
+              if (_validateStep2()) {
+                setState(() => _currentStep = 3);
+              }
+            }),
+          ],
         )
       ],
     );
@@ -122,35 +176,83 @@ class _MakeCoordinatorScreenState
         _buildField(accountTypeController, "Account Type*"),
         _buildField(upiController, "UPI ID"),
         const SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: _handleFinalSubmit,
-          child: const Text("Create Coordinator"),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildButton("Back", () {
+              if (!_isLoading) setState(() => _currentStep = 2);
+            }, isOutlined: true),
+            _isLoading
+                ? const SizedBox(
+                    height: 48,
+                    width: 48,
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                : _buildButton("Create Coordinator", _handleFinalSubmit),
+          ],
         )
       ],
     );
   }
 
   // ---------------- FIELD BUILDER ----------------
-  Widget _buildField(TextEditingController controller,
-      String label,
+  Widget _buildField(TextEditingController controller, String label,
       {bool isPassword = false, TextInputType keyboardType = TextInputType.text}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: TextFormField(
-        controller: controller,
-        obscureText: isPassword,
-        keyboardType: keyboardType,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8)),
+    return LabeledTextField(
+      label: label,
+      controller: controller,
+      keyboardType: keyboardType,
+      obscureText: isPassword,
+      validator: (value) {
+        if (label.contains("*") && (value == null || value.isEmpty)) {
+          return "Required";
+        }
+        return null;
+      },
+    );
+  }
+
+  // ---------------- BUTTON BUILDER ----------------
+  Widget _buildButton(String text, VoidCallback onPressed, {bool isOutlined = false}) {
+    if (isOutlined) {
+      return OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: AppColors.appBarBlue),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
         ),
-        validator: (value) {
-           if (label.contains("*") && (value == null || value.isEmpty)) {
-             return "Required";
-           }
-           return null;
-        },
+        onPressed: onPressed,
+        child: Text(
+          text,
+          style: const TextStyle(
+            color: AppColors.appBarBlue,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
+    }
+    
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.appBarBlue,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+      ),
+      onPressed: onPressed,
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -166,7 +268,7 @@ class _MakeCoordinatorScreenState
     }
     if (mobileController.text.length != 10) {
       _showMessage("Mobile number must be 10 digits");
-       return false;
+      return false;
     }
     return true;
   }
@@ -193,7 +295,6 @@ class _MakeCoordinatorScreenState
       return;
     }
 
-    // Construct Map for UserRepository.createEmployee
     final formData = {
       "firstName": firstNameController.text.trim(),
       "lastName": lastNameController.text.trim(),
@@ -204,28 +305,23 @@ class _MakeCoordinatorScreenState
       "district": districtController.text.trim(),
       "taluka": talukaController.text.trim(),
       "village": villageController.text.trim(),
-      "address": addressController.text.trim(), // Note: UserRepository might not map this yet? Checked standard repo, it maps flattened fields.
-      // Bank details are not standard in createEmployee for employees? 
-      // Checked createEmployee in Repository: it maps state, district, taluka, village.
-      // It does NOT explicitly map bank details for Employee, only for Beneficiary.
-      // However, if the API supports it in "employee" object, we might need to update Repository or pass it through.
-      // For now, let's stick to the standard Repo method.
+      "address": addressController.text.trim(),
     };
-    
-    // Note: The original MakeCoordinatorScreen sent bankDetails.
-    // The UserRepository.createEmployee currently DOES NOT include bankDetails in the payload!
-    // I should create a separate method or update createEmployee if Bank Details are required for Coordinators.
-    // Given the context, usually employees provide bank details later, but since the screen asks for it...
-    // I will call createEmployee. If bank details are needed, I'll need to update the repository. 
-    // Let's rely on standard createEmployee for now to ensure at least the User is created.
-    
+
+    setState(() => _isLoading = true);
+
     try {
       final res = await _repository.createEmployee(formData);
-      
       _showMessage("Coordinator created successfully! ID: ${res['username']}");
-      Navigator.pop(context);
+      if (mounted) {
+        Navigator.pop(context);
+      }
     } catch (e) {
       _showMessage(e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 

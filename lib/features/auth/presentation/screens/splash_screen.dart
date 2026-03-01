@@ -27,19 +27,18 @@ class _SplashScreenState extends State<SplashScreen> {
     await Future.delayed(const Duration(seconds: 3));
     
     if (mounted) {
-      // Initialize customer session in the background
-      context.read<CustomerAuthProvider>().checkAuthStatus();
+      // MUST be awaited — this restores the customer token into TokenHolder
+      // so ApiClient has it before any screen makes an API call.
+      await context.read<CustomerAuthProvider>().checkAuthStatus();
     }
 
     final token = await _storage.getToken();
 
     if (!mounted) return;
-      else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-      );
-    }
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+    );
   }
 
   @override

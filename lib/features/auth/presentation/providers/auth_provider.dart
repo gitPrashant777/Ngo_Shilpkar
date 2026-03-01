@@ -5,13 +5,14 @@ import 'package:provider/provider.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../../../main.dart';
-
 import '../../../../core/utils/storage_service.dart';
+import 'package:shilpkar/core/utils/token_holder.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
 import '../../data/models/login_request.dart';
 import '../../data/repository/auth_repository.dart';
 import '../../data/repository/user_repository.dart';
 import '../../data/models/user_profile_model.dart';
+
 
 class AuthProvider extends ChangeNotifier {
   final AuthRepository _repository = AuthRepository();
@@ -55,11 +56,10 @@ class AuthProvider extends ChangeNotifier {
     }
 
     if (token != null && role != null) {
+      tokenHolder.adminToken = token; // restore in-memory token for ApiClient
       _role = role;
       _userId = userId;
       notifyListeners();
-      // Optional: Fetch profile immediately if needed
-      // fetchUserProfile(); 
     }
   }
 
@@ -88,8 +88,9 @@ class AuthProvider extends ChangeNotifier {
     _role = null;
     _userProfile = null;
     _userId = null;
+    tokenHolder.clearAdmin(); // clear in-memory admin token
     try {
-      await _storage.clearAll(); 
+      await _storage.clearAll();
     } catch (e) {
       debugPrint("AuthProvider: Error clearing storage: $e");
     }
@@ -138,6 +139,7 @@ class AuthProvider extends ChangeNotifier {
           identifier: data["username"] ?? "",
           userId: extractedId,
         );
+        tokenHolder.adminToken = data["token"]; // set in-memory token for ApiClient
         _userId = extractedId;
 
         // --- FCM REGISTER ---
