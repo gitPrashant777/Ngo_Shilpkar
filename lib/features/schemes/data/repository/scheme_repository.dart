@@ -60,7 +60,7 @@ class SchemeRepository {
 
   Future<List<SchemeApplicationModel>> getMyApplications() async {
     try {
-      final response = await _dio.get("/schemes/applications/my");
+      final response = await _dio.get("/schemes/applications/my", queryParameters: {"limit": 100});
       final data = response.data["data"] ?? response.data;
       if (data is List) {
         return data.map((e) => SchemeApplicationModel.fromJson(e)).toList();

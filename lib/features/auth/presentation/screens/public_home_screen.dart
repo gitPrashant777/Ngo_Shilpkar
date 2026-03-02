@@ -15,7 +15,7 @@ import 'beneficiary_login_screen.dart';
 import 'employee_login_screen.dart';
 import 'package:shilpkar/features/dashboard/presentation/screens/admin_login_screen.dart';
 import 'package:shilpkar/features/jobs/presentation/screens/job_list_screen.dart';
-
+import 'package:cached_network_image/cached_network_image.dart';
 class PublicHomeScreen extends StatefulWidget {
   const PublicHomeScreen({super.key});
 
@@ -528,10 +528,14 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                       controller: _pageController,
                       itemCount: coverImages.length,
                       itemBuilder: (context, index) {
-                        return Image.network(
-                          coverImages[index],
+                        return CachedNetworkImage(
+                          imageUrl: coverImages[index],
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
+                          errorWidget: (context, url, stackTrace) {
+                            return Image.asset('assets/Images/Frame2.png',
+                                fit: BoxFit.cover);
+                          },
+                          placeholder: (context, url) {
                             return Image.asset('assets/Images/Frame2.png',
                                 fit: BoxFit.cover);
                           },

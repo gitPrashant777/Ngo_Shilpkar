@@ -91,14 +91,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       pages = [
         const AdminJobManagementScreen(),
         const SuperAdminDashboard(),
-        const SuperAdminSchemeManagementScreen(),
+        const SchemeListScreen(),
         const ProfileScreen(),
       ];
     } else if (role == "ADMIN") {
       pages = [
         const AdminJobManagementScreen(),
         const AdminDashboard(),
-        const SuperAdminSchemeManagementScreen(),
+        const SchemeListScreen(),
         const ProfileScreen(),
       ];
     } else if (role == "BENEFICIARY") {

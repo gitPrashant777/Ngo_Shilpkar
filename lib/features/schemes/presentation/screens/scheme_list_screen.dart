@@ -40,9 +40,12 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
   void _openAddScheme() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const SuperAdminSchemeManagementScreen()),
+      MaterialPageRoute(
+        builder: (_) => const SuperAdminSchemeManagementScreen(),
+      ),
     ).then((_) {
-      if (mounted) context.read<SchemeProvider>().fetchPublishedSchemes(refresh: true);
+      if (mounted)
+        context.read<SchemeProvider>().fetchPublishedSchemes(refresh: true);
     });
   }
 
@@ -57,165 +60,189 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(role),
-          Expanded(
-            child: Consumer<SchemeProvider>(
-              builder: (context, provider, _) {
-                if (provider.isLoading && provider.publishedSchemes.isEmpty) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+            Expanded(
+              child: Consumer<SchemeProvider>(
+                builder: (context, provider, _) {
+                  if (provider.isLoading && provider.publishedSchemes.isEmpty) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                if (provider.error != null && provider.publishedSchemes.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.error_outline, color: Colors.red.shade300, size: 48),
-                        const SizedBox(height: 12),
-                        Text(AppLocalizations.of(context)!.failedToLoadSchemes,
-                            style: TextStyle(color: Colors.grey.shade600, fontSize: 15)),
-                        const SizedBox(height: 4),
-                        Text(provider.error!,
-                            style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
-                            textAlign: TextAlign.center),
-                        const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          onPressed: () => context.read<SchemeProvider>().fetchPublishedSchemes(refresh: true),
-                          icon: const Icon(Icons.refresh),
-                          label: Text(AppLocalizations.of(context)!.retry),
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.lightBlueScheme, foregroundColor: Colors.white),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                if (provider.publishedSchemes.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.assignment_outlined, size: 64, color: Colors.grey.shade300),
-                        const SizedBox(height: 16),
-                        Text(AppLocalizations.of(context)!.noSchemesAvailable,
-                            style: TextStyle(color: Colors.grey.shade500, fontSize: 16)),
-                        if (_isAdmin(role)) ...[
+                  if (provider.error != null &&
+                      provider.publishedSchemes.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            color: Colors.red.shade300,
+                            size: 48,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            AppLocalizations.of(context)!.failedToLoadSchemes,
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            provider.error!,
+                            style: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontSize: 12,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                           const SizedBox(height: 16),
                           ElevatedButton.icon(
-                            onPressed: _openAddScheme,
-                            icon: const Icon(Icons.add),
-                            label: Text(AppLocalizations.of(context)!.createFirstScheme),
+                            onPressed: () => context
+                                .read<SchemeProvider>()
+                                .fetchPublishedSchemes(refresh: true),
+                            icon: const Icon(Icons.refresh),
+                            label: Text(AppLocalizations.of(context)!.retry),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.lightBlueScheme,
                               foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
                             ),
                           ),
                         ],
-                      ],
-                    ),
-                  );
-                }
+                      ),
+                    );
+                  }
 
-                // Build a quick lookup: schemeId → application
-                final Map<String, SchemeApplicationModel> appliedMap = {
-                  for (final app in provider.myApplications)
-                    if (app.schemeId.isNotEmpty) app.schemeId: app
-                };
-
-              return Column(
-                  children: [
-                    Expanded(
-                      child: RefreshIndicator(
-                        onRefresh: () async {
-                          await provider.fetchPublishedSchemes(refresh: true);
-                          if (_isBeneficiary(role)) await provider.fetchMyApplications();
-                        },
-                        child: ListView.builder(
-                          // Add bottom padding so the last card isn't hidden by the pagination bar or FAB
-                          padding: EdgeInsets.fromLTRB(
-                            16, 4, 16,
-                            _isAdmin(role) ? 80 : 8, // extra room for FAB when admin
+                  if (provider.publishedSchemes.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.assignment_outlined,
+                            size: 64,
+                            color: Colors.grey.shade300,
                           ),
-                          itemCount: provider.publishedSchemes.length,
-                          itemBuilder: (context, index) {
-                            return _buildSchemeCard(
-                              provider.publishedSchemes[index],
-                              role,
-                              appliedMap,
-                              provider,
-                            );
+                          const SizedBox(height: 16),
+                          Text(
+                            AppLocalizations.of(context)!.noSchemesAvailable,
+                            style: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontSize: 16,
+                            ),
+                          ),
+                          if (_isAdmin(role)) ...[
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed: _openAddScheme,
+                              icon: const Icon(Icons.add),
+                              label: Text(
+                                AppLocalizations.of(context)!.createFirstScheme,
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.lightBlueScheme,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  }
+
+                  // Build a quick lookup: schemeId → application
+                  final Map<String, SchemeApplicationModel> appliedMap = {
+                    for (final app in provider.myApplications)
+                      if (app.schemeId.isNotEmpty && app.isActive && app.status.toUpperCase() != 'WITHDRAWN') 
+                        app.schemeId: app,
+                  };
+
+                  return Column(
+                    children: [
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: () async {
+                            await provider.fetchPublishedSchemes(refresh: true);
+                            if (_isBeneficiary(role))
+                              await provider.fetchMyApplications();
                           },
+                          child: ListView.builder(
+                            // Add bottom padding so the last card isn't hidden by the pagination bar or FAB
+                            padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                            itemCount: provider.publishedSchemes.length,
+                            itemBuilder: (context, index) {
+                              return _buildSchemeCard(
+                                provider.publishedSchemes[index],
+                                role,
+                                appliedMap,
+                                provider,
+                              );
+                            },
+                          ),
                         ),
                       ),
-                    ),
 
-                    // ── Pagination bar ─────────────────────────────────────
-                    _PaginationBar(
-                      currentPage: provider.publishedCurrentPage,
-                      totalPages: provider.publishedTotalPages,
-                      total: provider.publishedTotal,
-                      isLoading: provider.isLoading,
-                      onPageChanged: (p) => provider.goToPublishedPage(p),
-                    ),
-                  ],
-                );
-              },
+                      // ── Pagination bar ─────────────────────────────────────
+                      _PaginationBar(
+                        currentPage: provider.publishedCurrentPage,
+                        totalPages: provider.publishedTotalPages,
+                        total: provider.publishedTotal,
+                        isLoading: provider.isLoading,
+                        onPageChanged: (p) => provider.goToPublishedPage(p),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
-          ),
           ],
         ),
       ),
-      floatingActionButton: _isAdmin(role)
-          ? FloatingActionButton.extended(
-              onPressed: _openAddScheme,
-              backgroundColor: AppColors.lightBlueScheme,
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.add),
-              label: Text(AppLocalizations.of(context)!.addScheme, style: const TextStyle(fontWeight: FontWeight.bold)),
-              elevation: 4,
-            )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
   Widget _buildHeader(String? role) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Icon(Icons.assignment_outlined, color: AppColors.lightBlueScheme, size: 18),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  AppLocalizations.of(context)!.shilpkarFoundation,
-                  style: const TextStyle(
-                      fontSize: 12, color: AppColors.lightBlueScheme, fontWeight: FontWeight.w600),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+          const Text(
+            'Shilpkar Foundation',
+            style: TextStyle(
+              fontSize: 20,
+              color: Color(0xFF3B71CA),
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(
-                child: Text(
-                  AppLocalizations.of(context)!.schemes,
-                  style: const TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
-                  overflow: TextOverflow.ellipsis,
+              const Text(
+                'Schemes',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
               ),
               Row(
                 children: [
-                  // "My Applications" button for beneficiaries
+                  if (_isAdmin(role))
+                    TextButton(
+                      onPressed: _openAddScheme,
+                      child: const Text(
+                        '+ Add Scheme',
+                        style: TextStyle(
+                          color: Color(0xFF3B71CA),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
                   if (_isBeneficiary(role))
                     Consumer<SchemeProvider>(
                       builder: (_, prov, __) {
@@ -224,29 +251,50 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (_) => const MySchemeApplicationsScreen()),
+                              builder: (_) =>
+                                  const MySchemeApplicationsScreen(),
+                            ),
                           ).then((_) => prov.fetchMyApplications()),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 6,
+                            ),
+                            margin: const EdgeInsets.only(right: 4),
                             decoration: BoxDecoration(
-                              color: AppColors.lightBlueScheme.withValues(alpha: 0.1),
+                              color: AppColors.lightBlueScheme.withValues(
+                                alpha: 0.1,
+                              ),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                  color: AppColors.lightBlueScheme.withValues(alpha: 0.4), width: 1),
+                                color: AppColors.lightBlueScheme.withValues(
+                                  alpha: 0.4,
+                                ),
+                                width: 1,
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.checklist_rounded, size: 14, color: AppColors.lightBlueScheme),
+                                const Icon(
+                                  Icons.checklist_rounded,
+                                  size: 14,
+                                  color: AppColors.lightBlueScheme,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   count > 0
-                                      ? AppLocalizations.of(context)!.myApplicationsCount(count)
-                                      : AppLocalizations.of(context)!.myApplications,
+                                      ? AppLocalizations.of(
+                                          context,
+                                        )!.myApplicationsCount(count)
+                                      : AppLocalizations.of(
+                                          context,
+                                        )!.myApplications,
                                   style: const TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.lightBlueScheme,
-                                      fontWeight: FontWeight.w600),
+                                    fontSize: 11,
+                                    color: AppColors.lightBlueScheme,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ],
                             ),
@@ -254,20 +302,24 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                         );
                       },
                     ),
-                  const SizedBox(width: 4),
                   Consumer<SchemeProvider>(
                     builder: (_, prov, __) => prov.isLoading
                         ? const SizedBox(
                             width: 20,
                             height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2))
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : IconButton(
-                            icon: const Icon(Icons.refresh, color: AppColors.lightBlueScheme),
+                            icon: const Icon(
+                              Icons.refresh,
+                              color: AppColors.lightBlueScheme,
+                              size: 20,
+                            ),
                             onPressed: () {
                               prov.fetchPublishedSchemes(refresh: true);
-                              if (_isBeneficiary(role)) prov.fetchMyApplications();
+                              if (_isBeneficiary(role))
+                                prov.fetchMyApplications();
                             },
-                            tooltip: "Refresh",
                           ),
                   ),
                 ],
@@ -290,156 +342,130 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
     final bool isApplied = myApp != null;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 3))
-        ],
-        border: isApplied ? Border.all(color: Colors.green.shade300, width: 1.5) : null,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Top banner
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isApplied
-                    ? [Colors.green.shade600, Colors.green.shade800]
-                    : [AppColors.lightBlueScheme.withValues(alpha: 0.9), AppColors.lightBlueScheme],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${scheme.name} — ${isPaid ? '₹${scheme.price.toInt()}' : 'Free'}',
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+                color: Colors.black,
               ),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            child: Row(
-              children: [
-                if (isApplied) ...[
-                  const Icon(Icons.verified_rounded, color: Colors.white70, size: 16),
-                  const SizedBox(width: 6),
-                ],
-                Expanded(
-                  child: Text(
-                    scheme.name,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (isApplied)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.25),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      myApp!.status.isNotEmpty ? myApp.status : AppLocalizations.of(context)!.applied,
-                      style: const TextStyle(
-                          color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                    ),
-                  )
-                else
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isPaid ? Colors.orange.shade100 : Colors.green.shade100,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      isPaid ? "₹${scheme.price.toInt()}" : AppLocalizations.of(context)!.free,
-                      style: TextStyle(
-                          color: isPaid ? Colors.orange.shade800 : Colors.green.shade800,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12),
-                    ),
-                  ),
-              ],
+            const SizedBox(height: 8),
+            Text(
+              scheme.description,
+              style: const TextStyle(
+                color: Colors.black87,
+                fontSize: 13,
+                height: 1.3,
+              ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
-          ),
-          // Body
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  scheme.description,
-                  style: TextStyle(color: Colors.grey.shade700, height: 1.4, fontSize: 13),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (scheme.benefits.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: scheme.benefits.take(3).map((b) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(6),
+                if (_isBeneficiary(role)) ...[
+                  if (isApplied)
+                    _WithdrawButton(
+                      onWithdraw: () =>
+                          _withdraw(myApp!.id, myApp.schemeId, provider),
+                    )
+                  else
+                    ElevatedButton(
+                      onPressed: () => _apply(scheme.id, provider, role),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.lightBlueScheme,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        elevation: 0,
                       ),
-                      child: Text(b, style: TextStyle(fontSize: 11, color: Colors.blue.shade700)),
-                    )).toList(),
-                  ),
+                      child: Text(
+                        AppLocalizations.of(context)!.apply,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ] else ...[
+                  const SizedBox.shrink(),
                 ],
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    _buildChip(Icons.account_balance_wallet_outlined, scheme.financialType),
-                    const Spacer(),
-                    // View Details
-                    OutlinedButton(
-                      onPressed: () => Navigator.push(
+                ElevatedButton(
+                  onPressed: () {
+                    if (_isAdmin(role)) {
+                      Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => SchemeDetailScreen(scheme: scheme)),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.lightBlueScheme,
-                        side: const BorderSide(color: AppColors.lightBlueScheme),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      ),
-                      child: Text(AppLocalizations.of(context)!.viewDetails, style: const TextStyle(fontSize: 12)),
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const SuperAdminSchemeManagementScreen(),
+                        ),
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SchemeDetailScreen(scheme: scheme),
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.lightBlueScheme,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                    const SizedBox(width: 8),
-                    // Apply / Withdraw button (beneficiaries only)
-                    if (_isBeneficiary(role))
-                      isApplied
-                          ? _WithdrawButton(
-                              onWithdraw: () => _withdraw(myApp!.id, myApp.schemeId, provider),
-                            )
-                          : ElevatedButton(
-                              onPressed: () => _apply(scheme.id, provider, role),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.lightBlueScheme,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8)),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                elevation: 0,
-                              ),
-                              child: Text(AppLocalizations.of(context)!.apply, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                            ),
-                  ],
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    "View Scheme",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Future<void> _apply(String schemeId, SchemeProvider provider, String? role) async {
+  Future<void> _apply(
+    String schemeId,
+    SchemeProvider provider,
+    String? role,
+  ) async {
     // Guest/unauthenticated users: show login prompt
     if (role == null || role == 'GUEST' || role.isEmpty) {
       _showLoginPrompt();
@@ -448,10 +474,16 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
     final appId = await provider.applyForScheme(schemeId);
     final ok = appId != null;
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(ok ? AppLocalizations.of(context)!.appliedSuccessfully : '\u274c ${provider.error}'),
-        backgroundColor: ok ? Colors.green : Colors.red,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ok
+                ? AppLocalizations.of(context)!.appliedSuccessfully
+                : '\u274c ${provider.error}',
+          ),
+          backgroundColor: ok ? Colors.green : Colors.red,
+        ),
+      );
     }
   }
 
@@ -459,16 +491,23 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (ctx) => Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.lock_outline_rounded, size: 48, color: AppColors.lightBlueScheme),
+            const Icon(
+              Icons.lock_outline_rounded,
+              size: 48,
+              color: AppColors.lightBlueScheme,
+            ),
             const SizedBox(height: 12),
-            Text(AppLocalizations.of(context)!.loginRequired,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              AppLocalizations.of(context)!.loginRequired,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             Text(
               AppLocalizations.of(context)!.loginRequiredDesc,
@@ -481,16 +520,27 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
               child: ElevatedButton.icon(
                 onPressed: () {
                   Navigator.pop(ctx);
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => const BeneficiaryLoginScreen()));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const BeneficiaryLoginScreen(),
+                    ),
+                  );
                 },
                 icon: const Icon(Icons.login, color: Colors.white, size: 16),
-                label: Text(AppLocalizations.of(context)!.loginAsBeneficiaryBtn,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                label: Text(
+                  AppLocalizations.of(context)!.loginAsBeneficiaryBtn,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.lightBlueScheme,
                   padding: const EdgeInsets.symmetric(vertical: 13),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
             ),
@@ -500,29 +550,48 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
     );
   }
 
-  Future<void> _withdraw(String applicationId, String schemeId, SchemeProvider provider) async {
+  Future<void> _withdraw(
+    String applicationId,
+    String schemeId,
+    SchemeProvider provider,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(AppLocalizations.of(context)!.withdrawApplicationQ),
         content: Text(AppLocalizations.of(context)!.areYouSureWithdrawScheme),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppLocalizations.of(context)!.cancel)),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(AppLocalizations.of(context)!.cancel),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: Text(AppLocalizations.of(context)!.withdraw, style: const TextStyle(color: Colors.white)),
+            child: Text(
+              AppLocalizations.of(context)!.withdraw,
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
     );
     if (confirmed != true) return;
-    final ok = await provider.withdrawApplication(applicationId, schemeId: schemeId);
+    final ok = await provider.withdrawApplication(
+      applicationId,
+      schemeId: schemeId,
+    );
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(ok ? AppLocalizations.of(context)!.applicationWithdrawn : '\u274c ${provider.error}'),
-        backgroundColor: ok ? Colors.orange : Colors.red,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ok
+                ? AppLocalizations.of(context)!.applicationWithdrawn
+                : '\u274c ${provider.error}',
+          ),
+          backgroundColor: ok ? Colors.orange : Colors.red,
+        ),
+      );
     }
   }
 
@@ -532,7 +601,10 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
       children: [
         Icon(icon, size: 14, color: Colors.grey.shade500),
         const SizedBox(width: 4),
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+        Text(
+          label,
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        ),
       ],
     );
   }
@@ -548,7 +620,10 @@ class _WithdrawButton extends StatelessWidget {
     return OutlinedButton.icon(
       onPressed: onWithdraw,
       icon: const Icon(Icons.undo_rounded, size: 15, color: Colors.red),
-      label: Text(AppLocalizations.of(context)!.withdraw, style: const TextStyle(fontSize: 12, color: Colors.red)),
+      label: Text(
+        AppLocalizations.of(context)!.withdraw,
+        style: const TextStyle(fontSize: 12, color: Colors.red),
+      ),
       style: OutlinedButton.styleFrom(
         side: const BorderSide(color: Colors.red),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -607,17 +682,23 @@ class _PaginationBar extends StatelessWidget {
                   final page = i + 1;
                   final isActive = page == currentPage;
                   return GestureDetector(
-                    onTap: isLoading || isActive ? null : () => onPageChanged(page),
+                    onTap: isLoading || isActive
+                        ? null
+                        : () => onPageChanged(page),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       margin: const EdgeInsets.symmetric(horizontal: 3),
                       width: isActive ? 34 : 28,
                       height: 28,
                       decoration: BoxDecoration(
-                        color: isActive ? AppColors.lightBlueScheme : Colors.grey.shade100,
+                        color: isActive
+                            ? AppColors.lightBlueScheme
+                            : Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: isActive ? AppColors.lightBlueScheme : Colors.grey.shade300,
+                          color: isActive
+                              ? AppColors.lightBlueScheme
+                              : Colors.grey.shade300,
                         ),
                       ),
                       child: Center(
@@ -625,7 +706,9 @@ class _PaginationBar extends StatelessWidget {
                           '$page',
                           style: TextStyle(
                             fontSize: 12,
-                            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                            fontWeight: isActive
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                             color: isActive ? Colors.white : Colors.black87,
                           ),
                         ),
@@ -653,7 +736,8 @@ class _PaginationBar extends StatelessWidget {
                 children: [
                   if (isLoading)
                     const SizedBox(
-                      width: 16, height: 16,
+                      width: 16,
+                      height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   else
@@ -668,7 +752,10 @@ class _PaginationBar extends StatelessWidget {
                   if (total > 0)
                     Text(
                       '$total scheme${total == 1 ? '' : 's'} total',
-                      style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade500,
+                      ),
                     ),
                 ],
               ),
@@ -692,7 +779,11 @@ class _NavBtn extends StatelessWidget {
   final bool enabled;
   final VoidCallback onTap;
 
-  const _NavBtn({required this.label, required this.enabled, required this.onTap});
+  const _NavBtn({
+    required this.label,
+    required this.enabled,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {

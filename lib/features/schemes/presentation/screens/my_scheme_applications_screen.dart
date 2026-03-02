@@ -12,11 +12,14 @@ class MySchemeApplicationsScreen extends StatefulWidget {
   const MySchemeApplicationsScreen({super.key});
 
   @override
-  State<MySchemeApplicationsScreen> createState() => _MySchemeApplicationsScreenState();
+  State<MySchemeApplicationsScreen> createState() =>
+      _MySchemeApplicationsScreenState();
 }
 
-class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen> {
+class _MySchemeApplicationsScreenState
+    extends State<MySchemeApplicationsScreen> {
   late RazorpayService _razorpayService;
+  String? _currentPaymentAppId;
 
   @override
   void initState() {
@@ -37,7 +40,7 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
     super.dispose();
   }
 
-  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+  void _handlePaymentSuccess(PaymentSuccessResponse response) async {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -45,7 +48,20 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
         backgroundColor: Colors.green,
       ),
     );
-    Provider.of<SchemeProvider>(context, listen: false).fetchMyApplications();
+
+    if (_currentPaymentAppId != null) {
+      final ok = await Provider.of<SchemeProvider>(context, listen: false)
+          .markPaymentSuccess(_currentPaymentAppId!, response.paymentId ?? response.orderId ?? "manual_verify");
+      if (mounted && ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("✅ Verified Payment from Backend!"), backgroundColor: Colors.green),
+        );
+      }
+    }
+
+    if (mounted) {
+      Provider.of<SchemeProvider>(context, listen: false).fetchMyApplications();
+    }
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
@@ -68,17 +84,22 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('My Applications',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-            Text('Scheme applications you have submitted',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w300)),
+            Text(
+              'My Applications',
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'Scheme applications you have submitted',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w300),
+            ),
           ],
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<SchemeProvider>().fetchMyApplications(),
-          )
+            onPressed: () =>
+                context.read<SchemeProvider>().fetchMyApplications(),
+          ),
         ],
       ),
       body: Consumer<SchemeProvider>(
@@ -92,16 +113,25 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.assignment_outlined, size: 72, color: Colors.grey.shade300),
+                  Icon(
+                    Icons.assignment_outlined,
+                    size: 72,
+                    color: Colors.grey.shade300,
+                  ),
                   const SizedBox(height: 16),
-                  Text('No applications yet',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey.shade600)),
+                  Text(
+                    'No applications yet',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
                   const SizedBox(height: 8),
-                  Text('Apply for a scheme from the Schemes tab',
-                      style: TextStyle(fontSize: 13, color: Colors.grey.shade400)),
+                  Text(
+                    'Apply for a scheme from the Schemes tab',
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                  ),
                 ],
               ),
             );
@@ -124,7 +154,10 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
     );
   }
 
-  Widget _buildApplicationCard(SchemeApplicationModel app, SchemeProvider provider) {
+  Widget _buildApplicationCard(
+    SchemeApplicationModel app,
+    SchemeProvider provider,
+  ) {
     final statusColor = _statusColor(app.status);
     final statusLabel = app.status.isNotEmpty ? app.status : 'PENDING';
 
@@ -134,9 +167,10 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 3))
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
         ],
         border: Border(left: BorderSide(color: statusColor, width: 4)),
       ),
@@ -151,25 +185,36 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
               children: [
                 Expanded(
                   child: Text(
-                    app.schemeName.isNotEmpty ? app.schemeName : 'Unnamed Scheme',
+                    app.schemeName.isNotEmpty
+                        ? '${app.schemeName} — ${app.schemePrice > 0 ? '₹${app.schemePrice.toInt()}' : 'Free'}'
+                        : 'Unnamed Scheme',
                     style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87),
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: statusColor.withValues(alpha: 0.4)),
+                    border: Border.all(
+                      color: statusColor.withValues(alpha: 0.4),
+                    ),
                   ),
                   child: Text(
                     statusLabel,
                     style: TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.bold, color: statusColor),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: statusColor,
+                    ),
                   ),
                 ),
               ],
@@ -178,7 +223,11 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
             // Applied date
             Row(
               children: [
-                Icon(Icons.calendar_today_outlined, size: 13, color: Colors.grey.shade400),
+                Icon(
+                  Icons.calendar_today_outlined,
+                  size: 13,
+                  color: Colors.grey.shade400,
+                ),
                 const SizedBox(width: 5),
                 Text(
                   'Applied on ${_formatDate(app.createdAt)}',
@@ -197,12 +246,23 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: () => _withdraw(app, provider),
-                  icon: const Icon(Icons.undo_rounded, size: 16, color: Colors.red),
-                  label: const Text('Withdraw Application',
-                      style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
+                  icon: const Icon(
+                    Icons.undo_rounded,
+                    size: 16,
+                    color: Colors.red,
+                  ),
+                  label: const Text(
+                    'Withdraw Application',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.red),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                 ),
@@ -212,19 +272,48 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
               const SizedBox(height: 12),
               const Divider(height: 1),
               const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: provider.isLoading ? null : () => _startPayment(app, provider),
-                  icon: const Icon(Icons.payment, size: 16),
-                  label: Text(provider.isLoading ? 'Processing...' : 'Proceed to Payment'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.lightBlueScheme,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: provider.isLoading
+                          ? null
+                          : () => _showWaiverDialog(app, provider),
+                      icon: const Icon(Icons.request_page, size: 16),
+                      label: const Text(
+                        'Fee Waiver',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: provider.isLoading
+                          ? null
+                          : () => _startPayment(app, provider),
+                      icon: const Icon(Icons.payment, size: 16),
+                      label: Text(
+                        provider.isLoading ? '...' : 'Pay Now',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.lightBlueScheme,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ],
@@ -234,20 +323,32 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
   }
 
   bool _canWithdraw(String status) {
-    return status.toUpperCase() == 'PAYMENT_PENDING';
+    const withdrawable = [
+      'PENDING',
+      'PAYMENT_PENDING',
+      'UNDER_REVIEW',
+      'WAIVER_PENDING',
+      'REVIEWED',
+    ];
+    return withdrawable.contains(status.toUpperCase()) || status.isEmpty;
   }
 
   bool _canPay(String status) {
     return status.toUpperCase() == 'PAYMENT_PENDING';
   }
 
-  Future<void> _startPayment(SchemeApplicationModel app, SchemeProvider provider) async {
+  Future<void> _startPayment(
+    SchemeApplicationModel app,
+    SchemeProvider provider,
+  ) async {
     try {
       // Resolve price — applications list may not populate scheme.price
       // If it's 0, fetch it from the public scheme endpoint first
       double amount = app.schemePrice;
       if (amount <= 0 && app.schemeId.isNotEmpty) {
-        print('⚠️ [SCHEME PAYMENT] schemePrice is 0 — fetching live price for schemeId=${app.schemeId}');
+        print(
+          '⚠️ [SCHEME PAYMENT] schemePrice is 0 — fetching live price for schemeId=${app.schemeId}',
+        );
         amount = await provider.getSchemePrice(app.schemeId);
         print('💰 [SCHEME PAYMENT] Live price fetched: ₹$amount');
       }
@@ -255,7 +356,12 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
       if (amount <= 0) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not determine scheme amount. Contact support.'), backgroundColor: Colors.red),
+            const SnackBar(
+              content: Text(
+                'Could not determine scheme amount. Contact support.',
+              ),
+              backgroundColor: Colors.red,
+            ),
           );
         }
         return;
@@ -264,13 +370,18 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
       // POST /api/payments/create-order
       // Body: { module: "SCHEME", moduleRefId: applicationId, amount }
       print('🚀 [SCHEME PAYMENT] applicationId=${app.id} | amount=$amount');
+      _currentPaymentAppId = app.id;
       final razorpayData = await provider.initiatePayment(app.id, amount);
 
       if (!mounted) return;
 
       if (razorpayData == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(provider.error ?? "Could not initiate payment. Try again.")),
+          SnackBar(
+            content: Text(
+              provider.error ?? "Could not initiate payment. Try again.",
+            ),
+          ),
         );
         return;
       }
@@ -279,11 +390,15 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
 
       final String orderId = razorpayData['razorpayOrderId'] ?? '';
       if (orderId.isEmpty) {
-        print('⚠️ [SCHEME PAYMENT] No razorpayOrderId in response - refreshing applications');
+        print(
+          '⚠️ [SCHEME PAYMENT] No razorpayOrderId in response - refreshing applications',
+        );
         await provider.fetchMyApplications();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Application updated. No payment required.")),
+            const SnackBar(
+              content: Text("Application updated. No payment required."),
+            ),
           );
         }
         return;
@@ -293,7 +408,8 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
       final userMobile = user?.user.mobile ?? '';
       final userEmail = user?.user.email ?? '';
 
-      final double amountInPaise = ((razorpayData['amount'] as num).toDouble()) * 100;
+      final double amountInPaise =
+          ((razorpayData['amount'] as num).toDouble()) * 100;
       final String rzpKey = RazorpayConfig.keyId;
 
       print('🚀 [SCHEME] key=$rzpKey paise=$amountInPaise orderId=$orderId');
@@ -309,39 +425,112 @@ class _MySchemeApplicationsScreenState extends State<MySchemeApplicationsScreen>
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Payment error: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Payment error: $e")));
     }
   }
 
+  void _showWaiverDialog(SchemeApplicationModel app, SchemeProvider provider) {
+    final remarkCtrl = TextEditingController();
+    final urlCtrl = TextEditingController();
 
-  Future<void> _withdraw(SchemeApplicationModel app, SchemeProvider provider) async {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Request Fee Waiver'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: urlCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Document URL (Optional)',
+                hintText: 'https://...',
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: remarkCtrl,
+              decoration: const InputDecoration(labelText: 'Remarks / Reason'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final ok = await provider.requestWaiver(
+                app.id,
+                urlCtrl.text,
+                remarkCtrl.text,
+              );
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      ok
+                          ? '✅ Waiver requested successfully'
+                          : '❌ Failed to request waiver\n${provider.error ?? ""}',
+                    ),
+                    backgroundColor: ok ? Colors.green : Colors.red,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.lightBlueScheme,
+            ),
+            child: const Text('Submit', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _withdraw(
+    SchemeApplicationModel app,
+    SchemeProvider provider,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Withdraw Application?'),
-        content:
-            Text('Are you sure you want to withdraw from "${app.schemeName}"?'),
+        content: Text(
+          'Are you sure you want to withdraw from "${app.schemeName}"?',
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Withdraw', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Withdraw',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
     );
     if (confirmed != true) return;
-    final ok = await provider.withdrawApplication(app.id, schemeId: app.schemeId);
+    final ok = await provider.withdrawApplication(
+      app.id,
+      schemeId: app.schemeId,
+    );
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(ok ? '✅ Application withdrawn' : '❌ ${provider.error}'),
-        backgroundColor: ok ? Colors.orange : Colors.red,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(ok ? '✅ Application withdrawn' : '❌ ${provider.error}'),
+          backgroundColor: ok ? Colors.orange : Colors.red,
+        ),
+      );
     }
   }
 
@@ -429,9 +618,14 @@ class _StatusNote extends StatelessWidget {
         Icon(icon, size: 13, color: color),
         const SizedBox(width: 5),
         Expanded(
-          child: Text(note,
-              style: TextStyle(
-                  fontSize: 12, color: color, fontStyle: FontStyle.italic)),
+          child: Text(
+            note,
+            style: TextStyle(
+              fontSize: 12,
+              color: color,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
         ),
       ],
     );

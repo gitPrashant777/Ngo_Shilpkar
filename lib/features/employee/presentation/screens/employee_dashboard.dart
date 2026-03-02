@@ -5,6 +5,7 @@ import '../../../../core/navigation/main_navigation.dart';
 import '../../../../core/providers/language_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/dashboard_info_card.dart';
+import '../../../../shared/widgets/dashboard_info_box.dart';
 import '../../../attendance/presentation/screens/attendance_screen.dart';
 import '../../../attendance/presentation/screens/attendance_list_screen.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -14,7 +15,7 @@ import '../../../chat/presentation/screens/public_broadcast_screen.dart';
 import '../../../../features/admin/presentation/screens/create_beneficiary_screen.dart';
 import '../../../../shared/widgets/dashboard_section.dart';
 import 'package:shilpkar/features/notifications/presentation/widgets/notification_bell.dart';
-
+import 'package:cached_network_image/cached_network_image.dart';
 class EmployeeDashboard extends StatefulWidget {
   const EmployeeDashboard({super.key});
 
@@ -56,24 +57,28 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
                         Row(
                           children: [
                             Expanded(
-                              child: _buildLightCardAction(
-                                l10n.attendance,
-                                l10n.attendancePunchInOut,
-                                Icons.access_time,
-                                AppColors.jobCard,
-                                Colors.black,
-                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceScreen())),
+                              child: DashboardInfoBox(
+                                title: l10n.attendance,
+                                subtitle: l10n.attendancePunchInOut,
+                                buttonLabel: 'View Details',
+                                icon: Icons.access_time,
+                                bgColor: AppColors.jobCard,
+                                iconColor: Colors.black,
+                                buttonColor: Colors.black,
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceScreen())),
                               ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: _buildLightCardAction(
-                                l10n.attendance,
-                                l10n.attendanceViewAll,
-                                Icons.fingerprint_rounded,
-                                AppColors.attendanceTealBg,
-                                AppColors.attendanceTeal,
-                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceListScreen())),
+                              child: DashboardInfoBox(
+                                title: l10n.attendance,
+                                subtitle: l10n.attendanceViewAll,
+                                buttonLabel: 'View Details',
+                                icon: Icons.fingerprint_rounded,
+                                bgColor: AppColors.attendanceTealBg,
+                                iconColor: AppColors.attendanceTeal,
+                                buttonColor: AppColors.attendanceTeal,
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceListScreen())),
                               ),
                             ),
                           ],
@@ -93,24 +98,28 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
                         Row(
                           children: [
                             Expanded(
-                              child: _buildLightCardAction(
-                                l10n.connectWithAdmin,
-                                l10n.resolveQueries,
-                                Icons.forum_rounded,
-                                AppColors.joinUsBg,
-                                AppColors.primaryBlue,
-                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatRequestScreen())),
+                              child: DashboardInfoBox(
+                                title: l10n.connectWithAdmin,
+                                subtitle: l10n.resolveQueries,
+                                buttonLabel: 'View Details',
+                                icon: Icons.forum_rounded,
+                                bgColor: AppColors.joinUsBg,
+                                iconColor: AppColors.primaryBlue,
+                                buttonColor: AppColors.primaryBlue,
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatRequestScreen())),
                               ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: _buildLightCardAction(
-                                l10n.announcements,
-                                l10n.systemMessages,
-                                Icons.campaign_rounded,
-                                AppColors.announcementOliveBg,
-                                AppColors.announcementOlive,
-                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PublicBroadcastScreen())),
+                              child: DashboardInfoBox(
+                                title: l10n.announcements,
+                                subtitle: l10n.systemMessages,
+                                buttonLabel: 'View Details',
+                                icon: Icons.campaign_rounded,
+                                bgColor: AppColors.announcementOliveBg,
+                                iconColor: AppColors.announcementOlive,
+                                buttonColor: AppColors.announcementOlive,
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PublicBroadcastScreen())),
                               ),
                             ),
                           ],
@@ -130,13 +139,15 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
                         Row(
                           children: [
                             Expanded(
-                              child: _buildLightCardAction(
-                                l10n.makeBeneficiary,
-                                l10n.makeBeneficiarySub,
-                                Icons.group_add,
-                                Colors.blue.shade50,
-                                AppColors.appBarBlue,
-                                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateBeneficiaryScreen())),
+                              child: DashboardInfoBox(
+                                title: l10n.makeBeneficiary,
+                                subtitle: l10n.makeBeneficiarySub,
+                                buttonLabel: 'View Details',
+                                icon: Icons.group_add,
+                                bgColor: Colors.blue.shade50,
+                                iconColor: AppColors.appBarBlue,
+                                buttonColor: AppColors.appBarBlue,
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateBeneficiaryScreen())),
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -226,7 +237,7 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
           decoration: BoxDecoration(
             image: DecorationImage(
               image: bannerUrl != null
-                  ? NetworkImage(bannerUrl)
+                  ? CachedNetworkImageProvider(bannerUrl)
                   : const AssetImage('assets/Images/Frame2.png')
                       as ImageProvider,
               fit: BoxFit.cover,
@@ -257,28 +268,6 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
     );
   }
 
-  Widget _buildLightCardAction(
-    String title, String sub, IconData icon,
-    Color bgColor, Color iconColor, VoidCallback onTap,
-  ) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(14)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: iconColor, size: 26),
-            const SizedBox(height: 8),
-            Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: iconColor)),
-            const SizedBox(height: 2),
-            Text(sub, style: const TextStyle(fontSize: 10, color: Colors.black45)),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildInfoGrid(AppLocalizations l10n) {
     return Row(
@@ -301,8 +290,16 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(10),
+          color: const Color(0xFFEFF1F5),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.black.withOpacity(0.05)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           children: [

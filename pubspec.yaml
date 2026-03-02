@@ -55,6 +55,9 @@ dependencies:
   geolocator: ^14.0.2
   geocoding: ^3.0.0
   form_field_validator: ^1.1.0
+  google_fonts: ^6.2.1
+  cached_network_image: ^3.4.1
+
 
 
 dev_dependencies:

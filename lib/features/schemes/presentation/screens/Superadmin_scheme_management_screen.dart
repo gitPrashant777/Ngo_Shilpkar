@@ -107,7 +107,7 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
       "schemeType": _schemeType,
       "financialType": _financialType,
       "payoutMode": _payoutMode,
-      "status": "DRAFT",
+      "status": "PUBLISHED",
       "startDate": DateTime.now().toIso8601String(),
       "endDate": DateTime.now().add(const Duration(days: 365)).toIso8601String(),
     };
@@ -225,11 +225,11 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
   Widget _buildFormCard(AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
       ),
       child: Form(
         key: _formKey,
@@ -257,7 +257,7 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
               children: [
                 Expanded(child: _buildDropdown(l10n.financial, ["SUBSIDY", "LOAN", "GRANT"], _financialType, (v) => setState(() => _financialType = v!))),
                 const SizedBox(width: 12),
-                Expanded(child: _buildDropdown(l10n.payoutMode, ["MONTHLY", "ONE_TIME", "MILESTONE"], _payoutMode, (v) => setState(() => _payoutMode = v!))),
+                Expanded(child: _buildDropdown(l10n.payoutMode, ["MONTHLY"], _payoutMode, (v) => setState(() => _payoutMode = v!))),
               ],
             ),
             const SizedBox(height: 24),
@@ -376,8 +376,8 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6, offset: const Offset(0, 3))],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

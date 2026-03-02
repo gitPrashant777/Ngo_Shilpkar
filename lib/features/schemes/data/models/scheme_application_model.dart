@@ -26,34 +26,86 @@ class SchemeApplicationModel {
     required this.createdAt,
   });
 
-  factory SchemeApplicationModel.fromJson(Map<String, dynamic> json) {
-    final schemeData = json["scheme"];
-    final beneficiary = json["beneficiarySnapshot"] ?? json["beneficiary"];
-
+  static SchemeApplicationModel _empty() {
     return SchemeApplicationModel(
-      id: json["_id"] ?? "",
-      status: json["status"] ?? "",
-      schemeId: schemeData is Map ? schemeData["_id"] ?? "" : "",
-      schemeName: schemeData is Map ? schemeData["name"] ?? "" : "",
-      schemePrice: schemeData is Map ? (schemeData["price"] as num?)?.toDouble() ?? 0.0 : 0.0,
-      isActive: json["isActive"] ?? true,
-      paymentStatus: json["paymentStatus"] ?? "PENDING",
-      beneficiaryName: beneficiary?["name"] ?? beneficiary?["firstName"] ?? "",
-      category: beneficiary?["category"] ?? "",
-      createdAt: json["createdAt"] != null ? DateTime.tryParse(json["createdAt"]) ?? DateTime.now() : DateTime.now(),
+      id: "",
+      status: "UNKNOWN",
+      schemeId: "",
+      schemeName: "Unknown Scheme",
+      schemePrice: 0.0,
+      isActive: false,
+      paymentStatus: "UNKNOWN",
+      beneficiaryName: "Unknown Beneficiary",
+      category: "Unknown Category",
+      createdAt: DateTime.now(),
     );
+  }
+
+  factory SchemeApplicationModel.fromJson(Map<String, dynamic> json) {
+    if (json.isEmpty) return _empty(); // safety
+
+    try {
+      final schemeData = json["scheme"] ?? json["schemeId"];
+      final beneficiary = json["beneficiarySnapshot"] ?? json["beneficiary"];
+
+      String parsedSchemeId = "";
+      String parsedSchemeName = "";
+      double parsedSchemePrice = 0.0;
+
+      if (schemeData is Map) {
+        parsedSchemeId = schemeData["_id"]?.toString() ?? "";
+        parsedSchemeName = schemeData["name"]?.toString() ?? "";
+        parsedSchemePrice = (schemeData["price"] as num?)?.toDouble() ?? 0.0;
+      } else {
+        parsedSchemeId = schemeData?.toString() ?? "";
+      }
+
+      // Fallback if scheme name is returned directly at root
+      if (parsedSchemeName.isEmpty && json["schemeName"] != null) {
+        parsedSchemeName = json["schemeName"].toString();
+      }
+
+      return SchemeApplicationModel(
+        id: json["_id"]?.toString() ?? "",
+        status: json["status"]?.toString() ?? "",
+        schemeId: parsedSchemeId,
+        schemeName: parsedSchemeName,
+        schemePrice: parsedSchemePrice,
+        isActive: json["isActive"] ?? true,
+        paymentStatus: json["paymentStatus"]?.toString() ?? "PENDING",
+        beneficiaryName: beneficiary is Map
+            ? (beneficiary["name"]?.toString() ??
+                  beneficiary["firstName"]?.toString() ??
+                  "")
+            : "",
+        category: beneficiary is Map
+            ? (beneficiary["category"]?.toString() ?? "")
+            : "",
+        createdAt: json["createdAt"] != null
+            ? (DateTime.tryParse(json["createdAt"].toString()) ??
+                  DateTime.now())
+            : DateTime.now(),
+      );
+    } catch (e, st) {
+      print("🚨 PARSING ERROR IN SchemeApplicationModel: $e");
+      print("🚨 OFFENDING JSON: $json");
+      print("🚨 STACK: $st");
+      return _empty();
+    }
   }
 
   SchemeApplicationModel copyWith({
     String? status,
     String? paymentStatus,
+    String? schemeName,
+    double? schemePrice,
   }) {
     return SchemeApplicationModel(
       id: id,
       status: status ?? this.status,
       schemeId: schemeId,
-      schemeName: schemeName,
-      schemePrice: schemePrice,
+      schemeName: schemeName ?? this.schemeName,
+      schemePrice: schemePrice ?? this.schemePrice,
       isActive: isActive,
       paymentStatus: paymentStatus ?? this.paymentStatus,
       beneficiaryName: beneficiaryName,
@@ -84,7 +136,11 @@ class PaginatedApplicationsModel {
       limit: json["limit"] ?? 10,
       total: json["total"] ?? 0,
       totalPages: json["totalPages"] ?? 1,
-      data: (json["data"] as List?)?.map((e) => SchemeApplicationModel.fromJson(e)).toList() ?? [],
+      data:
+          (json["data"] as List?)
+              ?.map((e) => SchemeApplicationModel.fromJson(e))
+              .toList() ??
+          [],
     );
   }
 }
