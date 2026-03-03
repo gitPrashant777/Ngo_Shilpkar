@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../../../../core/config/razorpay_config.dart';
 import '../../../../core/services/razorpay_service.dart';
@@ -433,62 +435,79 @@ class _MySchemeApplicationsScreenState
 
   void _showWaiverDialog(SchemeApplicationModel app, SchemeProvider provider) {
     final remarkCtrl = TextEditingController();
-    final urlCtrl = TextEditingController();
+    String? filePath;
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Request Fee Waiver'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: urlCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Document URL (Optional)',
-                hintText: 'https://...',
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: remarkCtrl,
-              decoration: const InputDecoration(labelText: 'Remarks / Reason'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              final ok = await provider.requestWaiver(
-                app.id,
-                urlCtrl.text,
-                remarkCtrl.text,
-              );
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      ok
-                          ? '✅ Waiver requested successfully'
-                          : '❌ Failed to request waiver\n${provider.error ?? ""}',
-                    ),
-                    backgroundColor: ok ? Colors.green : Colors.red,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Request Fee Waiver'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      FilePickerResult? result = await FilePicker.platform.pickFiles();
+                      if (result != null) {
+                        setState(() {
+                          filePath = result.files.single.path;
+                        });
+                      }
+                    },
+                    icon: const Icon(Icons.attach_file),
+                    label: Text(filePath != null ? filePath!.split(Platform.pathSeparator).last : 'Upload Document (Required)'),
                   ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.lightBlueScheme,
-            ),
-            child: const Text('Submit', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: remarkCtrl,
+                    decoration: const InputDecoration(labelText: 'Remarks / Reason'),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (filePath == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please upload a document to request waiver'), backgroundColor: Colors.red),
+                      );
+                      return;
+                    }
+                    Navigator.pop(ctx);
+                    final ok = await provider.requestWaiver(
+                      app.id,
+                      filePath!,
+                      remarkCtrl.text,
+                    );
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            ok
+                                ? '✅ Waiver requested successfully'
+                                : '❌ Failed to request waiver\n${provider.error ?? ""}',
+                          ),
+                          backgroundColor: ok ? Colors.green : Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.lightBlueScheme,
+                  ),
+                  child: const Text('Submit', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          }
+        );
+      },
     );
   }
 

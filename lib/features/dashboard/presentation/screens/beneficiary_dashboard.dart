@@ -17,7 +17,7 @@ import '../../../jobs/presentation/screens/user_job_list_screen.dart';
 import '../../../schemes/presentation/screens/user_scheme_list_screen.dart';
 import '../../../home/presentation/providers/homepage_provider.dart';
 import '../../../chat/presentation/screens/public_broadcast_screen.dart';
-import '../../../ecommerce/presentation/screens/public/my_orders_screen.dart';
+import '../../../ecommerce/presentation/screens/public/user_orders_screen.dart';
 import '../../../../shared/widgets/dashboard_section.dart';
 import 'package:shilpkar/features/notifications/presentation/widgets/notification_bell.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -171,7 +171,7 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
                                 bgColor: const Color(0xFFFFF8E1),
                                 iconColor: const Color(0xFFFFA000),
                                 buttonColor: const Color(0xFFFFA000),
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyOrdersScreen())),
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UserOrdersScreen())),
                               ),
                             ),
                           ],

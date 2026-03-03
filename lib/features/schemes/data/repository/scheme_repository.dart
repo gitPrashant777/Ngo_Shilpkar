@@ -193,13 +193,21 @@ class SchemeRepository {
 
   /// Request Waiver
   /// POST /applications/:applicationId/waiver
-  Future<void> requestWaiver(String applicationId, String documentUrl, String remark) async {
+  Future<void> requestWaiver(String applicationId, String filePath, String remark) async {
+    final formData = FormData.fromMap({
+      "remark": remark,
+    });
+    
+    if (filePath.isNotEmpty) {
+      formData.files.add(MapEntry(
+        "documentUrl",
+        await MultipartFile.fromFile(filePath),
+      ));
+    }
+
     await _dio.post(
       "/schemes/applications/$applicationId/waiver",
-      data: {
-        "documentUrl": documentUrl,
-        "remark": remark,
-      },
+      data: formData,
     );
   }
 
