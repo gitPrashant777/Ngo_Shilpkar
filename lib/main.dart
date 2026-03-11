@@ -34,6 +34,8 @@ import 'features/attendance/presentation/screens/attendance_list_screen.dart';
 import 'features/dashboard/presentation/screens/my_applications_screen.dart';
 import 'features/ecommerce/presentation/screens/public/my_orders_screen.dart';
 import 'features/notifications/presentation/screens/notification_screen.dart';
+import 'features/dashboard/presentation/providers/dashboard_provider.dart';
+import 'core/utils/device_manager.dart';
 import 'l10n/app_localizations.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -52,6 +54,9 @@ Future<void> main() async {
 
   // Register background handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // Initialize persistent device UUID for anonymous status view tracking
+  await DeviceManager.initialize();
 
   runApp(
     MultiProvider(
@@ -72,6 +77,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => StatusProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => AttendanceProvider()),
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
       ],
       child: const MyApp(),
     ),

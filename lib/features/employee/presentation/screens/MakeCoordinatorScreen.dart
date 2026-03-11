@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../auth/data/repository/user_repository.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/widgets/form_fields.dart';
+import '../../../../core/services/location_service.dart';
 
 class MakeCoordinatorScreen extends StatefulWidget {
   const MakeCoordinatorScreen({super.key});
@@ -40,6 +41,7 @@ class _MakeCoordinatorScreenState extends State<MakeCoordinatorScreen> {
   final UserRepository _repository = UserRepository();
 
   bool _isLoading = false;
+  bool _isLocating = false;
 
   @override
   Widget build(BuildContext context) {
@@ -143,6 +145,19 @@ class _MakeCoordinatorScreenState extends State<MakeCoordinatorScreen> {
   Widget _buildLocationStep() {
     return Column(
       children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text("Fill location details", style: TextStyle(color: Colors.grey)),
+            _isLocating 
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                : TextButton.icon(
+                    onPressed: _detectLocation,
+                    icon: const Icon(Icons.my_location, size: 16),
+                    label: const Text("Auto Detect"),
+                  ),
+          ],
+        ),
         _buildField(stateController, "State*"),
         _buildField(districtController, "District*"),
         _buildField(talukaController, "Taluka*"),
@@ -212,6 +227,26 @@ class _MakeCoordinatorScreenState extends State<MakeCoordinatorScreen> {
         return null;
       },
     );
+  }
+
+  // ---------------- LOCATION LOGIC ----------------
+  Future<void> _detectLocation() async {
+    setState(() => _isLocating = true);
+    try {
+      final locData = await LocationService().detectAndResolveLocation();
+      setState(() {
+        stateController.text = locData['state'] ?? stateController.text;
+        districtController.text = locData['district'] ?? districtController.text;
+        talukaController.text = locData['taluka'] ?? talukaController.text;
+        villageController.text = locData['village'] ?? villageController.text;
+        addressController.text = locData['autoAddress'] ?? addressController.text;
+      });
+      _showMessage("Location updated successfully!");
+    } catch (e) {
+      _showMessage("Failed to detect location: ${e.toString()}");
+    } finally {
+      if (mounted) setState(() => _isLocating = false);
+    }
   }
 
   // ---------------- BUTTON BUILDER ----------------

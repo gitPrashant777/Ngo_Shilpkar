@@ -4,27 +4,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/services/location_service.dart';
+import '../../data/models/job_model.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/job_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../ecommerce/presentation/providers/customer_auth_provider.dart';
+import '../../../../core/utils/token_holder.dart';
+import '../../../auth/presentation/screens/beneficiary_login_screen.dart';
+import 'local_job_data.dart';
+import 'job_list_screen.dart';
 
 // ─── Colour aliases mapping old constants → AppColors ───────────────────────
-const _kPrimary  = AppColors.profileBlue;        // 0xFF1E5799
-const _kAccent   = AppColors.lightBlueScheme;    // 0xFF4A78B0
-const _kBg       = AppColors.lightBackground;    // 0xFFF5F7F9
-const _kCard     = AppColors.cardBackground;     // white
-const _kLabel    = AppColors.textPrimary;        // 0xFF2D3134
-const _kSubLabel = AppColors.textSecondary;      // 0xFF6C757D
-const _kBorder   = AppColors.dividerGrey;        // 0xFFE0E0E0
+const _kPrimary = AppColors.profileBlue; // 0xFF1E5799
+const _kAccent = AppColors.lightBlueScheme; // 0xFF4A78B0
+const _kBg = AppColors.lightBackground; // 0xFFF5F7F9
+const _kCard = AppColors.cardBackground; // white
+const _kLabel = AppColors.textPrimary; // 0xFF2D3134
+const _kSubLabel = AppColors.textSecondary; // 0xFF6C757D
+const _kBorder = AppColors.dividerGrey; // 0xFFE0E0E0
 
 // ─── Step definitions ─────────────────────────────────────────────────────────
 enum _Step { basic, location, education }
 
 class ApplyJobScreen extends StatefulWidget {
-  final String jobId;
-  const ApplyJobScreen({super.key, required this.jobId});
+  final String? jobId;
+  final bool isPreScreen;
+  const ApplyJobScreen({super.key, this.jobId, this.isPreScreen = false});
 
   @override
   State<ApplyJobScreen> createState() => _ApplyJobScreenState();
@@ -63,9 +70,12 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
   String? _resumeSize; // Human-readable file size
   File? _photoFile;
   String? _photoSize;
+  String? _resumeUrl; // loaded from local
+  String? _photoUrl; // loaded from local
 
   // Role Check
   bool _isBeneficiary = false;
+  bool _isLocating = false;
 
   // ── step state ───────────────────────────────────────────────────────────────
   _Step _current = _Step.basic;
@@ -106,6 +116,11 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final customerauthProvider = Provider.of<CustomerAuthProvider>(
+        context,
+        listen: false,
+      );
+
       final role = authProvider.role;
 
       if (role == 'BENEFICIARY') {
@@ -115,17 +130,18 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
         });
       }
 
-      // Fetch Profile to pre-fill
-      if (authProvider.userProfile == null) {
+      // Fetch Profile to pre-fill from AuthProvider if Beneficiary
+      if (role == 'BENEFICIARY' && authProvider.userProfile == null) {
         await authProvider.fetchUserProfile();
       }
 
       final profile = authProvider.userProfile?.profile;
       final user = authProvider.userProfile?.user;
+      final customer = customerauthProvider.currentCustomer;
 
       if (profile != null) {
         setState(() {
-          // Pre-fill fields
+          // Pre-fill fields from AuthProvider
           _firstNameCtrl.text = profile.firstName ?? user?.username ?? '';
           _lastNameCtrl.text = profile.lastName ?? '';
           _dobCtrl.text = profile.dob ?? '';
@@ -133,10 +149,77 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
           _emailCtrl.text = user?.email ?? '';
 
           _state = profile.location.state ?? 'Maharashtra';
-          _districtCtrl.text = profile.location.district ?? '';
-          _talukaCtrl.text = profile.location.taluka ?? '';
-          _villageCtrl.text = profile.location.village ?? '';
-          _addressCtrl.text = profile.location.address ?? '';
+        });
+      } else if (customer != null) {
+        setState(() {
+          // Pre-fill fields from CustomerAuthProvider
+          final fullName = customer.fullName ?? '';
+          if (fullName.contains(' ')) {
+            final parts = fullName.split(' ');
+            _firstNameCtrl.text = parts.first;
+            _lastNameCtrl.text = parts.skip(1).join(' ');
+          } else {
+            _firstNameCtrl.text = fullName;
+          }
+          _mobileCtrl.text = customer.mobile ?? '';
+          _emailCtrl.text = customer.email.isNotEmpty ? customer.email : '';
+        });
+      }
+
+      // Load local data
+      final localData = await LocalJobDataStorage.getJobData();
+      if (localData != null) {
+        setState(() {
+          if (localData['firstName'] != null && _firstNameCtrl.text.isEmpty)
+            _firstNameCtrl.text = localData['firstName'];
+          if (localData['lastName'] != null && _lastNameCtrl.text.isEmpty)
+            _lastNameCtrl.text = localData['lastName'];
+          if (localData['dob'] != null && _dobCtrl.text.isEmpty) {
+            String db = localData['dob'];
+            if (db.contains('-')) {
+              final p = db.split('-');
+              _dobCtrl.text = '${p[2]}/${p[1]}/${p[0]}';
+            } else {
+              _dobCtrl.text = db;
+            }
+          }
+          if (localData['mobile'] != null && _mobileCtrl.text.isEmpty)
+            _mobileCtrl.text = localData['mobile'];
+          if (localData['email'] != null && _emailCtrl.text.isEmpty)
+            _emailCtrl.text = localData['email'];
+
+          if (localData['location'] != null) {
+            final loc = localData['location'];
+            if (loc['state'] != null && _state == 'Maharashtra')
+              _state = loc['state'];
+            if (loc['district'] != null && _districtCtrl.text.isEmpty)
+              _districtCtrl.text = loc['district'];
+            if (loc['taluka'] != null && _talukaCtrl.text.isEmpty)
+              _talukaCtrl.text = loc['taluka'];
+            if (loc['village'] != null && _villageCtrl.text.isEmpty)
+              _villageCtrl.text = loc['village'];
+            if (loc['address'] != null && _addressCtrl.text.isEmpty)
+              _addressCtrl.text = loc['address'];
+          }
+
+          if (localData['highestQualification'] != null &&
+              _qualification == null)
+            _qualification = localData['highestQualification'];
+          if (localData['experienceLevel'] != null && _experienceLevel == null)
+            _experienceLevel = localData['experienceLevel'];
+          if (localData['jobType'] != null && _jobType == null)
+            _jobType = localData['jobType'];
+
+          if (localData['availability'] != null) {
+            List avail = localData['availability'];
+            _fieldLocations = avail.contains('field');
+            _communities = avail.contains('community');
+            _travelDistrict = avail.contains('travel');
+          }
+
+          if (localData['resumeUrl'] != null)
+            _resumeUrl = localData['resumeUrl'];
+          if (localData['photoUrl'] != null) _photoUrl = localData['photoUrl'];
         });
       }
 
@@ -165,12 +248,42 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
     super.dispose();
   }
 
+  Future<void> _detectLocation() async {
+    setState(() => _isLocating = true);
+    try {
+      final locData = await LocationService().detectAndResolveLocation();
+      setState(() {
+        _state = locData['state'] ?? _state;
+        _districtCtrl.text = locData['district'] ?? _districtCtrl.text;
+        _talukaCtrl.text = locData['taluka'] ?? _talukaCtrl.text;
+        _villageCtrl.text = locData['village'] ?? _villageCtrl.text;
+        _addressCtrl.text = locData['autoAddress'] ?? _addressCtrl.text;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Location updated successfully!')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to detect location: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLocating = false);
+    }
+  }
+
   // ── navigation helpers ────────────────────────────────────────────────────────
   void _nextStep() {
     _animCtrl.reverse().then((_) {
       setState(() {
-        if (_current == _Step.basic) _current = _Step.location;
-        else if (_current == _Step.location) _current = _Step.education;
+        if (_current == _Step.basic) {
+          _current = _Step.location;
+        } else if (_current == _Step.location) {
+          _current = _Step.education;
+        }
       });
       _animCtrl.forward();
     });
@@ -185,8 +298,11 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
 
     _animCtrl.reverse().then((_) {
       setState(() {
-        if (_current == _Step.location) _current = _Step.basic;
-        else if (_current == _Step.education) _current = _Step.location;
+        if (_current == _Step.location) {
+          _current = _Step.basic;
+        } else if (_current == _Step.education) {
+          _current = _Step.location;
+        }
       });
       _animCtrl.forward();
     });
@@ -205,63 +321,134 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
 
     try {
       final provider = context.read<JobProvider>();
+      final authProvider = context.read<AuthProvider>();
 
-      // ── Upload files first ──────────────────────────────────
+      
+      final user = authProvider.userProfile?.user;
+
+      // ── Determine if this is a guest (no NGO admin token) ──────
+      final bool isNgoUser = tokenHolder.hasAdminToken;
+
+      // ── Upload files (NGO users only) ───────────────────────────
+      // The /uploads endpoint requires an NGO admin token.
+      // Guests skip file upload; resumeUrl/photoUrl are optional in the API.
       String? resumeUrl;
       String? photoUrl;
 
-      if (_resumeFile != null) {
-        final result = await provider.uploadFile(_resumeFile!.path, 'jobs');
-        resumeUrl = result['url'];
-      }
+      if (!isNgoUser) {
+        // Guest: re-use any pre-stored URL (e.g., from a previous session),
+        // otherwise skip. File upload is not available without NGO login.
+        resumeUrl = _resumeUrl;
+        photoUrl = _photoUrl;
 
-      if (_photoFile != null) {
-        final result = await provider.uploadFile(_photoFile!.path, 'jobs');
-        photoUrl = result['url'];
-      }
+        if (_resumeFile != null || _photoFile != null) {
+          // Inform the user that files can't be uploaded as guest
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  '📎 File upload requires a Beneficiary login. '
+                  'Your application will be submitted without attachments.',
+                ),
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 5),
+              ),
+            );
+          }
+          // Small delay so the snack is visible before submit continues
+          await Future.delayed(const Duration(milliseconds: 400));
+        }
+      } else {
+        // NGO user — upload normally with admin token
+        if (_resumeFile != null) {
+          final result = await provider.uploadFile(_resumeFile!.path, 'jobs');
+          resumeUrl = result['url'];
+        } else if (_resumeUrl != null) {
+          resumeUrl = _resumeUrl;
+        }
 
-      // ── Build availability array ────────────────────────────
-      List<String> availability = [];
-      if (_fieldLocations) availability.add("field");
-      if (_communities) availability.add("community");
-      if (_travelDistrict) availability.add("travel");
-
-      // ── Build payload ───────────────────────────────────────
-      // Convert date from dd/mm/yyyy to yyyy-mm-dd for API
-      String dobForApi = _dobCtrl.text.trim();
-      if (dobForApi.contains('/')) {
-        final parts = dobForApi.split('/');
-        if (parts.length == 3) {
-          dobForApi = '${parts[2]}-${parts[1]}-${parts[0]}';
+        if (_photoFile != null) {
+          final result = await provider.uploadFile(_photoFile!.path, 'jobs');
+          photoUrl = result['url'];
+        } else if (_photoUrl != null) {
+          photoUrl = _photoUrl;
         }
       }
 
-      // Both Beneficiary and Guest send ALL fields
-      // The form now asks all steps for both roles
-      Map<String, dynamic> payload = {
-        'firstName': _firstNameCtrl.text.trim(),
-        'lastName': _lastNameCtrl.text.trim(),
-        'dob': dobForApi,
-        'mobile': _mobileCtrl.text.trim(),
-        'email': _emailCtrl.text.trim(),
-        'location': {
-          'state': _state,
-          'district': _districtCtrl.text.trim(),
-          'taluka': _talukaCtrl.text.trim(),
-          'village': _villageCtrl.text.trim(),
-          'address': _addressCtrl.text.trim(),
-        },
-        'highestQualification': _qualification ?? '',
-        'experienceLevel': _experienceLevel ?? '',
-        'jobType': _jobType ?? '',
-        'availability': availability,
-        if (resumeUrl != null) 'resumeUrl': resumeUrl,
-        if (photoUrl != null) 'photoUrl': photoUrl,
-      };
+
+        // Convert date from dd/mm/yyyy to yyyy-mm-dd for API
+        String dobForApi = _dobCtrl.text.trim();
+        if (dobForApi.contains('/')) {
+          final parts = dobForApi.split('/');
+          if (parts.length == 3) {
+            dobForApi = '${parts[2]}-${parts[1]}-${parts[0]}';
+          }
+        }
+
+        final List<String> availability = [];
+        if (_fieldLocations) availability.add("field");
+        if (_communities) availability.add("community");
+        if (_travelDistrict) availability.add("travel");
+
+        // ── Build payload ───────────────────────────────────────────
+        // Matches the API spec exactly.
+        // Guest  → no userId field, skipAuth fired in repository
+        // NGO user → userId included, admin token sent
+        final String? resolvedUserId =
+            (user != null && user.id.isNotEmpty) ? user.id
+            : (authProvider.userId?.isNotEmpty == true) ? authProvider.userId
+            : null;
+        final bool isGuestApply = resolvedUserId == null || resolvedUserId.isEmpty;
+
+        final Map<String, dynamic> payload = {
+          'firstName': _firstNameCtrl.text.trim(),
+          'lastName': _lastNameCtrl.text.trim(),
+          'dob': dobForApi,
+          'mobile': _mobileCtrl.text.trim(),
+          'email': _emailCtrl.text.trim(),
+          'location': {
+            'state': _state,
+            'district': _districtCtrl.text.trim(),
+            'taluka': _talukaCtrl.text.trim(),
+            'village': _villageCtrl.text.trim(),
+            'address': _addressCtrl.text.trim(),
+          },
+          'highestQualification': _qualification ?? '',
+          'experienceLevel': _experienceLevel ?? '',
+          'jobType': _jobType ?? '',
+          'availability': availability,
+          if (resumeUrl != null) 'resumeUrl': resumeUrl,
+          if (photoUrl != null) 'photoUrl': photoUrl,
+          // NGO Beneficiary: send userId + admin token (interceptor handles token)
+          // Guest / Customer: send isGuest:true + customer token (interceptor handles token)
+          'isGuest': isGuestApply,
+          if (!isGuestApply) 'userId': resolvedUserId,
+        };
 
       debugPrint("📤 APPLY JOB PAYLOAD: $payload");
 
-      await provider.applyJob(widget.jobId, payload);
+      // Always save form data locally — so it's pre-filled next time
+      await LocalJobDataStorage.saveJobData(payload);
+
+      // ── Pre-screen: just save + go to job list ─────────────────
+      if (widget.isPreScreen) {
+        if (mounted) Navigator.pop(context); // close loading dialog
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const JobListScreen()),
+          );
+        }
+        return;
+      }
+
+      // ── Submit to API ─────────────────────────────────────────────
+      // NGO Beneficiary : admin token (interceptor) + userId in body
+      // Guest / Customer: customer token (interceptor) + isGuest:true in body
+      // The interceptor prefers adminToken, falls back to customerToken.
+      final result = await provider.applyJob(widget.jobId!, payload);
+      final applicationId = result['applicationId']?.toString();
+      debugPrint("✅ Application submitted — ID: $applicationId");
 
       // Dismiss loading dialog
       if (mounted) Navigator.pop(context);
@@ -269,11 +456,15 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("✅ ${AppLocalizations.of(context)!.applicationSubmittedSuccess}"),
+            content: Text(
+              applicationId != null
+                  ? "✅ Application submitted! ID: $applicationId"
+                  : "✅ ${AppLocalizations.of(context)!.applicationSubmittedSuccess}",
+            ),
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pop(context);
+        Navigator.pop(context); // pop the screen
       }
     } catch (e) {
       // Dismiss loading dialog
@@ -298,15 +489,15 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
       firstDate: DateTime(1950),
       lastDate: DateTime.now(),
       builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.light(primary: _kPrimary),
-        ),
+        data: Theme.of(
+          context,
+        ).copyWith(colorScheme: const ColorScheme.light(primary: _kPrimary)),
         child: child!,
       ),
     );
     if (picked != null) {
       _dobCtrl.text =
-      '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+          '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
     }
   }
 
@@ -412,8 +603,13 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
                   const Icon(Icons.check_circle, size: 16, color: Colors.green),
                   const SizedBox(width: 8),
                   Text(
-                    l10n.loggedInAs('${_firstNameCtrl.text} ${_lastNameCtrl.text}'),
-                    style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                    l10n.loggedInAs(
+                      '${_firstNameCtrl.text} ${_lastNameCtrl.text}',
+                    ),
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -436,9 +632,9 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
       foregroundColor: _kPrimary,
       leading: _stepIndex > 0
           ? IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded),
-        onPressed: _prevStep,
-      )
+              icon: const Icon(Icons.arrow_back_ios_new_rounded),
+              onPressed: _prevStep,
+            )
           : null,
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -453,7 +649,7 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
             ),
           ),
           Text(
-            l10n.jobApplication,
+            widget.isPreScreen ? "Pre-Screen Profile" : l10n.jobApplication,
             style: const TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w700,
@@ -504,6 +700,8 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
           talukaCtrl: _talukaCtrl,
           villageCtrl: _villageCtrl,
           addressCtrl: _addressCtrl,
+          isLocating: _isLocating,
+          onDetectLocation: _detectLocation,
           onContinue: () {
             if (_locationKey.currentState!.validate()) _nextStep();
           },
@@ -522,8 +720,10 @@ class _ApplyJobScreenState extends State<ApplyJobScreen>
           travelDistrict: _travelDistrict,
           resumeName: _resumeName,
           resumeSize: _resumeSize,
+          resumeUrl: _resumeUrl,
           photoFile: _photoFile,
           photoSize: _photoSize,
+          photoUrl: _photoUrl,
           onQualificationChanged: (v) => setState(() => _qualification = v),
           onExperienceChanged: (v) => setState(() => _experienceLevel = v),
           onJobTypeChanged: (v) => setState(() => _jobType = v),
@@ -548,7 +748,11 @@ class _StepIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final labels = [l10n.basicDetails, l10n.locationDetails, l10n.educationExperience];
+    final labels = [
+      l10n.basicDetails,
+      l10n.locationDetails,
+      l10n.educationExperience,
+    ];
     return Container(
       color: _kCard,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -566,8 +770,7 @@ class _StepIndicator extends StatelessWidget {
                     labels[i],
                     style: TextStyle(
                       fontSize: 11,
-                      fontWeight:
-                      active ? FontWeight.w700 : FontWeight.w400,
+                      fontWeight: active ? FontWeight.w700 : FontWeight.w400,
                       color: active
                           ? _kPrimary
                           : done
@@ -622,13 +825,13 @@ class _Dot extends StatelessWidget {
         child: done
             ? const Icon(Icons.check, size: 13, color: Colors.white)
             : Text(
-          '$index',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: active ? Colors.white : _kBorder,
-          ),
-        ),
+                '$index',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: active ? Colors.white : _kBorder,
+                ),
+              ),
       ),
     );
   }
@@ -699,11 +902,11 @@ class _FormField extends StatelessWidget {
               ),
               children: required
                   ? const [
-                TextSpan(
-                  text: '*',
-                  style: TextStyle(color: Colors.red),
-                )
-              ]
+                      TextSpan(
+                        text: '*',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ]
                   : [],
             ),
           ),
@@ -744,8 +947,9 @@ class _FormField extends StatelessWidget {
               fillColor: _kCard,
             ),
             validator: required
-                ? (v) =>
-            (v == null || v.trim().isEmpty) ? AppLocalizations.of(context)!.requiredField : null
+                ? (v) => (v == null || v.trim().isEmpty)
+                      ? AppLocalizations.of(context)!.requiredField
+                      : null
                 : null,
           ),
         ],
@@ -786,24 +990,32 @@ class _DropdownField extends StatelessWidget {
               ),
               children: required
                   ? const [
-                TextSpan(
-                    text: '*', style: TextStyle(color: Colors.red))
-              ]
+                      TextSpan(
+                        text: '*',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ]
                   : [],
             ),
           ),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
-            value: value,
-            hint: Text(AppLocalizations.of(context)!.selectHint,
-                style: const TextStyle(color: _kBorder, fontSize: 13)),
+            initialValue: value,
+            hint: Text(
+              AppLocalizations.of(context)!.selectHint,
+              style: const TextStyle(color: _kBorder, fontSize: 13),
+            ),
             isExpanded: true,
-            icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                color: _kSubLabel),
+            icon: const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: _kSubLabel,
+            ),
             style: const TextStyle(fontSize: 14, color: _kLabel),
             decoration: InputDecoration(
               contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12, vertical: 12),
+                horizontal: 12,
+                vertical: 12,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(6),
                 borderSide: const BorderSide(color: _kBorder),
@@ -828,7 +1040,9 @@ class _DropdownField extends StatelessWidget {
                 .toList(),
             onChanged: onChanged,
             validator: required
-                ? (v) => (v == null || v.isEmpty) ? AppLocalizations.of(context)!.requiredField : null
+                ? (v) => (v == null || v.isEmpty)
+                      ? AppLocalizations.of(context)!.requiredField
+                      : null
                 : null,
           ),
         ],
@@ -841,10 +1055,7 @@ class _ContinueButton extends StatelessWidget {
   final VoidCallback onPressed;
   final String label;
 
-  const _ContinueButton({
-    required this.onPressed,
-    this.label = 'Continue',
-  });
+  const _ContinueButton({required this.onPressed, this.label = 'Continue'});
 
   @override
   Widget build(BuildContext context) {
@@ -855,9 +1066,7 @@ class _ContinueButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: _kPrimary,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(vertical: 14),
           elevation: 0,
         ),
@@ -905,8 +1114,16 @@ class _BasicDetailsStep extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _SectionTitle(l10n.basicDetails),
-            _FormField(label: l10n.firstName, controller: firstNameCtrl, required: true),
-            _FormField(label: l10n.lastName, controller: lastNameCtrl, required: true),
+            _FormField(
+              label: l10n.firstName,
+              controller: firstNameCtrl,
+              required: true,
+            ),
+            _FormField(
+              label: l10n.lastName,
+              controller: lastNameCtrl,
+              required: true,
+            ),
             _FormField(
               label: l10n.dateOfBirth,
               controller: dobCtrl,
@@ -914,7 +1131,11 @@ class _BasicDetailsStep extends StatelessWidget {
               readOnly: true,
               hint: 'dd/mm/yyyy',
               onTap: onPickDate,
-              suffix: const Icon(Icons.calendar_today_outlined, size: 18, color: _kSubLabel),
+              suffix: const Icon(
+                Icons.calendar_today_outlined,
+                size: 18,
+                color: _kSubLabel,
+              ),
             ),
             _FormField(
               label: l10n.mobileNumber,
@@ -923,9 +1144,18 @@ class _BasicDetailsStep extends StatelessWidget {
               keyboardType: TextInputType.phone,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             ),
-            _FormField(label: l10n.emailAddress, controller: emailCtrl, keyboardType: TextInputType.emailAddress),
+            _FormField(
+              label: l10n.emailAddress,
+              controller: emailCtrl,
+              keyboardType: TextInputType.emailAddress,
+            ),
             const SizedBox(height: 24),
-            Center(child: _ContinueButton(label: l10n.continueBtn, onPressed: onContinue)),
+            Center(
+              child: _ContinueButton(
+                label: l10n.continueBtn,
+                onPressed: onContinue,
+              ),
+            ),
           ],
         ),
       ),
@@ -943,6 +1173,8 @@ class _LocationStep extends StatelessWidget {
   final TextEditingController talukaCtrl;
   final TextEditingController villageCtrl;
   final TextEditingController addressCtrl;
+  final bool isLocating;
+  final VoidCallback onDetectLocation;
   final VoidCallback onContinue;
 
   const _LocationStep({
@@ -952,6 +1184,8 @@ class _LocationStep extends StatelessWidget {
     required this.talukaCtrl,
     required this.villageCtrl,
     required this.addressCtrl,
+    required this.isLocating,
+    required this.onDetectLocation,
     required this.onContinue,
   });
 
@@ -965,33 +1199,87 @@ class _LocationStep extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SectionTitle(l10n.locationDetails),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _SectionTitle(l10n.locationDetails),
+                isLocating
+                    ? const Padding(
+                        padding: EdgeInsets.only(right: 16.0),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : TextButton.icon(
+                        onPressed: onDetectLocation,
+                        icon: const Icon(Icons.my_location, size: 16),
+                        label: const Text("Auto Detect", style: TextStyle(fontSize: 13)),
+                      ),
+              ],
+            ),
             Padding(
               padding: const EdgeInsets.only(bottom: 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(l10n.stateLbl, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: _kLabel)),
+                  Text(
+                    l10n.stateLbl,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: _kLabel,
+                    ),
+                  ),
                   const SizedBox(height: 6),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 13,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF0F0F0),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(color: _kBorder),
                     ),
-                    child: Text(state, style: const TextStyle(fontSize: 14, color: _kSubLabel)),
+                    child: Text(
+                      state,
+                      style: const TextStyle(fontSize: 14, color: _kSubLabel),
+                    ),
                   ),
                 ],
               ),
             ),
-            _FormField(label: l10n.district, controller: districtCtrl, required: true),
-            _FormField(label: l10n.talukaOrTq, controller: talukaCtrl, required: true),
-            _FormField(label: l10n.village, controller: villageCtrl, required: true),
-            _FormField(label: l10n.address, controller: addressCtrl, required: true, maxLines: 2),
+            _FormField(
+              label: l10n.district,
+              controller: districtCtrl,
+              required: true,
+            ),
+            _FormField(
+              label: l10n.talukaOrTq,
+              controller: talukaCtrl,
+              required: true,
+            ),
+            _FormField(
+              label: l10n.village,
+              controller: villageCtrl,
+              required: true,
+            ),
+            _FormField(
+              label: l10n.address,
+              controller: addressCtrl,
+              required: true,
+              maxLines: 2,
+            ),
             const SizedBox(height: 24),
-            Center(child: _ContinueButton(label: l10n.continueBtn, onPressed: onContinue)),
+            Center(
+              child: _ContinueButton(
+                label: l10n.continueBtn,
+                onPressed: onContinue,
+              ),
+            ),
           ],
         ),
       ),
@@ -1018,8 +1306,10 @@ class _EducationStep extends StatelessWidget {
 
   final String? resumeName;
   final String? resumeSize; // NEW
+  final String? resumeUrl;
   final File? photoFile;
   final String? photoSize; // NEW
+  final String? photoUrl;
 
   final ValueChanged<String?> onQualificationChanged;
   final ValueChanged<String?> onExperienceChanged;
@@ -1045,8 +1335,10 @@ class _EducationStep extends StatelessWidget {
     required this.travelDistrict,
     required this.resumeName,
     this.resumeSize,
+    this.resumeUrl,
     required this.photoFile,
     this.photoSize,
+    this.photoUrl,
     required this.onQualificationChanged,
     required this.onExperienceChanged,
     required this.onJobTypeChanged,
@@ -1140,7 +1432,9 @@ class _EducationStep extends StatelessWidget {
               buttonLabel: l10n.uploadResume,
               statusText: resumeName != null
                   ? '$resumeName${resumeSize != null ? ' ($resumeSize)' : ''}'
-                  : l10n.noFileChosen,
+                  : (resumeUrl != null
+                        ? '✅ Saved Resume Selected'
+                        : l10n.noFileChosen),
               onTap: onPickResume,
             ),
             Padding(
@@ -1165,7 +1459,9 @@ class _EducationStep extends StatelessWidget {
               buttonLabel: l10n.openCameraBtn,
               statusText: photoFile != null
                   ? '${l10n.photoCaptured} ✓${photoSize != null ? ' ($photoSize)' : ''}'
-                  : l10n.openCameraForLivePhoto,
+                  : (photoUrl != null
+                        ? '✅ Saved Photo Selected'
+                        : l10n.openCameraForLivePhoto),
               onTap: onOpenCamera,
             ),
             Padding(
@@ -1179,7 +1475,13 @@ class _EducationStep extends StatelessWidget {
             const SizedBox(height: 28),
             Center(
               child: _ContinueButton(
-                label: l10n.submitApplication,
+                label:
+                    formKey.currentState?.context.widget.toString().contains(
+                          "Apply",
+                        ) ==
+                        true
+                    ? l10n.submitApplication
+                    : l10n.submitApplication, // Will change in parent
                 onPressed: onSubmit,
               ),
             ),
@@ -1214,7 +1516,8 @@ class _CheckRow extends StatelessWidget {
             activeColor: _kPrimary,
             side: const BorderSide(color: _kBorder, width: 1.5),
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(3)),
+              borderRadius: BorderRadius.circular(3),
+            ),
           ),
         ),
         Expanded(
@@ -1252,8 +1555,7 @@ class _UploadRow extends StatelessWidget {
           GestureDetector(
             onTap: onTap,
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: _kPrimary,
                 borderRadius: const BorderRadius.only(

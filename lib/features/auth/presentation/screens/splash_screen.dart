@@ -1,10 +1,11 @@
+import 'dart:async';
+
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shilpkar/core/navigation/main_navigation.dart';
-import 'package:shilpkar/features/auth/presentation/screens/public_home_screen.dart';
 import '../../../../core/utils/storage_service.dart';
 import '../../../ecommerce/presentation/providers/customer_auth_provider.dart';
-import 'role_selection_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,28 +14,48 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   final StorageService _storage = StorageService();
+  late AnimationController _animController;
+  late Animation<double> _fadeAnim;
 
   @override
   void initState() {
     super.initState();
-    _checkAuth();
+    // Animation setup: 1-second fade in
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+    _fadeAnim = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeIn,
+    );
+
+    _animController.forward();
+    _navigateToNext();
   }
 
-  void _checkAuth() async {
-    // Artificial delay for splash effect
-    await Future.delayed(const Duration(seconds: 3));
-    
-    if (mounted) {
-      // MUST be awaited — this restores the customer token into TokenHolder
-      // so ApiClient has it before any screen makes an API call.
-      await context.read<CustomerAuthProvider>().checkAuthStatus();
-    }
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
 
-    final token = await _storage.getToken();
+  void _navigateToNext() async {
+    // Artificial delay for branding visibility
+    await Future.delayed(const Duration(seconds: 3));
 
     if (!mounted) return;
+
+    // Check auth status via provider
+    await context.read<CustomerAuthProvider>().checkAuthStatus();
+    await _storage.getToken();
+
+    if (!mounted) return;
+
+    // Move to Main Navigation (which usually handles role-based routing)
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
@@ -45,30 +66,65 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SizedBox(
-        width: double.infinity,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Matches the logo placement in Android Compact - 57.png
-            Image.asset(
-              'assets/Images/logoSk.png',
-              width: 250,
-              height: 250,
-              fit: BoxFit.contain,
+      body: FadeTransition(
+        opacity: _fadeAnim,
+        child: Center( // Ensures everything is dead-center
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // ── Foundation Logo ──────────────────────────────────────────
+                Image.asset(
+                  'assets/Images/logoSk.png',
+                  width: 250, // Slightly increased for impact
+                  height: 250,
+                  fit: BoxFit.contain,
+                ),
+
+                const SizedBox(height: 30), // Increased spacing for a cleaner look
+
+                // ── Registration Badge ───────────────────────────────────────
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 32),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8730A), // Foundation Orange
+                    borderRadius: BorderRadius.circular(12), // Smoother corners
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Text(
+                    'F-0028565 (LTR)',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                // Optional: Loading indicator to show the app is working
+                const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE8730A)),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 60),
-            const Text(
-              "Shilpkar Foundation ",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../../../../core/api/api_client.dart';
 import '../../../../core/utils/storage_service.dart';
+import '../../../../core/utils/token_holder.dart';
 import '../models/job_model.dart';
 import '../models/application_model.dart';
 import '../models/user_job_application_model.dart';
+import '../../presentation/screens/local_job_data.dart';
 
 class JobRepository {
   final ApiClient _client = ApiClient();
@@ -112,26 +114,38 @@ class JobRepository {
   // =============================
   // UPLOAD FILE (Resume / Photo)
   // =============================
+  /// Skips NGO auth when no admin token is present.
+  /// If only an e-commerce customer token exists and we send it to the
+  /// NGO /uploads endpoint, the server returns 401 "User not found".
+  /// Guests (no admin token) are allowed to upload files anonymously.
   Future<Map<String, String>> uploadFile(String filePath, String module) async {
     try {
+      final fileName = filePath.split(RegExp(r'[\\/]')).last;
       final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(filePath),
+        'file': await MultipartFile.fromFile(filePath, filename: fileName),
         'module': module,
       });
+
+      // If the user is a guest (no NGO admin token), skip auth so the
+      // customer token is NOT forwarded to the NGO upload endpoint.
+      final bool guestUpload = !tokenHolder.hasAdminToken;
 
       final response = await _client.dio.post(
         '/uploads',
         data: formData,
-        options: Options(contentType: 'multipart/form-data'),
+        options: Options(
+          contentType: 'multipart/form-data',
+          extra: guestUpload ? {'skipAuth': true} : {},
+        ),
       );
 
       return {
-        'url': response.data['url'] ?? '',
-        'type': response.data['type'] ?? '',
+        'url': response.data['url']?.toString() ?? '',
+        'type': response.data['type']?.toString() ?? '',
       };
     } on DioException catch (e) {
       throw Exception(
-        e.response?.data["message"] ?? "Failed to upload file",
+        e.response?.data?["message"] ?? "Failed to upload file",
       );
     }
   }
@@ -139,20 +153,40 @@ class JobRepository {
   // =============================
   // APPLY JOB
   // =============================
-  Future<String> applyJob(
+  /// Returns a map: { 'message': String, 'applicationId': String? }
+  ///
+  /// Auth strategy:
+  ///   NGO Beneficiary  → adminToken (preferred by interceptor) + userId in body
+  ///   Guest / Customer → customerToken (fallback in interceptor) + isGuest:true in body
+  Future<Map<String, dynamic>> applyJob(
       String jobId, Map<String, dynamic> data) async {
     try {
+      // Auth: interceptor sends adminToken for NGO users, customerToken for guests.
+      // No special options needed — the correct token is attached automatically.
       final response = await _client.dio.post(
         '/applications/$jobId/apply',
         data: data,
       );
 
-      // API returns _id and status on success (201)
-      return response.data["message"] ?? "Application submitted successfully";
+      final responseData = response.data as Map<String, dynamic>? ?? {};
+      // Backend returns { _id, applicantType, status } or { message, ... }
+      final applicationId = responseData['_id']?.toString() ??
+          responseData['id']?.toString() ??
+          responseData['applicationId']?.toString();
+
+      // Persist the applicationId so the user can track their application
+      if (applicationId != null && applicationId.isNotEmpty) {
+        await LocalJobDataStorage.saveApplicationId(applicationId);
+      }
+
+      return {
+        'message': responseData['message']?.toString() ??
+            'Application submitted successfully',
+        'applicationId': applicationId,
+      };
     } on DioException catch (e) {
       throw Exception(
-        e.response?.data["message"] ??
-            "Failed to apply for job",
+        e.response?.data?["message"] ?? "Failed to apply for job",
       );
     }
   }

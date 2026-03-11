@@ -299,10 +299,10 @@ class _MySchemeApplicationsScreenState
                     child: ElevatedButton.icon(
                       onPressed: provider.isLoading
                           ? null
-                          : () => _startPayment(app, provider),
+                          : () => _bypassPayment(app, provider),
                       icon: const Icon(Icons.payment, size: 16),
                       label: Text(
-                        provider.isLoading ? '...' : 'Pay Now',
+                        provider.isLoading ? '...' : 'Demo Bypass',
                         style: const TextStyle(fontSize: 12),
                       ),
                       style: ElevatedButton.styleFrom(
@@ -339,6 +339,7 @@ class _MySchemeApplicationsScreenState
     return status.toUpperCase() == 'PAYMENT_PENDING';
   }
 
+  // ignore: unused_element
   Future<void> _startPayment(
     SchemeApplicationModel app,
     SchemeProvider provider,
@@ -430,6 +431,52 @@ class _MySchemeApplicationsScreenState
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Payment error: $e")));
+    }
+  }
+
+  Future<void> _bypassPayment(
+    SchemeApplicationModel app,
+    SchemeProvider provider,
+  ) async {
+    try {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Demo: Recording scheme payment...'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+
+      // Uses POST /payments/manual — validated working endpoint on backend
+      final ok = await provider.bypassSchemePayment(
+        app.id,
+        app.schemeName,
+        app.schemePrice > 0 ? app.schemePrice : 1,
+      );
+
+      if (mounted && ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("✅ Demo: Scheme Payment Recorded Successfully!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("❌ ${provider.error ?? 'Failed to record payment.'}"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Payment Bypass Error: $e")),
+        );
+      }
     }
   }
 

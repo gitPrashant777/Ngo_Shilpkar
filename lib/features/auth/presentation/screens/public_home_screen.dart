@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -10,11 +11,17 @@ import '../../../../features/ecommerce/presentation/screens/public/product_list_
 import '../../../../features/status/presentation/screens/status_viewer_screen.dart';
 import '../../../../features/status/presentation/providers/status_provider.dart';
 import '../../../../features/schemes/presentation/providers/scheme_provider.dart';
+import '../../../../features/dashboard/presentation/screens/about_us_screen.dart';
 
 import 'beneficiary_login_screen.dart';
 import 'employee_login_screen.dart';
 import 'package:shilpkar/features/dashboard/presentation/screens/admin_login_screen.dart';
 import 'package:shilpkar/features/jobs/presentation/screens/job_list_screen.dart';
+import 'package:shilpkar/features/jobs/presentation/screens/job_auth_selection_screen.dart';
+import 'package:shilpkar/features/auth/presentation/providers/auth_provider.dart';
+import 'package:shilpkar/features/ecommerce/presentation/providers/customer_auth_provider.dart';
+import 'package:shilpkar/features/jobs/presentation/screens/local_job_data.dart';
+import 'package:shilpkar/features/jobs/presentation/screens/apply_job_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 class PublicHomeScreen extends StatefulWidget {
   const PublicHomeScreen({super.key});
@@ -46,6 +53,8 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
         padding: const EdgeInsets.only(bottom: 8),
         child: Column(
           children: [
+            // ─── Foundation Name Marquee ─────────────────────────────
+            const _FoundationMarquee(),
             // ─── Hero Banner ─────────────────────────────────
             _buildHeroSection(),
 
@@ -120,10 +129,30 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                     subtitle: l10n.applyForJobSubtitle,
                     icon: Icons.work_outline,
                     gradientColors: AppColors.jobGradient,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const JobListScreen()),
-                    ),
+                    onTap: () async {
+                      final isAuth = context.read<AuthProvider>().isAuthenticated;
+                      final isCustomerAuth = context.read<CustomerAuthProvider>().isAuthenticated;
+                      if (!isAuth && !isCustomerAuth) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const JobAuthSelectionScreen()),
+                        );
+                        return;
+                      }
+
+                      final localData = await LocalJobDataStorage.getJobData();
+                      if (localData != null && localData.isNotEmpty && context.mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const JobListScreen()),
+                        );
+                      } else if (context.mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ApplyJobScreen(isPreScreen: true)),
+                        );
+                      }
+                    },
                   ),
 
                   const SizedBox(height: 8),
@@ -481,16 +510,32 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
       title: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Image.asset('assets/Images/logoSk.png', height: 35),
+          Image.asset('assets/Images/home.jpeg', height: 35),
           const SizedBox(width: 8),
-          Text(
-            l10n.shilpkarFoundation,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          Flexible(
+            child: Text(
+              l10n.shilpkarFoundation,
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.white),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
           ),
         ],
       ),
       actions: [
+        IconButton(
+          icon: const Icon(Icons.info_outline, color: Colors.white),
+          tooltip: 'About Us',
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AboutUsScreen()),
+          ),
+        ),
         Consumer<LanguageProvider>(
           builder: (context, langProvider, _) =>
               langProvider.buildToggleWidget(),
@@ -729,6 +774,78 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  FOUNDATION NAME MARQUEE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+class _FoundationMarquee extends StatefulWidget {
+  const _FoundationMarquee();
+
+  @override
+  State<_FoundationMarquee> createState() => _FoundationMarqueeState();
+}
+
+class _FoundationMarqueeState extends State<_FoundationMarquee> {
+  late ScrollController _scrollController;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startScrolling();
+    });
+  }
+
+  void _startScrolling() {
+    _timer = Timer.periodic(const Duration(milliseconds: 30), (timer) {
+      if (!_scrollController.hasClients) return;
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      final current = _scrollController.position.pixels;
+      if (current >= maxScroll) {
+        _scrollController.jumpTo(0);
+      } else {
+        _scrollController.jumpTo(current + 1.5);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const text = '🏛️  Shilpakar Foundation Latur-Maharashtra  •  Empowering Communities  •  Registered NGO  •  Certificate No: F-0028565 (LTR)  •  ';
+    return Container(
+      color: const Color(0xFF1E5799),
+      height: 30,
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        scrollDirection: Axis.horizontal,
+        physics: const NeverScrollableScrollPhysics(),
+        child: Row(
+          children: List.generate(3, (_) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.3,
+              ),
+            ),
+          )),
+        ),
       ),
     );
   }

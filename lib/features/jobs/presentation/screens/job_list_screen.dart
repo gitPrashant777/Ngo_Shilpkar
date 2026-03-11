@@ -8,6 +8,11 @@ import '../../../../shared/widgets/job_info_row.dart';
 import '../../data/models/job_model.dart';
 import '../providers/job_provider.dart';
 import 'job_detail_screen.dart';
+import 'job_auth_selection_screen.dart';
+import 'apply_job_screen.dart';
+import 'local_job_data.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../ecommerce/presentation/providers/customer_auth_provider.dart';
 
 class JobListScreen extends StatefulWidget {
   const JobListScreen({super.key});
@@ -19,15 +24,35 @@ class JobListScreen extends StatefulWidget {
 class _JobListScreenState extends State<JobListScreen> {
   final TextEditingController _cityController = TextEditingController();
   String? _selectedCategory;
-  final List<String> _categories = ['TECH', 'HEALTH', 'EDUCATION', 'FIELD_WORK', 'OTHER'];
+  final List<String> _categories = [
+    'TECH',
+    'HEALTH',
+    'EDUCATION',
+    'FIELD_WORK',
+    'OTHER',
+  ];
   final ScrollController _scrollController = ScrollController();
+
+  bool _isLoadingLocalData = true;
+  bool _hasLocalData = false;
 
   @override
   void initState() {
     super.initState();
+    _checkLocalData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<JobProvider>(context, listen: false).fetchJobs(refresh: true);
     });
+  }
+
+  Future<void> _checkLocalData() async {
+    final data = await LocalJobDataStorage.getJobData();
+    if (mounted) {
+      setState(() {
+        _hasLocalData = data != null && data.isNotEmpty;
+        _isLoadingLocalData = false;
+      });
+    }
   }
 
   @override
@@ -39,7 +64,9 @@ class _JobListScreenState extends State<JobListScreen> {
 
   void _applyFilters() {
     Provider.of<JobProvider>(context, listen: false).fetchJobs(
-      city: _cityController.text.trim().isNotEmpty ? _cityController.text.trim() : null,
+      city: _cityController.text.trim().isNotEmpty
+          ? _cityController.text.trim()
+          : null,
       category: _selectedCategory,
       refresh: true,
     );
@@ -53,77 +80,91 @@ class _JobListScreenState extends State<JobListScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
-        return StatefulBuilder(builder: (ctx, setSheetState) {
-          return Padding(
-            padding: EdgeInsets.only(
-              left: 20, right: 20, top: 20,
-              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Filter Jobs",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                LabeledTextField(
-                  label: AppLocalizations.of(ctx)!.city,
-                  controller: _cityController,
-                  hint: "e.g. Pune",
-                ),
-                LabeledDropdown<String>(
-                  label: AppLocalizations.of(ctx)!.category,
-                  value: _selectedCategory,
-                  items: [
-                    const DropdownMenuItem(value: null, child: Text("All Categories")),
-                    ..._categories.map((c) => DropdownMenuItem(value: c, child: Text(c))),
-                  ],
-                  onChanged: (val) => setSheetState(() => _selectedCategory = val),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          _cityController.clear();
-                          setState(() => _selectedCategory = null);
-                          Navigator.pop(ctx);
-                          _applyFilters();
-                        },
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: AppColors.appBarBlue),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                        child: Text(AppLocalizations.of(ctx)!.clear),
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Filter Jobs",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  LabeledTextField(
+                    label: AppLocalizations.of(ctx)!.city,
+                    controller: _cityController,
+                    hint: "e.g. Pune",
+                  ),
+                  LabeledDropdown<String>(
+                    label: AppLocalizations.of(ctx)!.category,
+                    value: _selectedCategory,
+                    items: [
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text("All Categories"),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {});
-                          Navigator.pop(ctx);
-                          _applyFilters();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.appBarBlue,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                        child: Text(
-                          AppLocalizations.of(ctx)!.apply,
-                          style: const TextStyle(color: Colors.white),
+                      ..._categories.map(
+                        (c) => DropdownMenuItem(value: c, child: Text(c)),
+                      ),
+                    ],
+                    onChanged: (val) =>
+                        setSheetState(() => _selectedCategory = val),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            _cityController.clear();
+                            setState(() => _selectedCategory = null);
+                            Navigator.pop(ctx);
+                            _applyFilters();
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: AppColors.appBarBlue),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(AppLocalizations.of(ctx)!.clear),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        });
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {});
+                            Navigator.pop(ctx);
+                            _applyFilters();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.appBarBlue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            AppLocalizations.of(ctx)!.apply,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
       },
     );
   }
@@ -131,6 +172,87 @@ class _JobListScreenState extends State<JobListScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isAuth = context.watch<AuthProvider>().isAuthenticated;
+    final isCustomerAuth = context
+        .watch<CustomerAuthProvider>()
+        .isAuthenticated;
+
+    if (!isAuth && !isCustomerAuth) {
+      return const JobAuthSelectionScreen(inline: true);
+    }
+
+    if (_isLoadingLocalData) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (!_hasLocalData) {
+      return Scaffold(
+        backgroundColor: AppColors.backgroundGrey,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          titleSpacing: 16,
+          title: Text(
+            l10n.shilpkarFoundation,
+            style: const TextStyle(
+              color: AppColors.primaryBlue,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.assignment_ind_outlined,
+                size: 80,
+                color: AppColors.primaryBlue,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "Profile Completion Required",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  "Please complete your profile details before viewing and applying for jobs.",
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ApplyJobScreen(isPreScreen: true),
+                    ),
+                  );
+                  _checkLocalData(); // Re-eval
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryBlue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 12,
+                  ),
+                ),
+                child: const Text(
+                  "Complete Profile",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.backgroundGrey,
       appBar: AppBar(
@@ -174,7 +296,8 @@ class _JobListScreenState extends State<JobListScreen> {
                 ),
 
                 // ── Active filter chips ────────────────────────────────────
-                if (_cityController.text.isNotEmpty || _selectedCategory != null)
+                if (_cityController.text.isNotEmpty ||
+                    _selectedCategory != null)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Wrap(
@@ -184,13 +307,19 @@ class _JobListScreenState extends State<JobListScreen> {
                           Chip(
                             label: Text(_cityController.text),
                             deleteIcon: const Icon(Icons.close, size: 14),
-                            onDeleted: () { _cityController.clear(); _applyFilters(); },
+                            onDeleted: () {
+                              _cityController.clear();
+                              _applyFilters();
+                            },
                           ),
                         if (_selectedCategory != null)
                           Chip(
                             label: Text(_selectedCategory!),
                             deleteIcon: const Icon(Icons.close, size: 14),
-                            onDeleted: () { setState(() => _selectedCategory = null); _applyFilters(); },
+                            onDeleted: () {
+                              setState(() => _selectedCategory = null);
+                              _applyFilters();
+                            },
                           ),
                       ],
                     ),
@@ -201,32 +330,36 @@ class _JobListScreenState extends State<JobListScreen> {
                   child: provider.isLoading && provider.jobs.isEmpty
                       ? const Center(child: CircularProgressIndicator())
                       : provider.jobs.isEmpty
-                          ? Center(
-                              child: Text(
-                                l10n.noJobsFound,
-                                style: const TextStyle(color: AppColors.textSecondary),
-                              ),
-                            )
-                          : RefreshIndicator(
-                              onRefresh: () async => _applyFilters(),
-                              child: ListView.builder(
-                                controller: _scrollController,
-                                padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
-                                itemCount: provider.jobs.length,
-                                itemBuilder: (context, index) {
-                                  return _JobCard(
-                                    job: provider.jobs[index],
-                                    l10n: l10n,
-                                    onTap: () => Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => JobDetailScreen(job: provider.jobs[index]),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
+                      ? Center(
+                          child: Text(
+                            l10n.noJobsFound,
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
                             ),
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: () async => _applyFilters(),
+                          child: ListView.builder(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+                            itemCount: provider.jobs.length,
+                            itemBuilder: (context, index) {
+                              return _JobCard(
+                                job: provider.jobs[index],
+                                l10n: l10n,
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => JobDetailScreen(
+                                      job: provider.jobs[index],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                 ),
 
                 // ── Pagination ────────────────────────────────────────────
@@ -336,7 +469,9 @@ class _JobCard extends StatelessWidget {
                   onPressed: onTap,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.lightBlueScheme,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                   ),
@@ -399,7 +534,9 @@ class _JobPaginationBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            onPressed: hasPrev && !isLoading ? () => onPageChanged(currentPage - 1) : null,
+            onPressed: hasPrev && !isLoading
+                ? () => onPageChanged(currentPage - 1)
+                : null,
             icon: Icon(
               Icons.chevron_left,
               color: hasPrev ? AppColors.appBarBlue : AppColors.textSecondary,
@@ -414,7 +551,9 @@ class _JobPaginationBar extends StatelessWidget {
             ),
           ),
           IconButton(
-            onPressed: hasNext && !isLoading ? () => onPageChanged(currentPage + 1) : null,
+            onPressed: hasNext && !isLoading
+                ? () => onPageChanged(currentPage + 1)
+                : null,
             icon: Icon(
               Icons.chevron_right,
               color: hasNext ? AppColors.appBarBlue : AppColors.textSecondary,

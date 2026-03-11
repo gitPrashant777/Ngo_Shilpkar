@@ -11,7 +11,9 @@ import '../../../notifications/presentation/providers/notification_provider.dart
 import '../../data/models/login_request.dart';
 import '../../data/repository/auth_repository.dart';
 import '../../data/repository/user_repository.dart';
+import '../../data/repository/user_repository.dart';
 import '../../data/models/user_profile_model.dart';
+import '../../../../features/jobs/presentation/screens/local_job_data.dart';
 
 
 class AuthProvider extends ChangeNotifier {
@@ -91,6 +93,7 @@ class AuthProvider extends ChangeNotifier {
     tokenHolder.clearAdmin(); // clear in-memory admin token
     try {
       await _storage.clearAll();
+      await LocalJobDataStorage.clearJobData(); // Clear local profile application data
     } catch (e) {
       debugPrint("AuthProvider: Error clearing storage: $e");
     }

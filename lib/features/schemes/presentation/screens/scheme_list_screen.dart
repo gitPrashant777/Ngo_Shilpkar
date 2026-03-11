@@ -22,11 +22,20 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
         final provider = context.read<SchemeProvider>();
-        final role = context.read<AuthProvider>().role;
-        provider.fetchPublishedSchemes(refresh: true);
+        final auth = context.read<AuthProvider>();
+        
+        if (auth.userProfile == null) {
+          await auth.fetchUserProfile();
+        }
+        
+        if (!mounted) return;
+        
+        final role = auth.role;
+        final category = (role == 'BENEFICIARY' || role == 'GUEST') ? auth.userProfile?.profile.category : null;
+        provider.fetchPublishedSchemes(refresh: true, category: category, clearCategory: category == null || category.isEmpty);
         if (role == 'BENEFICIARY' || role == 'GUEST') {
           provider.fetchMyApplications();
         }
@@ -44,8 +53,11 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
         builder: (_) => const SuperAdminSchemeManagementScreen(),
       ),
     ).then((_) {
-      if (mounted)
-        context.read<SchemeProvider>().fetchPublishedSchemes(refresh: true);
+      if (mounted) {
+        final auth = context.read<AuthProvider>();
+        final category = (auth.role == 'BENEFICIARY' || auth.role == 'GUEST') ? auth.userProfile?.profile.category : null;
+        context.read<SchemeProvider>().fetchPublishedSchemes(refresh: true, category: category, clearCategory: category == null || category.isEmpty);
+      }
     });
   }
 
@@ -97,9 +109,16 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                           ),
                           const SizedBox(height: 16),
                           ElevatedButton.icon(
-                            onPressed: () => context
-                                .read<SchemeProvider>()
-                                .fetchPublishedSchemes(refresh: true),
+                            onPressed: () async {
+                              final auth = context.read<AuthProvider>();
+                              if (auth.userProfile == null) {
+                                await auth.fetchUserProfile();
+                              }
+                              final category = auth.userProfile?.profile.category;
+                              if (context.mounted) {
+                                context.read<SchemeProvider>().fetchPublishedSchemes(refresh: true, category: category, clearCategory: category == null || category.isEmpty);
+                              }
+                            },
                             icon: const Icon(Icons.refresh),
                             label: Text(AppLocalizations.of(context)!.retry),
                             style: ElevatedButton.styleFrom(
@@ -164,7 +183,12 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                       Expanded(
                         child: RefreshIndicator(
                           onRefresh: () async {
-                            await provider.fetchPublishedSchemes(refresh: true);
+                            final auth = context.read<AuthProvider>();
+                            if (auth.userProfile == null) {
+                                await auth.fetchUserProfile();
+                            }
+                            final category = (auth.role == 'BENEFICIARY' || auth.role == 'GUEST') ? auth.userProfile?.profile.category : null;
+                            await provider.fetchPublishedSchemes(refresh: true, category: category, clearCategory: category == null || category.isEmpty);
                             if (_isBeneficiary(role))
                               await provider.fetchMyApplications();
                           },
@@ -315,8 +339,13 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
                               color: AppColors.lightBlueScheme,
                               size: 20,
                             ),
-                            onPressed: () {
-                              prov.fetchPublishedSchemes(refresh: true);
+                            onPressed: () async {
+                              final auth = context.read<AuthProvider>();
+                              if (auth.userProfile == null) {
+                                await auth.fetchUserProfile();
+                              }
+                              final cat = (auth.role == 'BENEFICIARY' || auth.role == 'GUEST') ? auth.userProfile?.profile.category : null;
+                              prov.fetchPublishedSchemes(refresh: true, category: cat, clearCategory: cat == null || cat.isEmpty);
                               if (_isBeneficiary(role))
                                 prov.fetchMyApplications();
                             },
@@ -595,19 +624,7 @@ class _SchemeListScreenState extends State<SchemeListScreen> {
     }
   }
 
-  Widget _buildChip(IconData icon, String label) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14, color: Colors.grey.shade500),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-        ),
-      ],
-    );
-  }
+
 }
 
 // ─── Withdraw Button (animated red outline) ───────────────────────────────────

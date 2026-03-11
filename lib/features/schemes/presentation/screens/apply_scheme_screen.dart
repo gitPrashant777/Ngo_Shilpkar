@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/scheme_provider.dart';
 import '../../data/repository/scheme_repository.dart';
 import '../../../auth/presentation/screens/edit_profile_screen.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -17,10 +19,27 @@ class _ApplySchemeScreenState extends State<ApplySchemeScreen> {
   final SchemeRepository _repository = SchemeRepository();
   bool _isLoading = false;
   Future<void> _applyScheme() async {
+    final schemeProvider = context.read<SchemeProvider>();
+    final hasApplied = schemeProvider.myApplications.any((app) => 
+        (app.schemeId == widget.schemeId));
+        
+    if (hasApplied) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("You have already applied for this scheme."),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      Navigator.pop(context);
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
       await _repository.applyForScheme(widget.schemeId);
+      // Automatically refresh apps after applying
+      schemeProvider.fetchMyApplications();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -27,6 +27,7 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
   String _schemeType = "PAID";
   String _financialType = "SUBSIDY";
   String _payoutMode = "MONTHLY";
+  String _category = "ALL";
   
   String? _editingSchemeId;
   bool _isSaving = false;
@@ -61,6 +62,7 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
       _schemeType = "PAID";
       _financialType = "SUBSIDY";
       _payoutMode = "MONTHLY";
+      _category = "ALL";
       _isSaving = false;
     });
   }
@@ -76,6 +78,7 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
       _schemeType = scheme.schemeType;
       _financialType = scheme.financialType;
       _payoutMode = scheme.payoutMode;
+      _category = scheme.eligibleCategories.isNotEmpty ? scheme.eligibleCategories.first : "ALL";
     });
     
     if (_scrollController.hasClients) {
@@ -107,6 +110,7 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
       "schemeType": _schemeType,
       "financialType": _financialType,
       "payoutMode": _payoutMode,
+      "eligibleCategories": _category != "ALL" ? [_category] : [],
       "status": "PUBLISHED",
       "startDate": DateTime.now().toIso8601String(),
       "endDate": DateTime.now().add(const Duration(days: 365)).toIso8601String(),
@@ -260,6 +264,8 @@ class _SuperAdminSchemeManagementScreenState extends State<SuperAdminSchemeManag
                 Expanded(child: _buildDropdown(l10n.payoutMode, ["MONTHLY"], _payoutMode, (v) => setState(() => _payoutMode = v!))),
               ],
             ),
+            const SizedBox(height: 12),
+            _buildDropdown("Category", ["ALL", "FARMER", "STUDENT", "WOMEN", "WORKER", "CITIZEN"], _category, (v) => setState(() => _category = v!)),
             const SizedBox(height: 24),
             
             ElevatedButton(

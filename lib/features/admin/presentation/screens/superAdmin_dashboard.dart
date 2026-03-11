@@ -15,6 +15,8 @@ import '../../../schemes/presentation/screens/Superadmin_scheme_management_scree
 import 'MakeAdminScreen.dart';
 import 'SuperMakeEmployeeScreen.dart';
 import 'beneficiary_list_screen.dart';
+import 'employee_list_admin_screen.dart';
+import 'beneficiary_list_admin_screen.dart';
 import '../../../home/presentation/screens/homepage_management_screen.dart';
 import '../../../home/presentation/providers/homepage_provider.dart';
 import '../../../ecommerce/presentation/screens/admin/admin_product_management_screen.dart';
@@ -33,6 +35,13 @@ import 'package:shilpkar/features/notifications/presentation/widgets/notificatio
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../schemes/presentation/screens/global_payments_screen.dart';
 import '../../../attendance/presentation/screens/attendance_list_screen.dart';
+import '../../../../features/dashboard/presentation/screens/foundation_dashboard_screen.dart';
+import '../../../../features/dashboard/presentation/screens/transaction_screen.dart';
+import '../../../../features/dashboard/presentation/screens/about_us_screen.dart';
+import '../../../../features/dashboard/presentation/screens/manual_payment_screen.dart';
+import '../../../../features/dashboard/presentation/screens/parcel_screen.dart';
+import '../../../../features/employee/presentation/screens/employee_payment_screens.dart';
+import 'beneficiary_pending_payments_screen.dart';
 
 class SuperAdminDashboard extends StatefulWidget {
   const SuperAdminDashboard({super.key});
@@ -128,6 +137,36 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                             children: [
                               Expanded(
                                 child: DashboardInfoBox(
+                                  title: l10n.viewEmployees,
+                                  subtitle: l10n.browseByTalukaAndChat,
+                                  buttonLabel: l10n.viewList,
+                                  icon: Icons.badge_outlined,
+                                  iconColor: const Color(0xFF27AE60),
+                                  buttonColor: const Color(0xFF27AE60),
+                                  bgColor: const Color(0xFFEFF1F5),
+                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmployeeListAdminScreen(role: 'EMPLOYEE'))),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: DashboardInfoBox(
+                                  title: l10n.viewCoordinators,
+                                  subtitle: l10n.browseByTalukaAndChat,
+                                  buttonLabel: l10n.viewList,
+                                  icon: Icons.supervisor_account_outlined,
+                                  iconColor: const Color(0xFF8E44AD),
+                                  buttonColor: const Color(0xFF8E44AD),
+                                  bgColor: const Color(0xFFEFF1F5),
+                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmployeeListAdminScreen(role: 'COORDINATOR'))),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: DashboardInfoBox(
                                   title: l10n.makeBeneficiary,
                                   subtitle: l10n.makeBeneficiarySub,
                                   buttonLabel: l10n.create,
@@ -139,7 +178,18 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              const Expanded(child: SizedBox()),
+                              Expanded(
+                                child: DashboardInfoBox(
+                                  title: l10n.viewBeneficiaries,
+                                  subtitle: l10n.browseByTalukaAndChat,
+                                  buttonLabel: l10n.viewList,
+                                  icon: Icons.people_outline,
+                                  iconColor: const Color(0xFFE67E22),
+                                  buttonColor: const Color(0xFFE67E22),
+                                  bgColor: const Color(0xFFEFF1F5),
+                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BeneficiaryListAdminScreen())),
+                                ),
+                              ),
                             ],
                           ),
                         ],
@@ -147,7 +197,6 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                     ),
                     const SizedBox(height: 10),
 
-                    // ─── Operations & Finance ─────────────────────────────────
                     DashboardSection(
                       title: l10n.operationsFinance ?? "Operations & Finance",
                       icon: Icons.account_balance_wallet_outlined,
@@ -168,6 +217,77 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                             Icons.history,
                             const Color(0xFFA1C6A1),
                                 () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GlobalPaymentsScreen())),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // ─── Payments & Logistics ──────────────────────────────────
+                    DashboardSection(
+                      title: l10n.paymentsLogistics,
+                      icon: Icons.payments_outlined,
+                      color: const Color(0xFF16A085),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: DashboardInfoBox(
+                                  title: l10n.manualPayment,
+                                  subtitle: l10n.manualPaymentSub,
+                                  buttonLabel: l10n.manualPaymentRecord,
+                                  icon: Icons.currency_rupee_outlined,
+                                  iconColor: const Color(0xFF16A085),
+                                  buttonColor: const Color(0xFF16A085),
+                                  bgColor: const Color(0xFFE0F2F1),
+                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ManualPaymentScreen())),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: DashboardInfoBox(
+                                  title: l10n.employeeRequests,
+                                  subtitle: l10n.employeeRequestsSub,
+                                  buttonLabel: l10n.employeeRequestsReview,
+                                  icon: Icons.how_to_reg_outlined,
+                                  iconColor: const Color(0xFF8E44AD),
+                                  buttonColor: const Color(0xFF8E44AD),
+                                  bgColor: const Color(0xFFF3E5F5),
+                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminEmployeePaymentsScreen())),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: DashboardInfoBox(
+                                  title: l10n.createParcel,
+                                  subtitle: l10n.createParcelSub,
+                                  buttonLabel: l10n.createParcelSubmit,
+                                  icon: Icons.local_shipping_outlined,
+                                  iconColor: const Color(0xFF2980B9),
+                                  buttonColor: const Color(0xFF2980B9),
+                                  bgColor: const Color(0xFFE3F2FD),
+                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ParcelScreen())),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: DashboardInfoBox(
+                                  title: l10n.pendingPayments,
+                                  subtitle: l10n.pendingPaymentsSub,
+                                  buttonLabel: l10n.viewList,
+                                  icon: Icons.pending_actions_outlined,
+                                  iconColor: Colors.red,
+                                  buttonColor: Colors.red,
+                                  bgColor: const Color(0xFFFFEBEE),
+                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BeneficiaryPendingPaymentsScreen())),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -364,6 +484,77 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
                       ),
                     ),
                     const SizedBox(height: 10),
+                    // ─── Quick Actions (Dashboard, Transaction, About) ────
+                    DashboardSection(
+                      title: l10n.analyticsAndMore,
+                      icon: Icons.bar_chart_outlined,
+                      color: const Color(0xFF1E5799),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: DashboardInfoBox(
+                                  title: l10n.foundationDashboard,
+                                  subtitle: l10n.foundationDashboardSub,
+                                  buttonLabel: l10n.see,
+                                  icon: Icons.dashboard_outlined,
+                                  iconColor: const Color(0xFF1E5799),
+                                  buttonColor: const Color(0xFF1E5799),
+                                  bgColor: const Color(0xFFEFF1F5),
+                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FoundationDashboardScreen())),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: DashboardInfoBox(
+                                  title: l10n.transactionsLabel,
+                                  subtitle: l10n.transactionsSub,
+                                  buttonLabel: l10n.see,
+                                  icon: Icons.receipt_long_outlined,
+                                  iconColor: const Color(0xFF27AE60),
+                                  buttonColor: const Color(0xFF27AE60),
+                                  bgColor: const Color(0xFFEFF1F5),
+                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TransactionScreen())),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: DashboardInfoBox(
+                                  title: l10n.aboutFoundation,
+                                  subtitle: l10n.aboutFoundationSub,
+                                  buttonLabel: l10n.see,
+                                  icon: Icons.info_outline,
+                                  iconColor: const Color(0xFFE67E22),
+                                  buttonColor: const Color(0xFFE67E22),
+                                  bgColor: const Color(0xFFEFF1F5),
+                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutUsScreen())),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              // Expanded(
+                              //   child: DashboardInfoBox(
+                              //     title: 'Pending Payments',
+                              //     subtitle: 'Form confirmed but not paid',
+                              //     buttonLabel: 'View',
+                              //     icon: Icons.pending_actions_outlined,
+                              //     iconColor: Colors.red,
+                              //     buttonColor: Colors.red,
+                              //     bgColor: const Color(0xFFEFF1F5),
+                              //     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BeneficiaryListAdminScreen())),
+                              //   ),
+                              // ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
                     // ─── Info Boxes Row ──────────────────────────
                     Row(
                       children: [
@@ -419,7 +610,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
       surfaceTintColor: Colors.transparent,
       title: Row(
         children: [
-          Image.asset('assets/Images/logoSk.png', height: 40),
+          Image.asset('assets/Images/home.jpeg', height: 40),
           const SizedBox(width: 6),
           Expanded(
             child: Text(

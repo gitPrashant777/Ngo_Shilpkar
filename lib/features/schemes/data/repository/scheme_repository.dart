@@ -16,11 +16,19 @@ class SchemeRepository {
   Future<PaginatedPublishedSchemesModel> getPublishedSchemesPage({
     int page = 1,
     int limit = 10,
+    String? category,
   }) async {
     try {
+      final Map<String, dynamic> queryParams = {
+        "page": page,
+        "limit": limit,
+      };
+      if (category != null && category.isNotEmpty) {
+        queryParams["category"] = category;
+      }
       final response = await _dio.get(
         "/schemes",
-        queryParameters: {"page": page, "limit": limit},
+        queryParameters: queryParams,
       );
       final raw = response.data;
       return PaginatedPublishedSchemesModel.fromJson(
@@ -250,12 +258,33 @@ class SchemeRepository {
     return response.data["data"] ?? [];
   }
 
+
   /// Mark Payment as Successful (Manual/Webhook)
   /// POST /applications/:applicationId/payment-success
   Future<void> markPaymentSuccess(String applicationId, String transactionId) async {
     await _dio.post(
       "/schemes/applications/$applicationId/payment-success",
       data: {"transactionId": transactionId},
+    );
+  }
+
+  /// Demo Bypass — uses POST /payments/manual (admin manual payment route)
+  /// This is the working endpoint for recording a payment without Razorpay.
+  /// Body: { userId, module, moduleRefId, amount, note }
+  Future<void> bypassSchemePayment({
+    required String applicationId,
+    required String schemeName,
+    required double amount,
+  }) async {
+    await _dio.post(
+      "/payments/manual",
+      data: {
+        "module": "SCHEME",
+        "moduleRefId": applicationId,
+        "amount": amount > 0 ? amount : 1,
+        "note": "Demo bypass for scheme: $schemeName",
+        "paymentMethod": "CASH",
+      },
     );
   }
 

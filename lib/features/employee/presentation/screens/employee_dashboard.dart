@@ -16,6 +16,10 @@ import '../../../../features/admin/presentation/screens/create_beneficiary_scree
 import '../../../../shared/widgets/dashboard_section.dart';
 import 'package:shilpkar/features/notifications/presentation/widgets/notification_bell.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../features/employee/presentation/screens/employee_payment_screens.dart';
+import '../../../status/presentation/providers/status_provider.dart';
+import '../../../status/presentation/screens/status_viewer_screen.dart';
+
 class EmployeeDashboard extends StatefulWidget {
   const EmployeeDashboard({super.key});
 
@@ -29,6 +33,7 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HomepageProvider>().fetchHomepage();
+      context.read<StatusProvider>().fetchStatuses();
     });
   }
 
@@ -43,6 +48,8 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
             child: Column(
               children: [
                 _buildHeroSection(l10n),
+                const SizedBox(height: 12),
+                const StatusRingRow(),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -151,7 +158,18 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
                               ),
                             ),
                             const SizedBox(width: 10),
-                            const Expanded(child: SizedBox()),
+                            Expanded(
+                              child: DashboardInfoBox(
+                                title: 'Request Payment',
+                                subtitle: 'Submit expense reimbursement',
+                                buttonLabel: 'Request',
+                                icon: Icons.currency_rupee_outlined,
+                                bgColor: Colors.green.shade50,
+                                iconColor: const Color(0xFF27AE60),
+                                buttonColor: const Color(0xFF27AE60),
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmployeePaymentRequestScreen())),
+                              ),
+                            ),
                           ],
                         ),
                       ],
@@ -178,7 +196,7 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
       elevation: 0,
       title: Row(
         children: [
-          Image.asset('assets/Images/logoSk.png', height: 40),
+          Image.asset('assets/Images/home.jpeg', height: 40),
           const SizedBox(width: 6),
           Expanded(
             child: Text(

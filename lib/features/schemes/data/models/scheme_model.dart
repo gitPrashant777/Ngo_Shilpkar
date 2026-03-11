@@ -13,6 +13,7 @@ class SchemeModel {
   final String payoutMode;
   final DateTime? startDate;
   final DateTime? endDate;
+  final List<String> eligibleCategories;
 
   SchemeModel({
     required this.id,
@@ -27,6 +28,7 @@ class SchemeModel {
     required this.payoutMode,
     this.startDate,
     this.endDate,
+    this.eligibleCategories = const [],
   });
 
   factory SchemeModel.fromJson(Map<String, dynamic> json) {
@@ -43,6 +45,7 @@ class SchemeModel {
       payoutMode: json["payoutMode"] ?? "NONE",
       startDate: json["startDate"] != null ? DateTime.tryParse(json["startDate"]) : null,
       endDate: json["endDate"] != null ? DateTime.tryParse(json["endDate"]) : null,
+      eligibleCategories: List<String>.from(json["eligibleCategories"] ?? []),
     );
   }
 }

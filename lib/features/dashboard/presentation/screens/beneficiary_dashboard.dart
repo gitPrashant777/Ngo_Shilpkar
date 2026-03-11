@@ -21,6 +21,11 @@ import '../../../ecommerce/presentation/screens/public/user_orders_screen.dart';
 import '../../../../shared/widgets/dashboard_section.dart';
 import 'package:shilpkar/features/notifications/presentation/widgets/notification_bell.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../status/presentation/providers/status_provider.dart';
+import '../../../status/presentation/screens/status_viewer_screen.dart';
+import 'package:shilpkar/features/jobs/presentation/screens/apply_job_screen.dart';
+import 'package:shilpkar/features/jobs/presentation/screens/local_job_data.dart';
+
 class BeneficiaryDashboard extends StatefulWidget {
   const BeneficiaryDashboard({super.key});
 
@@ -34,6 +39,7 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HomepageProvider>().fetchHomepage();
+      context.read<StatusProvider>().fetchStatuses();
     });
   }
 
@@ -46,19 +52,23 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
       ),
       child: Row(
         children: [
-          const Icon(Icons.forum_outlined,
-              color: Color(0xFF55789A), size: 30),
+          const Icon(Icons.forum_outlined, color: Color(0xFF55789A), size: 30),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l10n.connectWithAdmin,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16)),
-                Text(l10n.connectWithAdminSub,
-                    style:
-                    const TextStyle(fontSize: 11, color: Colors.grey)),
+                Text(
+                  l10n.connectWithAdmin,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  l10n.connectWithAdminSub,
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                ),
               ],
             ),
           ),
@@ -67,8 +77,7 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) =>
-                  const shilpkar.ChatListScreen(),
+                  builder: (_) => const shilpkar.ChatListScreen(),
                 ),
               );
             },
@@ -76,12 +85,30 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
               backgroundColor: const Color(0xFF55789A),
               shape: const StadiumBorder(),
             ),
-            child: Text(l10n.chat,
-                style: const TextStyle(color: Colors.white)),
+            child: Text(l10n.chat, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _navigateToJobs() async {
+    final localData = await LocalJobDataStorage.getJobData();
+    if (localData != null && localData.isNotEmpty) {
+      if (mounted)
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const JobListScreen()),
+        );
+    } else {
+      if (mounted)
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const ApplyJobScreen(isPreScreen: true),
+          ),
+        );
+    }
   }
 
   @override
@@ -95,134 +122,166 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
             child: Column(
               children: [
                 _buildHeroSection(),
+                const SizedBox(height: 12),
+                const StatusRingRow(),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                  // ─── Programs & Jobs ─────────────────────────────────────
-                  DashboardSection(
-                    title: l10n.applyForAJob ?? "Programs & Jobs",
-                    icon: Icons.work_outline,
-                    color: const Color(0xFFD9A05B),
-                    child: Column(
-                      children: [
-                        Row(
+                      // ─── Programs & Jobs ─────────────────────────────────────
+                      DashboardSection(
+                        title: l10n.applyForAJob ?? "Programs & Jobs",
+                        icon: Icons.work_outline,
+                        color: const Color(0xFFD9A05B),
+                        child: Column(
                           children: [
-                            Expanded(
-                              child: DashboardInfoBox(
-                                title: l10n.applyForAJob,
-                                subtitle: l10n.applyForAJobSub,
-                                buttonLabel: 'View Details',
-                                icon: Icons.edit_document,
-                                bgColor: const Color(0xFFFFF3E0),
-                                iconColor: const Color(0xFFF57C00),
-                                buttonColor: const Color(0xFFF57C00),
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const JobListScreen())),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: DashboardInfoBox(
-                                title: l10n.myJobApplications,
-                                subtitle: l10n.myJobApplicationsSub,
-                                buttonLabel: 'View Details',
-                                icon: Icons.work,
-                                bgColor: const Color(0xFFE3F2FD),
-                                iconColor: const Color(0xFF1976D2),
-                                buttonColor: const Color(0xFF1976D2),
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyApplicationsScreen())),
-                              ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: DashboardInfoBox(
+                                    title: l10n.applyForAJob,
+                                    subtitle: l10n.applyForAJobSub,
+                                    buttonLabel: 'View Details',
+                                    icon: Icons.edit_document,
+                                    bgColor: const Color(0xFFFFF3E0),
+                                    iconColor: const Color(0xFFF57C00),
+                                    buttonColor: const Color(0xFFF57C00),
+                                    onTap: _navigateToJobs,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: DashboardInfoBox(
+                                    title: l10n.myJobApplications,
+                                    subtitle: l10n.myJobApplicationsSub,
+                                    buttonLabel: 'View Details',
+                                    icon: Icons.work,
+                                    bgColor: const Color(0xFFE3F2FD),
+                                    iconColor: const Color(0xFF1976D2),
+                                    buttonColor: const Color(0xFF1976D2),
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const MyApplicationsScreen(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
+                      ),
+                      const SizedBox(height: 12),
 
-                  // ─── E-Commerce  ──────────────────────────────────────────
-                  DashboardSection(
-                    title: l10n.products ?? "E-Commerce",
-                    icon: Icons.storefront_outlined,
-                    color: const Color(0xFF7A9E6F),
-                    child: Column(
-                      children: [
-                        Row(
+                      // ─── E-Commerce  ──────────────────────────────────────────
+                      DashboardSection(
+                        title: l10n.products ?? "E-Commerce",
+                        icon: Icons.storefront_outlined,
+                        color: const Color(0xFF7A9E6F),
+                        child: Column(
                           children: [
-                            Expanded(
-                              child: DashboardInfoBox(
-                                title: l10n.products,
-                                subtitle: l10n.productsSub,
-                                buttonLabel: 'View Details',
-                                icon: Icons.shopping_bag_rounded,
-                                bgColor: const Color(0xFFE8F5E9),
-                                iconColor: const Color(0xFF4CAF50),
-                                buttonColor: const Color(0xFF4CAF50),
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen())),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: DashboardInfoBox(
-                                title: l10n.myOrders,
-                                subtitle: l10n.myOrdersSub,
-                                buttonLabel: 'View Details',
-                                icon: Icons.shopping_cart_checkout_rounded,
-                                bgColor: const Color(0xFFFFF8E1),
-                                iconColor: const Color(0xFFFFA000),
-                                buttonColor: const Color(0xFFFFA000),
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UserOrdersScreen())),
-                              ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: DashboardInfoBox(
+                                    title: l10n.products,
+                                    subtitle: l10n.productsSub,
+                                    buttonLabel: 'View Details',
+                                    icon: Icons.shopping_bag_rounded,
+                                    bgColor: const Color(0xFFE8F5E9),
+                                    iconColor: const Color(0xFF4CAF50),
+                                    buttonColor: const Color(0xFF4CAF50),
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const ProductListScreen(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: DashboardInfoBox(
+                                    title: l10n.myOrders,
+                                    subtitle: l10n.myOrdersSub,
+                                    buttonLabel: 'View Details',
+                                    icon: Icons.shopping_cart_checkout_rounded,
+                                    bgColor: const Color(0xFFFFF8E1),
+                                    iconColor: const Color(0xFFFFA000),
+                                    buttonColor: const Color(0xFFFFA000),
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const UserOrdersScreen(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
+                      ),
+                      const SizedBox(height: 12),
 
-                  // ─── Communication & Support ──────────────────────────────
-                  DashboardSection(
-                    title: l10n.announcements ?? "Communication & Support",
-                    icon: Icons.campaign_outlined,
-                    color: const Color(0xFF6B8E23),
-                    child: Column(
-                      children: [
-                        Row(
+                      // ─── Communication & Support ──────────────────────────────
+                      DashboardSection(
+                        title: l10n.announcements ?? "Communication & Support",
+                        icon: Icons.campaign_outlined,
+                        color: const Color(0xFF6B8E23),
+                        child: Column(
                           children: [
-                            Expanded(
-                              child: DashboardInfoBox(
-                                title: l10n.announcements,
-                                subtitle: l10n.announcementsSub,
-                                buttonLabel: 'View Details',
-                                icon: Icons.campaign_outlined,
-                                bgColor: const Color(0xFFF3E5F5),
-                                iconColor: const Color(0xFF8E24AA),
-                                buttonColor: const Color(0xFF8E24AA),
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PublicBroadcastScreen())),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: DashboardInfoBox(
-                                title: l10n.connectWithAdmin,
-                                subtitle: l10n.connectWithAdminSub,
-                                buttonLabel: 'View Details',
-                                icon: Icons.forum_outlined,
-                                bgColor: const Color(0xFFE8EAF6),
-                                iconColor: const Color(0xFF5C6BC0),
-                                buttonColor: const Color(0xFF5C6BC0),
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const shilpkar.ChatListScreen())),
-                              ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: DashboardInfoBox(
+                                    title: l10n.announcements,
+                                    subtitle: l10n.announcementsSub,
+                                    buttonLabel: 'View Details',
+                                    icon: Icons.campaign_outlined,
+                                    bgColor: const Color(0xFFF3E5F5),
+                                    iconColor: const Color(0xFF8E24AA),
+                                    buttonColor: const Color(0xFF8E24AA),
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const PublicBroadcastScreen(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: DashboardInfoBox(
+                                    title: l10n.connectWithAdmin,
+                                    subtitle: l10n.connectWithAdminSub,
+                                    buttonLabel: 'View Details',
+                                    icon: Icons.forum_outlined,
+                                    bgColor: const Color(0xFFE8EAF6),
+                                    iconColor: const Color(0xFF5C6BC0),
+                                    buttonColor: const Color(0xFF5C6BC0),
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const shilpkar.ChatListScreen(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
 
-                  _buildInfoGrid(l10n),
-                  const SizedBox(height: 40),
+                      _buildInfoGrid(l10n),
+                      const SizedBox(height: 40),
                     ],
                   ),
                 ),
@@ -243,7 +302,7 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
       surfaceTintColor: Colors.transparent,
       title: Row(
         children: [
-          Image.asset('assets/Images/logoSk.png', height: 40),
+          Image.asset('assets/Images/home.jpeg', height: 40),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
@@ -260,7 +319,8 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
       ),
       actions: [
         Consumer<LanguageProvider>(
-          builder: (context, langProvider, _) => langProvider.buildToggleWidget(),
+          builder: (context, langProvider, _) =>
+              langProvider.buildToggleWidget(),
         ),
         const NotificationBell(iconColor: Colors.white),
         const SizedBox(width: 2),
@@ -278,7 +338,7 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
                 MaterialPageRoute(
                   builder: (_) => const MainNavigationScreen(initialIndex: 1),
                 ),
-                    (route) => false,
+                (route) => false,
               );
             }
           },
@@ -287,14 +347,14 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
     );
   }
 
-
   Widget _buildHeroSection() {
     return Consumer<HomepageProvider>(
       builder: (context, provider, _) {
-          String? bannerUrl;
-          if (provider.homepage != null && provider.homepage!.coverImages.isNotEmpty) {
-            bannerUrl = provider.homepage!.coverImages.first.url;
-          }
+        String? bannerUrl;
+        if (provider.homepage != null &&
+            provider.homepage!.coverImages.isNotEmpty) {
+          bannerUrl = provider.homepage!.coverImages.first.url;
+        }
         return Container(
           height: 180,
           width: double.infinity,
@@ -302,9 +362,13 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
             image: DecorationImage(
               image: bannerUrl != null
                   ? CachedNetworkImageProvider(bannerUrl)
-                  : const AssetImage('assets/Images/Frame2.png') as ImageProvider,
+                  : const AssetImage('assets/Images/Frame2.png')
+                        as ImageProvider,
               fit: BoxFit.cover,
-              colorFilter: const ColorFilter.mode(Colors.black45, BlendMode.darken),
+              colorFilter: const ColorFilter.mode(
+                Colors.black45,
+                BlendMode.darken,
+              ),
             ),
           ),
           child: Center(
@@ -314,13 +378,24 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(l10n.welcomeShilpkar,
-                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(
+                      l10n.welcomeShilpkar,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Text(l10n.empoweringCommunities,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.white, fontSize: 12)),
+                      child: Text(
+                        l10n.empoweringCommunities,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
                     ),
                   ],
                 );
@@ -328,11 +403,18 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
             ),
           ),
         );
-      }
+      },
     );
   }
 
-  Widget _buildCategoryBox(String title, String sub, String btnText, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildCategoryBox(
+    String title,
+    String sub,
+    String btnText,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -352,8 +434,15 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
         children: [
           Icon(icon, color: color, size: 28),
           const SizedBox(height: 8),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-          Text(sub, style: const TextStyle(fontSize: 10, color: Colors.grey), maxLines: 2),
+          Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+          Text(
+            sub,
+            style: const TextStyle(fontSize: 10, color: Colors.grey),
+            maxLines: 2,
+          ),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
@@ -362,21 +451,29 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: color,
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-              child: Text(btnText, style: const TextStyle(fontSize: 11, color: Colors.white)),
+              child: Text(
+                btnText,
+                style: const TextStyle(fontSize: 11, color: Colors.white),
+              ),
             ),
-          )
+          ),
         ],
       ),
     );
   }
 
-
   Widget _buildInfoGrid(AppLocalizations l10n) {
     return Row(
       children: [
-        _buildMiniCard(l10n.ourVision, Icons.track_changes_rounded, Colors.orange),
+        _buildMiniCard(
+          l10n.ourVision,
+          Icons.track_changes_rounded,
+          Colors.orange,
+        ),
         const SizedBox(width: 8),
         _buildMiniCard(l10n.ourWork, Icons.auto_graph_rounded, Colors.blue),
         const SizedBox(width: 8),
@@ -405,12 +502,13 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
           children: [
             Icon(icon, size: 20, color: color),
             const SizedBox(height: 4),
-            Text(title, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
       ),
     );
   }
-
-
 }

@@ -5,7 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/job_info_row.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../auth/presentation/screens/beneficiary_login_screen.dart' as shilpkar_auth;
+
 import '../../data/models/job_model.dart';
 import 'apply_job_screen.dart';
 import 'job_applications_screen.dart';
@@ -259,63 +259,13 @@ class _BottomActionBar extends StatelessWidget {
     return JobPrimaryButton(
       label: l10n.applyNowBtn,
       onPressed: () {
-        if (userRole == null || userRole.isEmpty) {
-          _showLoginSheet(context, l10n);
-        } else {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => ApplyJobScreen(jobId: job.id)),
-          );
-        }
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => ApplyJobScreen(jobId: job.id)),
+        );
       },
     );
   }
 
-  void _showLoginSheet(BuildContext context, AppLocalizations l10n) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.loginRequiredJob,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              l10n.loginRequiredJobDesc,
-              style: const TextStyle(color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 20),
-            ListTile(
-              leading: const Icon(
-                Icons.group_add_rounded,
-                color: AppColors.beneficiaryCard,
-              ),
-              title: Text(l10n.loginAsBeneficiaryJob),
-              onTap: () {
-                Navigator.pop(ctx);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const shilpkar_auth.BeneficiaryLoginScreen(),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // _showLoginSheet removed since guests can now apply directly
 }
