@@ -43,6 +43,10 @@ dependencies:
   file_picker: ^10.3.10
   image_picker:
   video_player: ^2.9.2
+  app_links: ^3.5.0
+  gtk:
+  audioplayers: ^5.2.1
+  flutter_local_notifications: ^17.0.0
   intl:
 
 
@@ -56,6 +60,7 @@ dependencies:
   geocoding: ^3.0.0
   form_field_validator: ^1.1.0
   google_fonts: ^6.2.1
+  google_sign_in: ^6.2.1
   cached_network_image: ^3.4.1
   shared_preferences: ^2.3.2
   uuid: ^4.5.1

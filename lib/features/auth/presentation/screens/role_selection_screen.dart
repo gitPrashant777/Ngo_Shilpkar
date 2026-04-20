@@ -23,25 +23,36 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              "Login As Employee",
+              "Login As Coordinator",
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            const Text("Select your job role to continue", style: TextStyle(color: Colors.grey)),
+            const Text(
+              "Select your coordinator level to continue",
+              style: TextStyle(color: Colors.grey),
+            ),
             const SizedBox(height: 40),
 
             LoginRoleCard(
-              title: "Field work",
-              subtitle: "Works at ground/village level",
-              icon: Icons.engineering,
-              isSelected: selectedRole == "FIELD",
-              onTap: () => setState(() => selectedRole = "FIELD"),
+              title: "District Coordinator",
+              subtitle: "District-level coordination",
+              icon: Icons.apartment,
+              isSelected: selectedRole == "DISTRICT_COORDINATOR",
+              onTap: () =>
+                  setState(() => selectedRole = "DISTRICT_COORDINATOR"),
             ),
             LoginRoleCard(
-              title: "Co-ordinator",
-              subtitle: "Coordinates office and ground team",
-              icon: Icons.computer,
-              isSelected: selectedRole == "COORDINATOR",
-              onTap: () => setState(() => selectedRole = "COORDINATOR"),
+              title: "Taluka Coordinator",
+              subtitle: "Taluka-level coordination",
+              icon: Icons.map,
+              isSelected: selectedRole == "TALUKA_COORDINATOR",
+              onTap: () => setState(() => selectedRole = "TALUKA_COORDINATOR"),
+            ),
+            LoginRoleCard(
+              title: "Village Coordinator",
+              subtitle: "Village-level coordination",
+              icon: Icons.location_on,
+              isSelected: selectedRole == "VILLAGE_COORDINATOR",
+              onTap: () => setState(() => selectedRole = "VILLAGE_COORDINATOR"),
             ),
 
             const SizedBox(height: 20),

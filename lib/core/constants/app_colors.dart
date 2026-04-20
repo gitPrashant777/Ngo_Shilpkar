@@ -119,6 +119,21 @@ class AppColors {
   static const Color myApplicationsPurple = Color(0xFF7B1FA2);
   static const Color communicationPurple = Color(0xFF5C6BC0);
   static const Color helpSupportGreen = Color(0xFF6B8E23);
+
+  // Refund UI
+  static const Color refundBackground = Color(0xFFF5F7FA);
+  static const Color refundCardBg = Color(0xFFFFFFFF);
+  static const Color refundCardBorder = Color(0xFFE6ECF2);
+  static const Color refundPrimaryText = Color(0xFF1C2A39);
+  static const Color refundSecondaryText = Color(0xFF6E7A86);
+  static const Color refundMutedText = Color(0xFF9AA7B2);
+  static const Color refundSearchBg = Color(0xFFF1F4F8);
+  static const Color refundSearchIcon = Color(0xFF9AA7B2);
+  static const Color refundPendingBg = Color(0xFFE7F2FF);
+  static const Color refundPendingText = Color(0xFF3A6EA5);
+  static const Color refundPrimaryButton = Color(0xFF3A6EA5);
+  static const Color refundRejectButton = Color(0xFFDF3D3D);
+  static const Color refundDivider = Color(0xFFE6ECF2);
 }
 
 

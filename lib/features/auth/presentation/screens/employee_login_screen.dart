@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/user_roles.dart';
 import '../../../../core/navigation/main_navigation.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../employee/presentation/screens/employee_dashboard.dart';
@@ -72,23 +73,34 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen> {
                     ),
                   ),
                   SelectableItemCard(
-                    title: l10n.fieldWork,
-                    subtitle: l10n.fieldWorkSubtitle,
-                    isSelected: selectedRole == "FIELD",
+                    title: 'District Coordinator',
+                    subtitle: 'Coordinates district-level operations',
+                    isSelected: selectedRole == UserRole.districtCoordinator,
                     onTap: () {
                       setState(() {
-                        selectedRole = "FIELD";
+                        selectedRole = UserRole.districtCoordinator;
                         showLoginForm = false;
                       });
                     },
                   ),
                   SelectableItemCard(
-                    title: l10n.coordinator,
-                    subtitle: l10n.coordinatorSubtitle,
-                    isSelected: selectedRole == "COORDINATOR",
+                    title: 'Taluka Coordinator',
+                    subtitle: 'Coordinates taluka-level teams and activities',
+                    isSelected: selectedRole == UserRole.talukaCoordinator,
                     onTap: () {
                       setState(() {
-                        selectedRole = "COORDINATOR";
+                        selectedRole = UserRole.talukaCoordinator;
+                        showLoginForm = false;
+                      });
+                    },
+                  ),
+                  SelectableItemCard(
+                    title: 'Village Coordinator',
+                    subtitle: 'Coordinates village-level field activities',
+                    isSelected: selectedRole == UserRole.villageCoordinator,
+                    onTap: () {
+                      setState(() {
+                        selectedRole = UserRole.villageCoordinator;
                         showLoginForm = false;
                       });
                     },
@@ -226,44 +238,6 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen> {
                         fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedRole = "FIELD";
-                          showLoginForm = true;
-                        });
-                        _idController.text = "FW0002";
-                        _passwordController.text = "hJWc7k2Yj1";
-                      },
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.errorRed,
-                        padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      child: const Text("Fill Field (FW0002)"),
-                    ),
-                  ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedRole = "COORDINATOR";
-                          showLoginForm = true;
-                        });
-                        _idController.text = "COOD0001";
-                        _passwordController.text = "3hNuNUmrL5";
-                      },
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.errorRed,
-                        padding: EdgeInsets.zero,
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      child: const Text("Fill Coordinator (COOD0001)"),
-                    ),
-                  ),
                 ],
               ),
             ),

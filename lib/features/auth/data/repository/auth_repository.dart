@@ -33,7 +33,13 @@ class AuthRepository {
       print("========= LOGIN ERROR (AuthRepository) =========");
       print("Error Message: ${e.message}");
 
-      throw Exception(e.response?.data["message"] ?? "Login failed");
+      final data = e.response?.data;
+      String message = "Login failed";
+      if (data is Map && data["message"] != null) {
+        message = data["message"].toString();
+      }
+
+      throw Exception(message);
     }
   }
 }

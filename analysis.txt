@@ -1,0 +1,20 @@
+﻿Analyzing schemes...                                            
+
+warning - Unused import: 'dart:convert' - lib\features\schemes\data\repository\scheme_repository.dart:3:8 - unused_import
+warning - Unused import: '../../../../core/utils/storage_service.dart' - lib\features\schemes\data\repository\scheme_repository.dart:6:8 - unused_import
+   info - The file name 'Superadmin_scheme_applications_screen.dart' isn't a lower_case_with_underscores identifier - lib\features\schemes\presentation\screens\Superadmin_scheme_applications_screen.dart:1:1 - file_names
+   info - The file name 'Superadmin_scheme_management_screen.dart' isn't a lower_case_with_underscores identifier - lib\features\schemes\presentation\screens\Superadmin_scheme_management_screen.dart:1:1 - file_names
+warning - Unused import: 'scheme_list_screen.dart' - lib\features\schemes\presentation\screens\Superadmin_scheme_management_screen.dart:8:8 - unused_import
+warning - Unused import: 'Superadmin_scheme_applications_screen.dart' - lib\features\schemes\presentation\screens\admin_scheme_management_screen.dart:4:8 - unused_import
+   info - Statements in an if should be enclosed in a block - lib\features\schemes\presentation\screens\scheme_applications_admin_screen.dart:51:20 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\schemes\presentation\screens\scheme_applications_admin_screen.dart:52:26 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\schemes\presentation\screens\scheme_applications_admin_screen.dart:53:26 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\schemes\presentation\screens\scheme_applications_admin_screen.dart:54:10 - curly_braces_in_flow_control_structures
+   info - Unnecessary use of 'toList' in a spread - lib\features\schemes\presentation\screens\scheme_dashboard_screen.dart:68:86 - unnecessary_to_list_in_spreads
+   info - The private field _isWithdrawLoading could be 'final' - lib\features\schemes\presentation\screens\scheme_detail_screen.dart:21:8 - prefer_final_fields
+warning - The value of the field '_applicationId' isn't used - lib\features\schemes\presentation\screens\scheme_detail_screen.dart:23:11 - unused_field
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\schemes\presentation\screens\scheme_detail_screen.dart:191:41 - deprecated_member_use
+warning - Unused import: '../../../../core/constants/app_colors.dart' - lib\features\schemes\presentation\screens\scheme_list_screen.dart:3:8 - unused_import
+warning - The '!' will have no effect because the receiver can't be null - lib\features\schemes\presentation\screens\scheme_list_screen.dart:312:28 - unnecessary_non_null_assertion
+warning - The '!' will have no effect because the receiver can't be null - lib\features\schemes\presentation\screens\scheme_list_screen.dart:386:64 - unnecessary_non_null_assertion
+

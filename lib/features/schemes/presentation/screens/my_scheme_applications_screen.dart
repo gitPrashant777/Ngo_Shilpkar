@@ -283,7 +283,7 @@ class _MySchemeApplicationsScreenState
                           : () => _showWaiverDialog(app, provider),
                       icon: const Icon(Icons.request_page, size: 16),
                       label: const Text(
-                        'Fee Waiver',
+                        'Contribution Waiver',
                         style: TextStyle(fontSize: 12),
                       ),
                       style: OutlinedButton.styleFrom(
@@ -490,7 +490,7 @@ class _MySchemeApplicationsScreenState
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Request Fee Waiver'),
+              title: const Text('Request Contribution Waiver'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

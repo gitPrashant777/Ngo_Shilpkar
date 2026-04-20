@@ -171,11 +171,10 @@ class AuthProvider extends ChangeNotifier {
       debugPrint("Status Code: $statusCode");
       debugPrint("Response: $responseData");
 
-      if (responseData != null && responseData["message"] != null) {
+      if (responseData is Map && responseData["message"] != null) {
         _errorMessage = responseData["message"].toString();
       } else {
-        _errorMessage =
-        "HTTP ${statusCode ?? ""} - ${e.message}";
+        _errorMessage = "HTTP ${statusCode ?? ""} - ${e.message}";
       }
 
       return false;

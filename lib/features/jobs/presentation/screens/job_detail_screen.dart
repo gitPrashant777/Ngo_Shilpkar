@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shilpkar/core/constants/user_roles.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -234,7 +235,7 @@ class _BottomActionBar extends StatelessWidget {
       );
     }
 
-    if (userRole == 'ADMIN' || userRole == 'SUPER_ADMIN') {
+    if (userRole == UserRole.admin || userRole == UserRole.superAdmin) {
       return JobPrimaryButton(
         label: l10n.viewApplicationsBtn,
         color: AppColors.appBarBlue,
@@ -247,7 +248,7 @@ class _BottomActionBar extends StatelessWidget {
       );
     }
 
-    if (userRole == 'FIELD' || userRole == 'COORDINATOR') {
+    if (UserRole.isEmployeeRole(userRole)) {
       return JobPrimaryButton(
         label: l10n.notEligibleToApply,
         onPressed: null,

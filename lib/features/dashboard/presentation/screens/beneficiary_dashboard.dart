@@ -20,7 +20,7 @@ import '../../../chat/presentation/screens/public_broadcast_screen.dart';
 import '../../../ecommerce/presentation/screens/public/user_orders_screen.dart';
 import '../../../../shared/widgets/dashboard_section.dart';
 import 'package:shilpkar/features/notifications/presentation/widgets/notification_bell.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../shared/widgets/homepage_cover_media.dart';
 import '../../../status/presentation/providers/status_provider.dart';
 import '../../../status/presentation/screens/status_viewer_screen.dart';
 import 'package:shilpkar/features/jobs/presentation/screens/apply_job_screen.dart';
@@ -349,60 +349,64 @@ class _BeneficiaryDashboardState extends State<BeneficiaryDashboard> {
 
   Widget _buildHeroSection() {
     return Consumer<HomepageProvider>(
-      builder: (context, provider, _) {
-        String? bannerUrl;
-        if (provider.homepage != null &&
-            provider.homepage!.coverImages.isNotEmpty) {
-          bannerUrl = provider.homepage!.coverImages.first.url;
-        }
-        return Container(
-          height: 180,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: bannerUrl != null
-                  ? CachedNetworkImageProvider(bannerUrl)
-                  : const AssetImage('assets/Images/Frame2.png')
-                        as ImageProvider,
-              fit: BoxFit.cover,
-              colorFilter: const ColorFilter.mode(
-                Colors.black45,
-                BlendMode.darken,
-              ),
-            ),
-          ),
-          child: Center(
-            child: Consumer<LanguageProvider>(
-              builder: (context, _, __) {
-                final l10n = AppLocalizations.of(context)!;
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      l10n.welcomeShilpkar,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+          builder: (context, provider, _) {
+            if (!provider.welcomeVisible) {
+              return const SizedBox.shrink();
+            }
+            String? bannerUrl;
+            String? bannerVideo;
+            if (provider.homepage != null) {
+              if (provider.homepage!.coverImages.isNotEmpty) {
+                bannerUrl = provider.homepage!.coverImages.first.url;
+              }
+              if (provider.homepage!.coverVideos.isNotEmpty) {
+                bannerVideo = provider.homepage!.coverVideos.first.url;
+              }
+            }
+            return Stack(
+              children: [
+                HomepageCoverMedia(
+                  fallbackAsset: 'assets/Images/Frame2.png',
+                  imageUrl: bannerUrl,
+                  videoUrl: bannerVideo,
+                  height: 180,
+                ),
+                Positioned.fill(child: Container(color: Colors.black45)),
+                Positioned.fill(
+                  child: Center(
+                    child: Consumer<LanguageProvider>(
+                      builder: (context, _, __) {
+                        final l10n = AppLocalizations.of(context)!;
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              l10n.welcomeShilpkar,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: Text(
+                                l10n.empoweringCommunities,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Text(
-                        l10n.empoweringCommunities,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-        );
+                  ),
+                ),
+              ],
+            );
       },
     );
   }

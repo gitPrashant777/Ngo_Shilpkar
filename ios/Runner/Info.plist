@@ -45,5 +45,18 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>ngoapp</string>
+			</array>
+		</dict>
+	</array>
+	<key>AssociatedDomains</key>
+	<array>
+		<string>applinks:ngo-project.com</string>
+	</array>
 </dict>
 </plist>

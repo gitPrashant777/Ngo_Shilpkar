@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shilpkar/core/constants/user_roles.dart';
 import '../../../../core/navigation/main_navigation.dart';
 import '../providers/auth_provider.dart';
 import '../../data/models/login_request.dart';
-import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final String role;
@@ -139,8 +139,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       final role =
                           context.read<AuthProvider>().role;
 
-                      if (role == "SUPER_ADMIN" ||
-                          role == "ADMIN" || role == "BENEFICIARY" || role == "FIELD" || role == "COORDINATOR" || role == "EMPLOYEE") {
+                      if (role == UserRole.superAdmin ||
+                          role == UserRole.admin ||
+                          role == UserRole.beneficiary ||
+                          UserRole.isEmployeeRole(role)) {
                         Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(

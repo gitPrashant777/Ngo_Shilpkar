@@ -77,13 +77,13 @@ class _SplashScreenState extends State<SplashScreen>
               children: [
                 // ── Foundation Logo ──────────────────────────────────────────
                 Image.asset(
-                  'assets/Images/logoSk.png',
-                  width: 250, // Slightly increased for impact
-                  height: 250,
+                  'assets/Images/home.jpeg',
+                  width: 280,
+                  height: 280,
                   fit: BoxFit.contain,
                 ),
 
-                const SizedBox(height: 30), // Increased spacing for a cleaner look
+                const SizedBox(height: 12),
 
                 // ── Registration Badge ───────────────────────────────────────
                 Container(
@@ -111,7 +111,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
 
-                const SizedBox(height: 40),
+                const SizedBox(height: 24),
 
                 // Optional: Loading indicator to show the app is working
                 const SizedBox(

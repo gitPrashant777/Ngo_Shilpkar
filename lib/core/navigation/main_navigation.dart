@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shilpkar/core/constants/user_roles.dart';
 
 import 'package:shilpkar/l10n/app_localizations.dart';
 import 'package:shilpkar/features/onboarding/presentation/providers/onboarding_provider.dart';
@@ -10,17 +11,13 @@ import 'package:shilpkar/features/auth/presentation/screens/public_home_screen.d
 import 'package:shilpkar/features/jobs/presentation/screens/job_list_screen.dart';
 import 'package:shilpkar/features/schemes/presentation/screens/scheme_list_screen.dart';
 import 'package:shilpkar/features/schemes/presentation/screens/public_scheme_login_gate.dart';
-import 'package:shilpkar/features/schemes/presentation/screens/Superadmin_scheme_management_screen.dart';
 import 'package:shilpkar/features/admin/presentation/screens/superAdmin_dashboard.dart';
 import 'package:shilpkar/features/admin/presentation/screens/admin_dashboard.dart';
 import 'package:shilpkar/features/auth/presentation/screens/profile_screen.dart';
 import 'package:shilpkar/features/jobs/presentation/screens/admin_job_management_screen.dart';
 
-import '../../features/beneficiary/presentation/screens/my_application_screen.dart';
 import '../../features/dashboard/presentation/screens/beneficiary_dashboard.dart';
 import '../../features/employee/presentation/screens/employee_dashboard.dart';
-import '../../features/jobs/presentation/screens/user_job_list_screen.dart';
-import '../../features/schemes/presentation/screens/user_scheme_list_screen.dart';
 import '../../features/attendance/presentation/screens/attendance_screen.dart';
 import '../../features/chat/presentation/screens/chat_list_screen.dart' as shilpkar;
 
@@ -57,7 +54,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final onboarding = context.watch<OnboardingProvider>();
 
     // Global Guard for Beneficiaries
-    if (role == "BENEFICIARY") {
+    if (role == UserRole.beneficiary) {
       final status = onboarding.status?.status;
 
       // Trigger check only once per session
@@ -87,28 +84,28 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
     // Define pages based on role
     List<Widget> pages = [];
-    if (role == "SUPER_ADMIN") {
+    if (role == UserRole.superAdmin) {
       pages = [
         const AdminJobManagementScreen(),
         const SuperAdminDashboard(),
         const SchemeListScreen(),
         const ProfileScreen(),
       ];
-    } else if (role == "ADMIN") {
+    } else if (role == UserRole.admin) {
       pages = [
         const AdminJobManagementScreen(),
         const AdminDashboard(),
         const SchemeListScreen(),
         const ProfileScreen(),
       ];
-    } else if (role == "BENEFICIARY") {
+    } else if (role == UserRole.beneficiary) {
       pages = [
         const JobListScreen(),
         const BeneficiaryDashboard(),
         const SchemeListScreen(),
         const ProfileScreen(),
       ];
-    } else if (role == "FIELD" || role == "COORDINATOR" || role == "EMPLOYEE") {
+    } else if (UserRole.isEmployeeRole(role)) {
       pages = [
         const shilpkar.ChatListScreen(),
         const EmployeeDashboard(),
@@ -149,14 +146,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   List<NavItem> _getNavItemsData(String? role) {
     final l10n = AppLocalizations.of(context)!;
-    if (role == "BENEFICIARY") {
+    if (role == UserRole.beneficiary) {
       return [
         NavItem(icon: Icons.work, label: l10n.navJobs),
         NavItem(icon: Icons.home, label: l10n.navHome),
         NavItem(icon: Icons.assignment, label: l10n.navSchemes),
         NavItem(icon: Icons.person, label: l10n.navProfile),
       ];
-    } else if (role == "FIELD" || role == "COORDINATOR" || role == "EMPLOYEE") {
+    } else if (UserRole.isEmployeeRole(role)) {
       return [
         NavItem(icon: Icons.chat, label: l10n.navChat),
         NavItem(icon: Icons.dashboard, label: l10n.navDashboard),

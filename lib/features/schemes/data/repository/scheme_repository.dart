@@ -105,6 +105,13 @@ class SchemeRepository {
     return SchemeModel.fromJson(data);
   }
 
+  /// Get Single Scheme (Public)
+  Future<SchemeModel> getPublicSchemeById(String schemeId) async {
+    final response = await _dio.get("/schemes/$schemeId");
+    final data = response.data["data"] ?? response.data;
+    return SchemeModel.fromJson(data);
+  }
+
   /// Get Public Scheme Price (Beneficiary)
   /// GET /api/schemes/:schemeId — used to fetch scheme price when not populated in application
   Future<double> getPublicSchemePrice(String schemeId) async {

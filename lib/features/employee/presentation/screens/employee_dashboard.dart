@@ -6,6 +6,7 @@ import '../../../../core/providers/language_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/dashboard_info_card.dart';
 import '../../../../shared/widgets/dashboard_info_box.dart';
+import '../../../../core/constants/user_roles.dart';
 import '../../../attendance/presentation/screens/attendance_screen.dart';
 import '../../../attendance/presentation/screens/attendance_list_screen.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -13,9 +14,11 @@ import '../../../chat/presentation/screens/chat_request_screen.dart';
 import '../../../home/presentation/providers/homepage_provider.dart';
 import '../../../chat/presentation/screens/public_broadcast_screen.dart';
 import '../../../../features/admin/presentation/screens/create_beneficiary_screen.dart';
+import 'offline_beneficiary_screen.dart';
+import 'online_beneficiary_screen.dart';
 import '../../../../shared/widgets/dashboard_section.dart';
 import 'package:shilpkar/features/notifications/presentation/widgets/notification_bell.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../shared/widgets/homepage_cover_media.dart';
 import '../../../../features/employee/presentation/screens/employee_payment_screens.dart';
 import '../../../status/presentation/providers/status_provider.dart';
 import '../../../status/presentation/screens/status_viewer_screen.dart';
@@ -138,7 +141,7 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
 
                   // ─── User Management ─────────────────────────────────────────
                   DashboardSection(
-                    title: l10n.userManagement ?? "User Management",
+                    title: l10n.userManagement,
                     icon: Icons.people_alt_outlined,
                     color: AppColors.appBarBlue,
                     child: Column(
@@ -147,14 +150,14 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
                           children: [
                             Expanded(
                               child: DashboardInfoBox(
-                                title: l10n.makeBeneficiary,
-                                subtitle: l10n.makeBeneficiarySub,
-                                buttonLabel: 'View Details',
-                                icon: Icons.group_add,
+                                title: 'Add Beneficiary',
+                                subtitle: 'Choose online or offline mode',
+                                buttonLabel: 'Create',
+                                icon: Icons.person_add_alt_1_outlined,
                                 bgColor: Colors.blue.shade50,
                                 iconColor: AppColors.appBarBlue,
                                 buttonColor: AppColors.appBarBlue,
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateBeneficiaryScreen())),
+                                onTap: () => _showOnboardingMode(context),
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -191,6 +194,10 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context, AppLocalizations l10n) {
+    final role = context.read<AuthProvider>().role;
+    final String title = UserRole.isCoordinatorRole(role)
+        ? '${UserRole.displayName(role ?? UserRole.coordinator)} Dashboard'
+        : l10n.shilpkarEmployee;
     return AppBar(
       backgroundColor: AppColors.appBarBlue,
       elevation: 0,
@@ -200,7 +207,7 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              l10n.shilpkarEmployee,
+              title,
               style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -241,46 +248,109 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
     );
   }
 
+  void _showOnboardingMode(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              const Text(
+                'Select Onboarding Mode',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 12),
+              ListTile(
+                title: const Text('Online Mode'),
+                subtitle: const Text('Beneficiary has a smartphone'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const OnlineBeneficiaryScreen(),
+                    ),
+                  );
+                },
+              ),
+              const Divider(height: 1),
+              ListTile(
+                title: const Text('Offline Mode'),
+                subtitle: const Text('No OTP, immediate creation'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const OfflineBeneficiaryScreen(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildHeroSection(AppLocalizations l10n) {
     return Consumer<HomepageProvider>(
       builder: (context, provider, _) {
-        String? bannerUrl;
-        if (provider.homepage != null &&
-            provider.homepage!.coverImages.isNotEmpty) {
-          bannerUrl = provider.homepage!.coverImages.first.url;
+        if (!provider.welcomeVisible) {
+          return const SizedBox.shrink();
         }
-        return Container(
-          height: 180,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: bannerUrl != null
-                  ? CachedNetworkImageProvider(bannerUrl)
-                  : const AssetImage('assets/Images/Frame2.png')
-                      as ImageProvider,
-              fit: BoxFit.cover,
-              colorFilter: const ColorFilter.mode(Colors.black45, BlendMode.darken),
+        String? bannerUrl;
+        String? bannerVideo;
+        if (provider.homepage != null) {
+          if (provider.homepage!.coverImages.isNotEmpty) {
+            bannerUrl = provider.homepage!.coverImages.first.url;
+          }
+          if (provider.homepage!.coverVideos.isNotEmpty) {
+            bannerVideo = provider.homepage!.coverVideos.first.url;
+          }
+        }
+        return Stack(
+          children: [
+            HomepageCoverMedia(
+              fallbackAsset: 'assets/Images/Frame2.png',
+              imageUrl: bannerUrl,
+              videoUrl: bannerVideo,
+              height: 180,
             ),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(l10n.welcomeShilpkar,
-                    style: const TextStyle(
+            Positioned.fill(child: Container(color: Colors.black45)),
+            Positioned.fill(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      l10n.welcomeShilpkar,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
-                        fontWeight: FontWeight.bold)),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(l10n.empoweringCommunities,
-                      textAlign: TextAlign.center,
-                      style:
-                          const TextStyle(color: Colors.white, fontSize: 12)),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        l10n.empoweringCommunities,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         );
       },
     );

@@ -557,9 +557,12 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
           );
         }
 
-        final coverImages = provider.coverImageUrls;
-        final title = provider.welcomeTitle;
-        final subtitle = provider.welcomeSubtitle;
+          final coverImages = provider.coverImageUrls;
+          if (!provider.welcomeVisible) {
+            return const SizedBox.shrink();
+          }
+          final title = provider.welcomeTitle;
+          final subtitle = provider.welcomeSubtitle;
 
         return SizedBox(
           height: 180,

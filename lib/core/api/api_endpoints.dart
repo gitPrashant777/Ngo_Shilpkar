@@ -1,8 +1,7 @@
 class ApiEndpoints {
-  static const String baseUrl = "https://ngo-project-r7cc.onrender.com/api";
+  static const String baseUrl =  "https://ngo-project-r7cc.onrender.com/api";
 
-  // ── Auth ───────────────────────────────────────────────────────────────────
-  static const String login = "/auth/login";
+  // ── Auth ───────────────────────────────────────────────────────────────────static const String login = "/auth/login";
   static const String profileMe = "/profile/me";
   static const String forgotPassword = "/auth/superadmin-forgot-password";
 
@@ -22,6 +21,15 @@ class ApiEndpoints {
   static const String usersEmployees = "/users/employees";
   static const String usersCoordinators = "/users/coordinators";
   static const String usersBeneficiaries = "/users/beneficiaries";
+  static const String usersCommunity = "/users/community";
+  static String userCommunityProfile(String id) => "/users/$id/profile";
+  static String userStartChat(String id) => "/users/$id/start-chat";
+  static const String userDeletionRequest = "/users/request-deletion";
+  static const String userDeletionRequests = "/users/deletion-requests";
+  static const String userDeactivatedHistory = "/users/deactivated-history";
+  static String userApproveDeletion(String id) => "/users/$id/approve-deletion";
+  static const String userCategories = "/users/categories";
+  static String userVerify(String id) => "/users/$id/verify";
   static String userDeactivate(String id) => "/users/$id/deactivate";
 
   // ── Terms & Conditions ─────────────────────────────────────────────────────
@@ -44,4 +52,18 @@ class ApiEndpoints {
 
   // ── Beneficiary Pending Payments ───────────────────────────────────────────
   static const String beneficiaryPendingPayments = "/beneficiaries/pending-payments";
+  static const String beneficiariesOffline = "/beneficiaries/offline";
+  static const String beneficiariesOnlineInitiate = "/beneficiaries/online-initiate";
+  static const String beneficiariesOnlineVerify = "/beneficiaries/online-verify";
+  static const String beneficiariesOnlineResendOtp =
+      "/beneficiaries/online-resend-otp";
+  static const String beneficiariesCashRequest = "/beneficiaries/cash-request";
+  static const String beneficiariesCashRequests = "/beneficiaries/cash-requests";
+  static String beneficiariesCashApprove(String id) =>
+      "/beneficiaries/cash-requests/$id/approve";
+
+  // Admin CMS
+  static const String adminAboutPage = "/admin/pages/about";
+  static const String adminEmergencySiren =
+      "/admin/pages/settings/emergency-siren";
 }

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "757551304535",
+    "project_id": "talknow-b7b22",
+    "storage_bucket": "talknow-b7b22.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:757551304535:android:3167872a5292ae83793812",
+        "android_client_info": {
+          "package_name": "com.example.shilpkar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDABNHfdz52MsNaJwlXoyvCl9GKg9rmbN8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:757551304535:android:e8487d3ecd7a3cbd793812",
+        "android_client_info": {
+          "package_name": "com.prashantkumar957.talk_now"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDABNHfdz52MsNaJwlXoyvCl9GKg9rmbN8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

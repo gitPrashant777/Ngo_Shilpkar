@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shilpkar/core/constants/user_roles.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/SelectableItemCard.dart';
 import '../../../../shared/widgets/custom_button.dart';
@@ -14,12 +15,30 @@ class SelectEmployeeRoleScreen extends StatefulWidget {
 
 class _SelectEmployeeRoleScreenState
     extends State<SelectEmployeeRoleScreen> {
-
   String? selectedRole;
+
+  List<_RoleOption> _roleOptions(AppLocalizations l10n) => [
+        const _RoleOption(
+          role: UserRole.districtCoordinator,
+          title: 'District Coordinator',
+          subtitle: 'Coordinates district-level operations',
+        ),
+        const _RoleOption(
+          role: UserRole.talukaCoordinator,
+          title: 'Taluka Coordinator',
+          subtitle: 'Coordinates taluka-level teams and activities',
+        ),
+        const _RoleOption(
+          role: UserRole.villageCoordinator,
+          title: 'Village Coordinator',
+          subtitle: 'Coordinates village-level field activities',
+        ),
+      ];
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final options = _roleOptions(l10n);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FB),
@@ -33,31 +52,31 @@ class _SelectEmployeeRoleScreenState
         child: Column(
           children: [
             const SizedBox(height: 40),
-            Text(
-              l10n.selectEmployeeRole,
-              style: const TextStyle(
+            const Text(
+              'Select Coordinator Role',
+              style: TextStyle(
                   fontSize: 26, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Text(
-              l10n.chooseEmployeeType,
-              style: const TextStyle(color: Colors.grey),
+            const Text(
+              'Choose the type of coordinator to create',
+              style: TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 40),
 
-            _buildRoleCard(
-              title: l10n.fieldEmployeeLabel,
-              subtitle: l10n.worksOnGround,
-              role: "FIELD",
-            ),
-
-            const SizedBox(height: 20),
-
-            _buildRoleCard(
-              title: l10n.coordinatorLabel,
-              subtitle: l10n.managesFieldEmployees,
-              role: "COORDINATOR",
-            ),
+            ...List.generate(options.length, (index) {
+              final option = options[index];
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: index == options.length - 1 ? 0 : 20,
+                ),
+                child: _buildRoleCard(
+                  title: option.title,
+                  subtitle: option.subtitle,
+                  role: option.role,
+                ),
+              );
+            }),
 
             const Spacer(),
 
@@ -70,7 +89,7 @@ class _SelectEmployeeRoleScreenState
                   context,
                   MaterialPageRoute(
                     builder: (_) =>
-                        MakeEmployeeScreen(role: selectedRole!),
+                        MakeCoordinatorScreen(role: selectedRole!),
                   ),
                 );
               },
@@ -101,3 +120,14 @@ class _SelectEmployeeRoleScreenState
   }
 }
 
+class _RoleOption {
+  final String role;
+  final String title;
+  final String subtitle;
+
+  const _RoleOption({
+    required this.role,
+    required this.title,
+    required this.subtitle,
+  });
+}

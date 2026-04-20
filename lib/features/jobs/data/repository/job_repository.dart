@@ -112,6 +112,21 @@ class JobRepository {
   }
 
   // =============================
+  // GET SINGLE JOB
+  // =============================
+  Future<JobModel> getJobById(String jobId) async {
+    try {
+      final response = await _client.dio.get('/jobs/$jobId');
+      final data = response.data['data'] ?? response.data;
+      return JobModel.fromJson(data);
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data["message"] ?? "Failed to fetch job details",
+      );
+    }
+  }
+
+  // =============================
   // UPLOAD FILE (Resume / Photo)
   // =============================
   /// Skips NGO auth when no admin token is present.

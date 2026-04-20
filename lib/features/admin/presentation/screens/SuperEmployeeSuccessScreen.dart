@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 
 import '../../../../l10n/app_localizations.dart';
 
-class EmployeeSuccessScreen extends StatelessWidget {
+class CoordinatorSuccessScreen extends StatelessWidget {
   final String username;
   final String password;
 
-  const EmployeeSuccessScreen({
+  const CoordinatorSuccessScreen({
     super.key,
     required this.username,
     required this.password,
@@ -17,7 +17,7 @@ class EmployeeSuccessScreen extends StatelessWidget {
     Clipboard.setData(ClipboardData(text: value));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(l10n.copiedToClipboard(label)),
+        content: Text("Copied $label to clipboard"),
         backgroundColor: Colors.green,
       ),
     );
@@ -28,8 +28,8 @@ class EmployeeSuccessScreen extends StatelessWidget {
     Clipboard.setData(ClipboardData(text: combined));
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l10n.credentialsCopied),
+      const SnackBar(
+        content: Text("Credentials copied successfully"),
         backgroundColor: Colors.green,
       ),
     );
@@ -49,9 +49,9 @@ class EmployeeSuccessScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 40),
 
-              Text(
-                l10n.appName,
-                style: const TextStyle(
+              const Text(
+                "Shilpkar Foundation",
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF55789A),
@@ -60,9 +60,9 @@ class EmployeeSuccessScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              Text(
-                l10n.employeeCreatedSuccess,
-                style: const TextStyle(
+              const Text(
+                "Coordinator Created Successfully",
+                style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF7A9E6F),
@@ -71,9 +71,9 @@ class EmployeeSuccessScreen extends StatelessWidget {
 
               const SizedBox(height: 32),
 
-              Text(
-                l10n.credentialsForEmployee,
-                style: const TextStyle(fontSize: 16),
+              const Text(
+                "The credentials for the created coordinator are:",
+                style: TextStyle(fontSize: 16),
               ),
 
               const SizedBox(height: 24),
@@ -83,7 +83,7 @@ class EmployeeSuccessScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: SelectableText(
-                      l10n.usernameLabel(username),
+                      "Username: $username",
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 16),
                     ),
@@ -103,7 +103,7 @@ class EmployeeSuccessScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: SelectableText(
-                      l10n.passwordLabel(password),
+                      "Password: $password",
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 16),
                     ),
@@ -122,9 +122,9 @@ class EmployeeSuccessScreen extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () => _copyAll(context, l10n),
                   icon: const Icon(Icons.copy),
-                  label: Text(
-                    l10n.copyAllCredentials,
-                    style: const TextStyle(color: Colors.white),
+                  label: const Text(
+                    "Copy All Credentials",
+                    style: TextStyle(color: Colors.white),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF55789A),
@@ -140,9 +140,9 @@ class EmployeeSuccessScreen extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey,
                   ),
-                  child: Text(
-                    l10n.ok,
-                    style: const TextStyle(color: Colors.white),
+                  child: const Text(
+                    "OK",
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
               ),

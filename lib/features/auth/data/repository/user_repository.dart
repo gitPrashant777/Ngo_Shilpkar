@@ -301,4 +301,441 @@ class UserRepository {
        throw Exception(e.response?.data["message"] ?? "Failed to fetch beneficiary");
     }
   }
+
+  // ============================
+  // COMMUNITY DIRECTORY
+  // ============================
+  Future<Map<String, dynamic>> getCommunityUsers({
+      int page = 1,
+      int limit = 20,
+      String? role,
+      String? search,
+      String? state,
+      String? district,
+      String? taluka,
+      String? category,
+      bool? verified,
+    }) async {
+    try {
+      final response = await _client.dio.get(
+        ApiEndpoints.usersCommunity,
+        queryParameters: {
+          'page': page,
+          'limit': limit,
+          if (role != null && role.isNotEmpty) 'role': role,
+          if (search != null && search.isNotEmpty) 'search': search,
+          if (state != null && state.isNotEmpty) 'state': state,
+            if (district != null && district.isNotEmpty) 'district': district,
+            if (taluka != null && taluka.isNotEmpty) 'taluka': taluka,
+            if (category != null && category.isNotEmpty) 'category': category,
+            if (verified != null) 'verified': verified,
+          },
+        );
+
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : <String, dynamic>{};
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to fetch community members',
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> getBeneficiariesPage({
+    int page = 1,
+    int limit = 20,
+    String? search,
+    String? category,
+  }) async {
+    try {
+      final response = await _client.dio.get(
+        ApiEndpoints.usersBeneficiaries,
+        queryParameters: {
+          'page': page,
+          'limit': limit,
+          if (search != null && search.isNotEmpty) 'search': search,
+          if (category != null && category.isNotEmpty) 'category': category,
+        },
+      );
+
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : <String, dynamic>{};
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to fetch beneficiaries',
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> getCommunityProfile(String userId) async {
+    try {
+      final response = await _client.dio.get(
+        ApiEndpoints.userCommunityProfile(userId),
+      );
+
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : <String, dynamic>{};
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to fetch profile',
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> startCommunityChat(
+    String userId, {
+    String? topic,
+    String? requesterId,
+  }) async {
+    try {
+      final payload = <String, dynamic>{
+        'responder': userId,
+        if (topic != null && topic.isNotEmpty) 'topic': topic,
+        if (requesterId != null && requesterId.isNotEmpty)
+          'requester': requesterId,
+      };
+
+      final response = await _client.dio.post(
+        ApiEndpoints.userStartChat(userId),
+        data: payload,
+        queryParameters: payload,
+      );
+
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : <String, dynamic>{};
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to start chat',
+      );
+    }
+  }
+
+  // ============================
+  // DELETION WORKFLOW
+  // ============================
+  Future<Map<String, dynamic>> getDeletionRequests() async {
+    try {
+      final response = await _client.dio.get(
+        ApiEndpoints.userDeletionRequests,
+      );
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : <String, dynamic>{};
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to fetch deletion requests',
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> getDeactivatedHistory() async {
+    try {
+      final response = await _client.dio.get(
+        ApiEndpoints.userDeactivatedHistory,
+      );
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : <String, dynamic>{};
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to fetch deactivated users',
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> approveDeletion(String userId) async {
+    try {
+      final response = await _client.dio.patch(
+        ApiEndpoints.userApproveDeletion(userId),
+      );
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : <String, dynamic>{};
+    } on DioException catch (e) {
+      if (e.response?.data is Map<String, dynamic>) {
+        return e.response?.data as Map<String, dynamic>;
+      }
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to approve deletion',
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyUser(String userId) async {
+    try {
+      final response = await _client.dio.patch(
+        ApiEndpoints.userVerify(userId),
+      );
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : <String, dynamic>{};
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to verify account',
+      );
+    }
+  }
+
+  // ============================
+  // USER CATEGORIES
+  // ============================
+  Future<List<Map<String, dynamic>>> getUserCategories() async {
+    try {
+      final response = await _client.dio.get(
+        ApiEndpoints.userCategories,
+      );
+      final raw = response.data;
+      if (raw is Map<String, dynamic> && raw['data'] is List) {
+        return (raw['data'] as List)
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+      }
+      if (raw is List) {
+        return raw
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+      }
+      return <Map<String, dynamic>>[];
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to fetch categories',
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> createUserCategory({
+    required String name,
+    String? description,
+  }) async {
+    try {
+      final response = await _client.dio.post(
+        ApiEndpoints.userCategories,
+        data: {
+          'name': name,
+          if (description != null && description.isNotEmpty)
+            'description': description,
+        },
+      );
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : <String, dynamic>{};
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to create category',
+      );
+    }
+  }
+
+  // ============================
+  // OFFLINE BENEFICIARIES & CASH
+  // ============================
+  Future<Map<String, dynamic>> createOfflineBeneficiary({
+    required String name,
+    String? mobile,
+    String? email,
+    required String category,
+    required String dob,
+    String? gender,
+    String? aadharNumber,
+    String? aadharPhotoUrl,
+    String? panNumber,
+    String? panPhotoUrl,
+    required String state,
+    required String district,
+    required String village,
+  }) async {
+    try {
+      final response = await _client.dio.post(
+        ApiEndpoints.beneficiariesOffline,
+        data: {
+          'name': name,
+          'category': category,
+          'dob': dob,
+          if (mobile != null && mobile.trim().isNotEmpty) 'mobile': mobile,
+          if (email != null && email.trim().isNotEmpty) 'email': email,
+          if (gender != null && gender.trim().isNotEmpty) 'gender': gender,
+          if (aadharNumber != null && aadharNumber.trim().isNotEmpty)
+            'aadharNumber': aadharNumber,
+          if (aadharPhotoUrl != null && aadharPhotoUrl.trim().isNotEmpty)
+            'aadharPhotoUrl': aadharPhotoUrl,
+          if (panNumber != null && panNumber.trim().isNotEmpty)
+            'panNumber': panNumber,
+          if (panPhotoUrl != null && panPhotoUrl.trim().isNotEmpty)
+            'panPhotoUrl': panPhotoUrl,
+          'location': {
+            'state': state,
+            'district': district,
+            'village': village,
+          },
+        },
+      );
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : <String, dynamic>{};
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to create offline beneficiary',
+      );
+    }
+  }
+
+  // ============================
+  // ONLINE BENEFICIARY ONBOARDING
+  // ============================
+  Future<Map<String, dynamic>> initiateOnlineBeneficiary({
+    required String name,
+    required String mobile,
+    required String email,
+    required String dob,
+    required String gender,
+    required String category,
+    required String password,
+    required String state,
+    required String district,
+    String? taluka,
+    String? aadharNumber,
+    String? aadharPhotoUrl,
+    String? panNumber,
+    String? panPhotoUrl,
+  }) async {
+    try {
+      final response = await _client.dio.post(
+        ApiEndpoints.beneficiariesOnlineInitiate,
+        data: {
+          'name': name,
+          'mobile': mobile,
+          'email': email,
+          'dob': dob,
+          'gender': gender,
+          'category': category,
+          'password': password,
+          'location': {
+            'state': state,
+            'district': district,
+            if (taluka != null && taluka.trim().isNotEmpty) 'taluka': taluka,
+          },
+          if (aadharNumber != null && aadharNumber.trim().isNotEmpty)
+            'aadharNumber': aadharNumber,
+          if (aadharPhotoUrl != null && aadharPhotoUrl.trim().isNotEmpty)
+            'aadharPhotoUrl': aadharPhotoUrl,
+          if (panNumber != null && panNumber.trim().isNotEmpty)
+            'panNumber': panNumber,
+          if (panPhotoUrl != null && panPhotoUrl.trim().isNotEmpty)
+            'panPhotoUrl': panPhotoUrl,
+        },
+      );
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : <String, dynamic>{};
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to initiate online beneficiary',
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyOnlineBeneficiary({
+    required String mobile,
+    required String otp,
+  }) async {
+    try {
+      final response = await _client.dio.post(
+        ApiEndpoints.beneficiariesOnlineVerify,
+        data: {
+          'mobile': mobile,
+          'otp': otp,
+        },
+      );
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : <String, dynamic>{};
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to verify beneficiary',
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> resendOnlineBeneficiaryOtp({
+    required String mobile,
+  }) async {
+    try {
+      final response = await _client.dio.post(
+        ApiEndpoints.beneficiariesOnlineResendOtp,
+        data: {
+          'mobile': mobile,
+        },
+      );
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : <String, dynamic>{};
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to resend OTP',
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> requestCashSettlement({
+    required String beneficiaryId,
+    required num amount,
+    required String module,
+    required String moduleRefId,
+  }) async {
+    try {
+      final response = await _client.dio.post(
+        ApiEndpoints.beneficiariesCashRequest,
+        data: {
+          'beneficiaryId': beneficiaryId,
+          'amount': amount,
+          'module': module,
+          'moduleRefId': moduleRefId,
+        },
+      );
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : <String, dynamic>{};
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to request cash settlement',
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> getCashRequests({String status = 'PENDING'}) async {
+    try {
+      final response = await _client.dio.get(
+        ApiEndpoints.beneficiariesCashRequests,
+        queryParameters: {'status': status},
+      );
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : <String, dynamic>{};
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to fetch cash requests',
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> approveCashRequest(String id) async {
+    try {
+      final response = await _client.dio.patch(
+        ApiEndpoints.beneficiariesCashApprove(id),
+      );
+      return response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : <String, dynamic>{};
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to approve cash request',
+      );
+    }
+  }
 }

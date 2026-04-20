@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:shilpkar/core/constants/user_roles.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/data/repository/user_repository.dart';
 import 'SuperEmployeeSuccessScreen.dart';
 
-class MakeEmployeeScreen extends StatefulWidget {
+class MakeCoordinatorScreen extends StatefulWidget {
   final String role;
 
-  const MakeEmployeeScreen({super.key, required this.role});
+  const MakeCoordinatorScreen({super.key, required this.role});
 
   @override
-  State<MakeEmployeeScreen> createState() => _MakeEmployeeScreenState();
+  State<MakeCoordinatorScreen> createState() => _MakeCoordinatorScreenState();
 }
 
-class _MakeEmployeeScreenState extends State<MakeEmployeeScreen> {
+class _MakeCoordinatorScreenState extends State<MakeCoordinatorScreen> {
   final _formKey = GlobalKey<FormState>();
   final Map<String, dynamic> _allFormData = {};
   final Color primaryBlue = const Color(0xFF55789A);
@@ -87,6 +88,7 @@ class _MakeEmployeeScreenState extends State<MakeEmployeeScreen> {
   Widget build(BuildContext context) {
     final repository = UserRepository();
     final l10n = AppLocalizations.of(context)!;
+    final roleTitle = UserRole.displayName(widget.role);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -95,7 +97,7 @@ class _MakeEmployeeScreenState extends State<MakeEmployeeScreen> {
         elevation: 0,
         leading: const BackButton(color: Colors.black),
         title: Text(
-          l10n.createRoleTitle(widget.role),
+          l10n.createRoleTitle(roleTitle),
           style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
       ),
@@ -125,7 +127,7 @@ class _MakeEmployeeScreenState extends State<MakeEmployeeScreen> {
                     validator: (v) => (v!.length != 10) ? l10n.mobileMustBe10 : null),
                 _buildTextField(l10n.emailStar, emailController,
                     validator: (v) => !v!.contains("@") ? l10n.enterValidEmail : null),
-                if (widget.role == "COORDINATOR") _buildDOBField(l10n),
+                if (UserRole.isCoordinatorRole(widget.role)) _buildDOBField(l10n),
 
                 const SizedBox(height: 20),
 
@@ -170,8 +172,6 @@ class _MakeEmployeeScreenState extends State<MakeEmployeeScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     onPressed: () async {
-                      // FIXED: Removed redundant manual null checks.
-                      // Form validators now handle everything correctly.
                       if (_formKey.currentState!.validate()) {
                         await _submit(repository, l10n);
                       } else {
@@ -184,7 +184,7 @@ class _MakeEmployeeScreenState extends State<MakeEmployeeScreen> {
                       }
                     },
                     child: Text(
-                      l10n.createEmployeeBtn,
+                      "Create Coordinator",
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1),
                     ),
                   ),
@@ -304,7 +304,7 @@ class _MakeEmployeeScreenState extends State<MakeEmployeeScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => EmployeeSuccessScreen(
+            builder: (_) => CoordinatorSuccessScreen(
               username: res["username"],
               password: res["password"],
             ),
@@ -313,7 +313,7 @@ class _MakeEmployeeScreenState extends State<MakeEmployeeScreen> {
       }
     } on DioException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.response?.data["message"] ?? l10n.errorCreatingEmployee), backgroundColor: Colors.red),
+        SnackBar(content: Text(e.response?.data["message"] ?? 'Error creating coordinator'), backgroundColor: Colors.red),
       );
     }
   }

@@ -70,7 +70,7 @@ class _MakeCoordinatorScreenState extends State<MakeCoordinatorScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Make Coordinator",
+                    "Create  Coordinator",
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,

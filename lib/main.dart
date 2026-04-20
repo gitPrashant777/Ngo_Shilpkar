@@ -6,8 +6,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'package:shilpkar/core/navigation/main_navigation.dart';
+import 'package:shilpkar/core/deeplinks/deep_link_handler.dart';
+import 'package:shilpkar/core/deeplinks/deep_link_service.dart';
 import 'package:shilpkar/features/admin/presentation/screens/superAdmin_dashboard.dart';
+import 'package:shilpkar/features/jobs/data/repository/job_repository.dart';
 import 'package:shilpkar/features/jobs/presentation/screens/user_job_list_screen.dart';
+import 'package:shilpkar/features/jobs/presentation/screens/job_detail_screen.dart';
 import 'core/constants/app_colors.dart';
 import 'core/providers/language_provider.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
@@ -33,10 +37,15 @@ import 'features/attendance/presentation/providers/attendance_provider.dart';
 import 'features/attendance/presentation/screens/attendance_list_screen.dart';
 import 'features/dashboard/presentation/screens/my_applications_screen.dart';
 import 'features/ecommerce/presentation/screens/public/my_orders_screen.dart';
+import 'features/ecommerce/presentation/screens/public/product_detail_screen.dart';
+import 'features/ecommerce/data/repositories/ecommerce_repository.dart';
 import 'features/notifications/presentation/screens/notification_screen.dart';
 import 'features/dashboard/presentation/providers/dashboard_provider.dart';
 import 'core/utils/device_manager.dart';
+import 'core/notifications/notification_service.dart';
 import 'l10n/app_localizations.dart';
+import 'features/schemes/data/repository/scheme_repository.dart';
+import 'features/schemes/presentation/screens/scheme_detail_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -44,6 +53,14 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   debugPrint("Handling a background message: ${message.messageId}");
+
+  if (message.data['isEmergency']?.toString().toLowerCase() == 'true' ||
+      message.data['type']?.toString() == 'EMERGENCY_BROADCAST') {
+    final sirenUrl = message.data['sirenUrl']?.toString();
+    if (sirenUrl != null && sirenUrl.isNotEmpty) {
+      await NotificationService().playSirenFromUrl(sirenUrl);
+    }
+  }
 }
 
 Future<void> main() async {
@@ -92,10 +109,16 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final DeepLinkService _deepLinkService = DeepLinkService();
+  bool _isHandlingDeepLink = false;
+  final NotificationService _notificationService = NotificationService();
+
   @override
   void initState() {
     super.initState();
     _printFCMToken();
+    _setupDeepLinks();
+    _notificationService.initLocalNotifications();
   }
 
   Future<void> _printFCMToken() async {
@@ -149,7 +172,20 @@ class _MyAppState extends State<MyApp> {
     // 3. Foreground state receive
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (navigatorKey.currentContext != null) {
-        navigatorKey.currentContext!.read<NotificationProvider>().fetchUnreadCount();
+        final context = navigatorKey.currentContext!;
+        context.read<NotificationProvider>().fetchUnreadCount();
+
+        final title = message.notification?.title ?? "New notification";
+        final body = message.notification?.body ?? "";
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(body.isEmpty ? title : "$title: $body"),
+            backgroundColor: AppColors.primaryBlue,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+
+        _notificationService.showForegroundNotification(message);
       }
     });
   }
@@ -189,6 +225,113 @@ class _MyAppState extends State<MyApp> {
           Navigator.push(navigatorKey.currentState!.context, MaterialPageRoute(builder: (_) => const NotificationScreen()));
        }
     }
+  }
+
+  void _setupDeepLinks() {
+    _deepLinkService.onDeepLinkReceived = (uri) {
+      _handleDeepLink(uri);
+    };
+    _deepLinkService.init();
+  }
+
+  Future<void> _handleDeepLink(Uri uri) async {
+    if (_isHandlingDeepLink) return;
+    final data = DeepLinkHandler.parse(uri);
+    if (data == null) return;
+
+    _isHandlingDeepLink = true;
+    try {
+      final type = data['type'];
+      final id = data['id'];
+      if (type == null || id == null) return;
+
+      switch (type) {
+        case 'job':
+          await _openJobById(id);
+          break;
+        case 'product':
+          await _openProductById(id);
+          break;
+        case 'scheme':
+          await _openSchemeById(id);
+          break;
+        default:
+          break;
+      }
+    } finally {
+      _isHandlingDeepLink = false;
+    }
+  }
+
+  Future<void> _openJobById(String id) async {
+    final context = navigatorKey.currentContext;
+    if (context == null) return;
+    _showLoading(context);
+    try {
+      final job = await JobRepository().getJobById(id);
+      _hideLoading(context);
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => JobDetailScreen(job: job)),
+      );
+    } catch (e) {
+      _hideLoading(context);
+      _showSnack(context, "Unable to open job: $e");
+    }
+  }
+
+  Future<void> _openProductById(String id) async {
+    final context = navigatorKey.currentContext;
+    if (context == null) return;
+    _showLoading(context);
+    try {
+      final product = await EcommerceRepository().getProductById(id);
+      _hideLoading(context);
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
+      );
+    } catch (e) {
+      _hideLoading(context);
+      _showSnack(context, "Unable to open product: $e");
+    }
+  }
+
+  Future<void> _openSchemeById(String id) async {
+    final context = navigatorKey.currentContext;
+    if (context == null) return;
+    _showLoading(context);
+    try {
+      final scheme = await SchemeRepository().getPublicSchemeById(id);
+      _hideLoading(context);
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => SchemeDetailScreen(scheme: scheme)),
+      );
+    } catch (e) {
+      _hideLoading(context);
+      _showSnack(context, "Unable to open scheme: $e");
+    }
+  }
+
+  void _showLoading(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  void _hideLoading(BuildContext context) {
+    if (Navigator.of(context, rootNavigator: true).canPop()) {
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+  }
+
+  void _showSnack(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
   }
 
   @override
@@ -244,6 +387,12 @@ class _MyAppState extends State<MyApp> {
         "/onboarding": (context) => const OnboardingScreen(),
       },
     );
+  }
+
+  @override
+  void dispose() {
+    _deepLinkService.dispose();
+    super.dispose();
   }
 }
 
