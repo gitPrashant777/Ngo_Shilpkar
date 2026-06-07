@@ -115,8 +115,8 @@ The backend is powered by AWS Cloud Services for:
 ### Frontend
 
 * Android
-* Kotlin
-* XML
+* Flutter
+* Dart
 * Material Design
 
 ### Backend
