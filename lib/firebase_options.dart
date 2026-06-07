@@ -41,7 +41,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDdjggtO3T4kM7eM6Qa2X7HRNn2Vv08xVk',
+    apiKey: '',
     appId: '1:757551304535:web:6bc02f0ef8cee66a793812',
     messagingSenderId: '757551304535',
     projectId: 'talknow-b7b22',
@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDABNHfdz52MsNaJwlXoyvCl9GKg9rmbN8',
+    apiKey: '',
     appId: '1:757551304535:android:3167872a5292ae83793812',
     messagingSenderId: '757551304535',
     projectId: 'talknow-b7b22',
@@ -59,7 +59,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBcxj5CaH_u0yRcdMXXki7E_5tXVngQ84M',
+    apiKey: '',
     appId: '1:757551304535:ios:92377535edd933cf793812',
     messagingSenderId: '757551304535',
     projectId: 'talknow-b7b22',
@@ -68,7 +68,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBcxj5CaH_u0yRcdMXXki7E_5tXVngQ84M',
+    apiKey: '',
     appId: '1:757551304535:ios:92377535edd933cf793812',
     messagingSenderId: '757551304535',
     projectId: 'talknow-b7b22',
@@ -77,7 +77,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBDT9Fsf_T41dF9uoWewq7IEjKFJzbVfoQ',
+    apiKey: '',
     appId: '1:757551304535:web:d7d2f4eaa0f2db16793812',
     messagingSenderId: '757551304535',
     projectId: 'talknow-b7b22',
